@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon'
 import { PerspectiveCamera } from 'three';
+// import { OrbitControls } from '@three-ts/orbit-controls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 export abstract class BaseScene {
 
@@ -15,6 +17,8 @@ export abstract class BaseScene {
         this.scene = new THREE.Scene();
         this.world = new CANNON.World();
         // this.world.gravity.set(0, 0, -9.82);
+
+        const controls = new OrbitControls(camera, document.getElementById('canvas') as HTMLElement);
     }
 
     activate() {
