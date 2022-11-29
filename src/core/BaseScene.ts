@@ -18,7 +18,7 @@ export abstract class BaseScene {
         this.world = new CANNON.World();
         // this.world.gravity.set(0, 0, -9.82);
 
-        const controls = new OrbitControls(camera, document.getElementById('canvas') as HTMLElement);
+        new OrbitControls(camera, document.getElementById('canvas') as HTMLCanvasElement);
     }
 
     activate() {

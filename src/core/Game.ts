@@ -14,7 +14,7 @@ export class Game {
         this.handleResize();
 
         this.renderer = new THREE.WebGLRenderer({
-            canvas: document.getElementById('canvas') as HTMLElement,
+            canvas: document.getElementById('canvas') as HTMLCanvasElement,
         });
         this.renderer.setPixelRatio( window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
