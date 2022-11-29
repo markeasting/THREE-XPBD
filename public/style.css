@@ -1,0 +1,8 @@
+/* @TODO import style in main.ts to support hot reloading */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
