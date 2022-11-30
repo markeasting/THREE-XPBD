@@ -1,6 +1,6 @@
 import { Game } from './core/Game';
 import { MyScene } from './scenes/MyScene';
-import '../public/style.css'
+import './style.css'
 // import env from './env';
 
 window.onload = function() {
