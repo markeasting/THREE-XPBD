@@ -1,10 +1,16 @@
 import { Game } from './core/Game';
 import { MyScene } from './scenes/MyScene';
+import '../public/style.css'
+// import env from './env';
 
-const game = new Game();
+window.onload = function() {
 
-game.sceneManager.add(new MyScene, 'myScene');
+    const game = new Game('canvas');
 
-game.update(0);
+    game.sceneManager.add(new MyScene, 'myScene');
 
-(<any>window).game = game;
+    game.update(0);
+
+    (<any>window).game = game;
+
+}
