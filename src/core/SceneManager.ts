@@ -6,15 +6,11 @@ export class SceneManager {
     scenes: Array<BaseScene> = [];
     sceneMap: Record<string, number> = {};
 
-    constructor() {
-
-    }
-
-    onResize() {
+    onResize(width: number, height: number) {
         var i = 0, len = this.scenes.length;
 
         while (i < len) {
-            this.scenes[i].onResize();
+            this.scenes[i].onResize(width, height);
             i++
         }
     }
@@ -27,11 +23,18 @@ export class SceneManager {
         var i = 0, len = this.scenes.length;
 
         while (i < len) {
-            this.scenes[i].update(time, dt);
-            renderer.render(
-                this.scenes[i].scene, 
-                this.scenes[i].camera
-            );
+            const s = this.scenes[i];
+            
+            if (s.active) {
+                s.updatePhysics(time, dt);
+                s.update(time, dt);
+
+                renderer.render(
+                    s.scene, 
+                    s.camera
+                );
+            }
+
             i++
         }
     }
