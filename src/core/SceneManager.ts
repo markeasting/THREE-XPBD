@@ -3,8 +3,26 @@ import { BaseScene } from "./BaseScene";
 
 export class SceneManager {
 
-    scenes: Array<BaseScene> = [];
-    sceneMap: Record<string, number> = {};
+    private renderer: THREE.WebGLRenderer;
+
+    private scenes: Array<BaseScene> = [];
+    private sceneMap: Record<string, number> = {};
+
+    constructor(canvas: HTMLCanvasElement) {
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: canvas
+        });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+    }
+
+    fitContent() {
+        const canvas = this.renderer.domElement;
+        const width  = canvas.clientWidth;
+        const height = canvas.clientHeight;
+      
+        this.renderer.setSize(width, height, false);
+        this.onResize(width, height);
+    }
 
     onResize(width: number, height: number) {
         var i = 0, len = this.scenes.length;
@@ -16,7 +34,6 @@ export class SceneManager {
     }
 
     update(
-        renderer: THREE.WebGLRenderer, 
         time: number,
         dt: number
     ) {
@@ -29,7 +46,7 @@ export class SceneManager {
                 s.updatePhysics(time, dt);
                 s.update(time, dt);
 
-                renderer.render(
+                this.renderer.render(
                     s.scene, 
                     s.camera
                 );
@@ -39,17 +56,24 @@ export class SceneManager {
         }
     }
 
-    add(scene: BaseScene, name: string) {
-        
-        const id = this.scenes.push(scene);
-        
+    add(sceneConstructor: typeof BaseScene, name?: string) {
+
+        name = name ?? sceneConstructor.name;
+
+        const scene = new sceneConstructor();
+        scene.init();
+
+        const id = this.scenes.push(scene) - 1;
         this.sceneMap[name] = id;
+
+        this.fitContent(); // @TODO should only resize new scene, not all of them
 
         return id;
     }
 
     remove(name: string) {
-        throw new Error('Scene.remove is not implemented')
+        const id = this.sceneMap[name];
+        this.scenes.splice(id, 1);
     }
 
     activate(name: string) {

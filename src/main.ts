@@ -7,7 +7,7 @@ window.onload = function() {
 
     const game = new Game('canvas');
 
-    game.sceneManager.add(new MyScene, 'myScene');
+    game.sceneManager.add(MyScene);
 
     game.update(0);
 

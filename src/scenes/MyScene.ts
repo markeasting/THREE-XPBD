@@ -1,23 +1,22 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon'
-import { BaseScene } from '../core/BaseScene';
+import { BaseScene, SceneInterface } from '../core/BaseScene';
 
-export class MyScene extends BaseScene {
+export class MyScene extends BaseScene implements SceneInterface {
 
-    torus: THREE.Mesh;
-    sphereBody: CANNON.Body;
+    torus!: THREE.Mesh;
+    sphereBody!: CANNON.Body;
 
-    constructor() {
-        super(new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000));
-
+    override init() {
         this.camera.position.setZ(30);
+
+        this.world = new CANNON.World();
+        this.world.gravity.set(0, 0, -9.81);
          
         const geometry = new THREE.TorusGeometry(10,3,16,100)
         const material = new THREE.MeshBasicMaterial({color:0xFF6347, wireframe:true});
         this.torus = new THREE.Mesh(geometry, material);
         this.scene.add(this.torus)
-
-        this.world.gravity.set(0, 0, -9.82);
 
         this.sphereBody = new CANNON.Body({
             mass: 5,
@@ -46,9 +45,7 @@ export class MyScene extends BaseScene {
         this.world.addBody(groundBody);
     }
 
-    update(time: number, dt: number) {
-        super.update(time, dt);
-
+    override update(scene: number, dt: number) {
         this.torus.position.z = this.sphereBody.position.z;
     }
 
