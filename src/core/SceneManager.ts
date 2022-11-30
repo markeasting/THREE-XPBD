@@ -33,10 +33,11 @@ export class SceneManager {
         }
     }
 
-    update(
-        time: number,
-        dt: number
-    ) {
+    // @TODO figure out what happens when we have multiple scenes
+    // Options
+    // - Multiple THREE.Scenes with a single camera
+    // - Only ONE active scene at all times
+    update(time: number, dt: number) {
         var i = 0, len = this.scenes.length;
 
         while (i < len) {
