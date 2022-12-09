@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { BaseScene } from "./BaseScene";
+import { BaseScene } from "../scene/BaseScene";
 
 export class SceneManager {
 
@@ -8,11 +8,16 @@ export class SceneManager {
     private scenes: Array<BaseScene> = [];
     private sceneMap: Record<string, number> = {};
 
+    private activeScene: BaseScene|undefined = undefined;
+
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvas
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);
+
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     }
 
     fitContent() {
@@ -33,27 +38,17 @@ export class SceneManager {
         }
     }
 
-    // @TODO figure out what happens when we have multiple scenes
-    // Options
-    // - Multiple THREE.Scenes with a single camera
-    // - Only ONE active scene at all times
     update(time: number, dt: number) {
-        var i = 0, len = this.scenes.length;
 
-        while (i < len) {
-            const s = this.scenes[i];
-            
-            if (s.active) {
-                s.updatePhysics(time, dt);
-                s.update(time, dt);
+        const scene = this.activeScene;
 
-                this.renderer.render(
-                    s.scene, 
-                    s.camera
-                );
-            }
+        if (scene) {
+            scene.update(time, dt);
 
-            i++
+            this.renderer.render(
+                scene.scene, 
+                scene.camera
+            );
         }
     }
 
@@ -67,26 +62,37 @@ export class SceneManager {
         const id = this.scenes.push(scene) - 1;
         this.sceneMap[name] = id;
 
-        this.fitContent(); // @TODO should only resize new scene, not all of them
+        this.activate(name);
+        this.fitContent();
 
         return id;
     }
 
     remove(name: string) {
         const id = this.sceneMap[name];
+        const scene = this.scenes[id];
+
+        scene.onDeactivate();
+
         this.scenes.splice(id, 1);
     }
 
     activate(name: string) {
         const id = this.sceneMap[name];
+        const scene = this.scenes[id];
 
-        this.scenes[id].activate();
+        scene.onActivate();
+
+        this.activeScene = scene;
     }
 
     deactivate(name: string) {
         const id = this.sceneMap[name];
+        const scene = this.scenes[id];
 
-        this.scenes[id].deactivate();
+        scene.onDeactivate();
+
+        this.activeScene = undefined;
     }
 
 }
