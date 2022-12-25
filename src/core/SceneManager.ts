@@ -14,13 +14,13 @@ export class SceneManager {
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvas
         });
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setPixelRatio(1);
 
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     }
 
-    fitContent() {
+    public fitContent() {
         const canvas = this.renderer.domElement;
         const width  = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -29,7 +29,7 @@ export class SceneManager {
         this.onResize(width, height);
     }
 
-    onResize(width: number, height: number) {
+    private onResize(width: number, height: number) {
         var i = 0, len = this.scenes.length;
 
         while (i < len) {
@@ -38,11 +38,12 @@ export class SceneManager {
         }
     }
 
-    update(time: number, dt: number) {
+    public update(time: number, dt: number) {
 
         const scene = this.activeScene;
 
         if (scene) {
+            scene.updatePhysics(time, dt);
             scene.update(time, dt);
 
             this.renderer.render(
@@ -52,12 +53,11 @@ export class SceneManager {
         }
     }
 
-    add(sceneConstructor: typeof BaseScene, name?: string) {
+    public add(sceneConstructor: typeof BaseScene, name?: string) {
 
         name = name ?? sceneConstructor.name;
 
         const scene = new sceneConstructor();
-        scene.init();
 
         const id = this.scenes.push(scene) - 1;
         this.sceneMap[name] = id;
@@ -68,7 +68,7 @@ export class SceneManager {
         return id;
     }
 
-    remove(name: string) {
+    public remove(name: string) {
         const id = this.sceneMap[name];
         const scene = this.scenes[id];
 
@@ -77,19 +77,21 @@ export class SceneManager {
         this.scenes.splice(id, 1);
     }
 
-    activate(name: string) {
+    public activate(name: string) {
         const id = this.sceneMap[name];
         const scene = this.scenes[id];
 
+        scene.active = true;
         scene.onActivate();
 
         this.activeScene = scene;
     }
 
-    deactivate(name: string) {
+    public deactivate(name: string) {
         const id = this.sceneMap[name];
         const scene = this.scenes[id];
 
+        scene.active = false;
         scene.onDeactivate();
 
         this.activeScene = undefined;

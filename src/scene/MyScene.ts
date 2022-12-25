@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { PointLight } from '../light/PointLight';
-import { BaseScene, SceneInterface } from './BaseScene';
+import { BaseScene } from './BaseScene';
 
-export class MyScene extends BaseScene implements SceneInterface {
+export class MyScene extends BaseScene {
 
     override init() {
         this.camera.position.set(1, 1.5, 1.5)
