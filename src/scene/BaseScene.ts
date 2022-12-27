@@ -25,14 +25,19 @@ export class BaseScene implements SceneInterface {
 
     constructor() {
         this.scene  = new THREE.Scene();
-
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-
-        THREE.Object3D.DefaultUp.set(0, 1, 0);
-        this.camera.up.set( 0, 1, 0 );
 
         // @TODO get canvas element from somewhere
         new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
+
+        // World
+        this.world.broadphase = new CANNON.SAPBroadphase(this.world);
+        this.world.defaultContactMaterial.friction = 0;
+
+        // Align THREE and CANNON axes (z up)
+        THREE.Object3D.DefaultUp.set( 0, 0, 1 );
+        this.camera.up.set( 0, 0, 1 );
+        this.world.gravity.set(0, 0, -0.1);
     }
 
     protected insert(otherScene: BaseScene) {
