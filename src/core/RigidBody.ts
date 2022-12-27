@@ -10,6 +10,8 @@ export default class RigidBody {
     constructor(body: CANNON.Body, mesh: THREE.Mesh) {
         this.mesh = mesh;
         this.body = body;
+
+        this.mesh.castShadow = true;
     }
 
     public update() {

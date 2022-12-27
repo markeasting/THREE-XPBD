@@ -31,4 +31,5 @@ export class BaseLightingScene extends BaseScene {
         this.scene.add( ambientLight );
 
     }
+
 }

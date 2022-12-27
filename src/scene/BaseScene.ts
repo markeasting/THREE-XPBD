@@ -25,7 +25,7 @@ export class BaseScene implements SceneInterface {
 
     constructor() {
         this.scene  = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 5000);
 
         // @TODO get canvas element from somewhere
         new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);

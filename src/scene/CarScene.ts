@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon'
-import { BaseLightingScene } from './BaseLightingScene';
+import { AthmosphereScene } from './AthmosphereScene';
 import { BaseScene } from './BaseScene';
 import Car from '../entity/Car';
 import RigidBody from '../core/RigidBody';
+import { BaseLightingScene } from './BaseLightingScene';
 
 export class CarScene extends BaseScene {
 
@@ -15,7 +16,9 @@ export class CarScene extends BaseScene {
         this.camera.position.set(10, 10, 10)
         this.camera.lookAt(0,0,0);
 
-        this.insert(new BaseLightingScene);
+        // this.insert(new AthmosphereScene);
+        AthmosphereScene.add(this.scene);
+        this.scene.fog = new THREE.Fog( 0xffffff, 1, 300 );
 
         // var groundMaterial = new CANNON.Material('groundMaterial');
         // var wheelMaterial = new CANNON.Material('wheelMaterial');
