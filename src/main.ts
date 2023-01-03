@@ -8,9 +8,8 @@ window.onload = function() {
     const game = new Game('canvas');
 
     game.sceneManager.add(MyScene);
-    game.sceneManager.add(CarScene);
-
-    game.sceneManager.activate('CarScene');
+    // game.sceneManager.add(CarScene);
+    // game.sceneManager.activate('CarScene');
 
     game.update(0);
 
