@@ -14,7 +14,7 @@ export class World {
 
     }
 
-    add(body: RigidBody) {
+    public add(body: RigidBody) {
         this.bodies.push(body);
     }
 
