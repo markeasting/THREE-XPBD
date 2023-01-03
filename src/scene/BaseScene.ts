@@ -33,10 +33,10 @@ export class BaseScene implements SceneInterface {
         // this.world.broadphase = new CANNON.SAPBroadphase(this.world);
         // this.world.defaultContactMaterial.friction = 0;
 
-        // Align THREE and physics axes (z up)
-        THREE.Object3D.DefaultUp.set( 0, 0, 1 );
+        // y-up -> z up
+        // THREE.Object3D.DefaultUp.set( 0, 0, 1 );
         // this.camera.up.set( 0, 0, 1 );
-        this.world.gravity.set(0, 0, -0.1);
+        this.world.gravity.set(0, -0.1, 0);
     }
 
     protected insert(otherScene: BaseScene) {
