@@ -13,8 +13,8 @@ export class RigidBody {
     public pose: Pose;
     public prevPose: Pose;
 
-    public vel = new Vec3();
-    public omega = new Vec3();
+    public vel = new Vec3(0.0, 0.0, 0.0);
+    public omega = new Vec3(0.0, 0.0, 0.0);
 
     // private mass = 1.0;
     private invMass = 1.0;
@@ -157,7 +157,10 @@ export class RigidBody {
             this.applyRotation(dq);
     }
 
-    public integrate(h: number, gravity: Vec3): void {
+    public integrate(dt: number, gravity: Vec3): void {
+        if (!this.isDynamic)
+            return;
+
         // @TODO apply force here
         // this->vel += glm::vec3(0, this->gravity, 0) * dt;
         // this->vel += this->force * this->invMass * dt;
@@ -166,11 +169,9 @@ export class RigidBody {
         // this->applyRotation(this->omega, dt);
 
         this.prevPose.copy(this.pose);
-        this.vel.addScaledVector(gravity, h);
-        this.pose.p.addScaledVector(this.vel, h);
-        this.applyRotation(this.omega, h);
-
-        console.log(h, this.vel, this.pose.p);
+        this.vel.addScaledVector(gravity, dt);
+        this.pose.p.addScaledVector(this.vel, dt);
+        this.applyRotation(this.omega, dt);
     }
 
     public update(dt: number): void {

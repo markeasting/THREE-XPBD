@@ -16,7 +16,7 @@ export class ContactSet {
     n = new Vec3(0.0, 0.0, 0.0);
 
     /**
-     * Penetration depth?
+     * Penetration depth
      */
     d: number = 0.0;
 

@@ -1,5 +1,5 @@
-import { Quat } from "./Quaternion";
 import { Vec3 } from "./Vec3";
+import { Quat } from "./Quaternion";
 
 export class Pose {
 

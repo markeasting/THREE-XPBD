@@ -8,13 +8,18 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 20;
+    static numSubsteps = 2;
     static numPosIters = 1;
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
-        const h = dt / XPBDSolver.numSubsteps;
 
-        const collisions = this.broadPhaseCollision(bodies, dt); // Should this be h instead of dt?
+        if (dt === 0)
+            return;
+
+        // const h = dt / XPBDSolver.numSubsteps;
+        const h = (1 / 60) / XPBDSolver.numSubsteps;
+
+        const collisions = this.broadPhaseCollision(bodies, h); // Should this be h instead of dt?
 
         for (let i = 0; i < XPBDSolver.numSubsteps; i++) {
 
@@ -27,17 +32,19 @@ export class XPBDSolver {
             // for (let j = 0; j < joints.length; j++)
             //     joints[j].solvePos(h);
 
+            // (Collisions)
             for (let j = 0; j < XPBDSolver.numPosIters; j++)
-                this.solvePositions(contacts, h);
+                this.solvePositions(contacts, dt);
 
             for (let j = 0; j < bodies.length; j++)
                 bodies[j].update(h);
 
-
             // (Constraints)
             // for (let j = 0; j < joints.length; j++)
             //     joints[j].solveVel(h);
-            this.solveVelocities(contacts, h);
+
+            // (Collisions)
+            this.solveVelocities(contacts, dt);
         }
     }
 
@@ -71,10 +78,11 @@ export class XPBDSolver {
 
                                     // Assuming v is type Vertex
                                     // const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
-                                    const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
+                                    const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
 
                                     // const signedDistance = glm::dot(N, (contactPointW - B.pose.p));
-                                    const signedDistance = N.dot(contactPointW.sub(B.pose.p));
+                                    // const signedDistance = N.dot(contactPointW.sub(B.pose.p));
+                                    const signedDistance = contactPointW.sub(B.pose.p).dot(N);
 
                                     if(signedDistance < collisionMargin) {
                                         const e = 0.5; // 0.5 * (A.bounciness + B.bounciness);
@@ -127,10 +135,11 @@ export class XPBDSolver {
 
                                 // Assuming v is type Vertex
                                 // const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
-                                const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
+                                const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
 
                                 // const signedDistance = glm::dot(N, (contactPointW - B.pose.p));
-                                const signedDistance = N.dot(contactPointW.sub(B.pose.p));
+                                // const signedDistance = N.dot(contactPointW.sub(B.pose.p));
+                                const signedDistance = contactPointW.sub(B.pose.p).dot(N);
 
                                 if(signedDistance < deepestPenetration) {
                                     deepestPenetration = signedDistance;
@@ -142,12 +151,15 @@ export class XPBDSolver {
                             }
 
                             if(deepestPenetration < 0.0) {
+                                // glm::vec3 vrel = A->getVelocityAt(contactSet->p) - B->getVelocityAt(contactSet->p);
                                 const vrel = new Vec3().subVectors(
                                     A.getVelocityAt(contactSet.p),
                                     B.getVelocityAt(contactSet.p)
                                 );
 
-                                // contactSet.vn = glm::dot(contactSet.n, vrel);
+                                contactSet.vrel = vrel.clone();
+
+                                // contactSet->vn = glm::dot(contactSet->n, vrel);
                                 contactSet.vn = vrel.dot(contactSet.n);
 
                                 contactSet.e = collision.e;
@@ -174,12 +186,14 @@ export class XPBDSolver {
             if(contact.d >= 0.0)
                 continue; // Contact has been solved
 
+            console.log(contact.d);
+
             // contact.A.hasCollided = true;
             // contact.B.hasCollided = true;
 
             // glm::vec3 posCorr = -contact.d * contact.n;
-            const posCorr = new Vec3()
-                .copy(contact.n)
+            const posCorr = contact.n
+                .clone()
                 .multiplyScalar(-contact.d);
 
             this.applyBodyPairCorrection(
@@ -206,8 +220,13 @@ export class XPBDSolver {
             let dv = new Vec3();
 
             // (29) Relative velocity
-            const v = new Vec3().subVectors(contact.A.getVelocityAt(contact.p), contact.B.getVelocityAt(contact.p));
+            // const v = new Vec3().subVectors(
+            //     contact.A.getVelocityAt(contact.p),
+            //     contact.B.getVelocityAt(contact.p)
+            // );
+            const v = contact.vrel.clone();
             // const vn = glm::dot(contact.n, v);
+            // const vn = contact.n.dot(v);
             const vn = v.dot(contact.n);
 
             // glm::vec3 vt = v - (contact.n * vn);
@@ -224,12 +243,13 @@ export class XPBDSolver {
 
             // (34), restitution
             // if(vn < 0.01f) {
+                // @TODO use gravity from World
                 const e = (Math.abs(vn) > (1.0 * 9.81 * h)) ? contact.e : 0.0;
 
                 const vn_reflected = Math.max(-e * contact.vn, 0.0);
                 // dv += contact.n * (-vn + std::max(-e * contact.vn, 0.0));
                 // dv += contact.n * (vn_reflected - vn); // Remove velocity added by update step (only meaningful if no collisions have occured)
-                dv.add(new Vec3().copy(contact.n).multiplyScalar(vn_reflected - vn))
+                dv.add(contact.n.clone().multiplyScalar(vn_reflected - vn))
             // }
 
             this.applyBodyPairCorrection(
@@ -272,6 +292,8 @@ export class XPBDSolver {
         let w1 = body1 ? body1.getInverseMass(normal, pos1) : 0.0;
 
         let w = w0 + w1;
+
+        // @TODO use EPS here instead
         if (w == 0.0)
             return;
 
@@ -284,21 +306,4 @@ export class XPBDSolver {
             body1.applyCorrection(normal, pos1, velocityLevel);
         }
     }
-
-    private getQuatAxis0(q: Quat): Vec3 {
-        let x2 = q.x * 2.0;
-        let w2 = q.w * 2.0;
-        return new Vec3((q.w * w2) - 1.0 + q.x * x2, (q.z * w2) + q.y * x2, (-q.y * w2) + q.z * x2);
-    }
-    private getQuatAxis1(q: Quat): Vec3 {
-        let y2 = q.y * 2.0;
-        let w2 = q.w * 2.0;
-        return new Vec3((-q.z * w2) + q.x * y2, (q.w * w2) - 1.0 + q.y * y2, (q.x * w2) + q.z * y2);
-    }
-    private getQuatAxis2(q: Quat): Vec3 {
-        let z2 = q.z * 2.0;
-        let w2 = q.w * 2.0;
-        return new Vec3((q.y * w2) + q.x * z2, (-q.x * w2) + q.y * z2, (q.w * w2) - 1.0 + q.z * z2);
-    }
-
 }
