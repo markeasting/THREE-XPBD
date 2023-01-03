@@ -24,7 +24,7 @@ export class SceneManager {
         const canvas = this.renderer.domElement;
         const width  = canvas.clientWidth;
         const height = canvas.clientHeight;
-      
+
         this.renderer.setSize(width, height, false);
         this.onResize(width, height);
     }
@@ -47,7 +47,7 @@ export class SceneManager {
             scene.update(time, dt);
 
             this.renderer.render(
-                scene.scene, 
+                scene.scene,
                 scene.camera
             );
         }
@@ -62,6 +62,7 @@ export class SceneManager {
         const id = this.scenes.push(scene) - 1;
         this.sceneMap[name] = id;
 
+        scene.init();
         this.activate(name);
         this.fitContent();
 
