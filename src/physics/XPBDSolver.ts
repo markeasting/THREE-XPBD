@@ -255,8 +255,8 @@ export class XPBDSolver {
         corr: Vec3,
         compliance: number,
         dt: number,
-        pos0 = null,
-        pos1 = null,
+        pos0: Vec3 | null = null,
+        pos1: Vec3 | null = null,
         velocityLevel = false
     ): void
     {

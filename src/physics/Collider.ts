@@ -10,10 +10,10 @@ export class Collider {
 
     colliderType: ColliderType = ColliderType.Sphere;
 
-    polygons: Array<any>; // Array<Polygon>;
-    vertices: Array<any>; // Array<Vertex>;
-    indices: Array<number>;
-    uniqueIndices: Array<number>;
+    // polygons: Array<any> = []; // Array<Polygon>;
+    vertices: Array<any> = []; // Array<Vertex>;
+    indices: Array<number> = [];
+    uniqueIndices: Array<number> = [];
 
     relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
 

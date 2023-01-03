@@ -7,7 +7,7 @@ import { Collider } from './Collider';
 export class RigidBody {
 
     public mesh: THREE.Mesh;
-    public collider?: Collider;
+    public collider: Collider;
 
     public pose: Pose;
     public prevPose: Pose;
@@ -25,7 +25,7 @@ export class RigidBody {
 
     static maxRotationPerSubstep = 0.5;
 
-    constructor(mesh: THREE.Mesh, collider?: Collider) {
+    constructor(mesh: THREE.Mesh, collider: Collider) {
         this.mesh = mesh;
         this.collider = collider;
 
@@ -113,7 +113,7 @@ export class RigidBody {
         return vel;
     }
 
-    public getInverseMass(normal: Vec3, pos = null): number {
+    public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
         let n = new THREE.Vector3();
 
         if (pos === null)
@@ -135,7 +135,7 @@ export class RigidBody {
         return w;
     }
 
-    public applyCorrection(corr: Vec3, pos = null, velocityLevel = false): void {
+    public applyCorrection(corr: Vec3, pos: Vec3 | null = null, velocityLevel = false): void {
         let dq = new THREE.Vector3();
 
         if (pos === null)
