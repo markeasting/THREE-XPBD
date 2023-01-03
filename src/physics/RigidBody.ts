@@ -3,6 +3,7 @@ import { Pose } from './Pose';
 import { Vec3 } from './Vec3';
 import { Collider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
+import { Quat } from './Quaternion';
 
 export class RigidBody {
 
@@ -33,11 +34,12 @@ export class RigidBody {
         this.mesh = mesh;
         this.collider = collider;
 
-        this.mesh.castShadow = true;
-        // this.mesh->managedByRigidBody = true;
         this.pose = new Pose(mesh.position, mesh.quaternion);
         this.prevPose = this.pose;
 
+        // @TODO move somewhere else
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         // mesh.userData.physicsBody = this; // idk
     }
 
@@ -76,7 +78,7 @@ export class RigidBody {
         if (phi * scale > RigidBody.maxRotationPerSubstep)
             scale = RigidBody.maxRotationPerSubstep / phi;
 
-        let dq = new THREE.Quaternion(
+        let dq = new Quat(
             rot.x * scale,
             rot.y * scale,
             rot.z * scale,
@@ -103,7 +105,7 @@ export class RigidBody {
     }
 
     public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
-        let n = new THREE.Vector3();
+        let n = new Vec3();
 
         if (pos === null)
             n.copy(normal);
@@ -125,7 +127,7 @@ export class RigidBody {
     }
 
     public applyCorrection(corr: Vec3, pos: Vec3 | null = null, velocityLevel = false): void {
-        let dq = new THREE.Vector3();
+        let dq = new Vec3();
 
         if (pos === null)
             dq.copy(corr);
@@ -155,7 +157,7 @@ export class RigidBody {
             this.applyRotation(dq);
     }
 
-    public integrate(dt: number, gravity: Vec3): void {
+    public integrate(h: number, gravity: Vec3): void {
         // @TODO apply force here
         // this->vel += glm::vec3(0, this->gravity, 0) * dt;
         // this->vel += this->force * this->invMass * dt;
@@ -164,9 +166,11 @@ export class RigidBody {
         // this->applyRotation(this->omega, dt);
 
         this.prevPose.copy(this.pose);
-        this.vel.addScaledVector(gravity, dt * this.gravity);
-        this.pose.p.addScaledVector(this.vel, dt);
-        this.applyRotation(this.omega, dt);
+        this.vel.addScaledVector(gravity, h);
+        this.pose.p.addScaledVector(this.vel, h);
+        this.applyRotation(this.omega, h);
+
+        console.log(h, this.vel, this.pose.p);
     }
 
     public update(dt: number): void {
@@ -176,7 +180,7 @@ export class RigidBody {
         this.vel.subVectors(this.pose.p, this.prevPose.p);
         this.vel.multiplyScalar(1.0 / dt);
 
-        let dq = new THREE.Quaternion();
+        let dq = new Quat;
         dq.multiplyQuaternions(this.pose.q, this.prevPose.q.conjugate());
 
         this.omega.set(
@@ -198,7 +202,6 @@ export class RigidBody {
     }
 
     private updateGeometry() {
-        console.log(this.pose.p);
         this.mesh.position.copy(this.pose.p);
         this.mesh.quaternion.copy(this.pose.q);
     }
