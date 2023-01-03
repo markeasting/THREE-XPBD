@@ -1,3 +1,4 @@
+import { Vec3 } from "../physics/Vec3";
 import { SceneManager } from "./SceneManager";
 
 export class Game {
@@ -11,10 +12,10 @@ export class Game {
 
     constructor(canvasID: string) {
         this.canvas = document.getElementById(canvasID) as HTMLCanvasElement;
-        
+
         this.sceneManager = new SceneManager(this.canvas);
         this.sceneManager.fitContent();
-        
+
         window.addEventListener('resize', () => {
             this.sceneManager.fitContent();
         })
@@ -31,5 +32,4 @@ export class Game {
             this.update(time);
         });
     }
-
 }
