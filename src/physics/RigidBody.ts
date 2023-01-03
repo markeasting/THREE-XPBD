@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { Pose } from './Pose';
 import { Vec3 } from './Vec3';
-import { Quat } from './Quaternion';
 import { Collider } from './Collider';
+import { BaseScene } from '../scene/BaseScene';
 
 export class RigidBody {
 
@@ -12,14 +12,18 @@ export class RigidBody {
     public pose: Pose;
     public prevPose: Pose;
 
-    public vel = new Vec3(0.0, 0.0, 0.0);
-    public omega = new Vec3(0.0, 0.0, 0.0);
+    public vel = new Vec3();
+    public omega = new Vec3();
 
     // private mass = 1.0;
     private invMass = 1.0;
 
     // private mass = 1.0;
     private invInertia = new Vec3(1.0, 1.0, 1.0);
+
+    public force = new Vec3();
+    public torque = new Vec3();
+    public gravity = 1.0;
 
     public isDynamic = true;
 
@@ -35,6 +39,21 @@ export class RigidBody {
         this.prevPose = this.pose;
 
         // mesh.userData.physicsBody = this; // idk
+    }
+
+    public addTo(scene: BaseScene) {
+        scene.scene.add(this.mesh);
+        scene.world.add(this);
+    }
+
+    public makeStatic() {
+        this.isDynamic = false;
+        this.gravity = 0.0;
+        this.invMass = 0.0;
+        this.invInertia = new Vec3(0.0);
+
+        this.updateGeometry();
+        this.updateCollider();
     }
 
     public setBox(size: Vec3, density = 1.0): void {
@@ -72,36 +91,6 @@ export class RigidBody {
             this.pose.q.w + 0.5 * dq.w
         );
         this.pose.q.normalize();
-    }
-
-    public integrate(dt: number, gravity: Vec3): void {
-        this.prevPose.copy(this.pose);
-        this.vel.addScaledVector(gravity, dt);
-        this.pose.p.addScaledVector(this.vel, dt);
-        this.applyRotation(this.omega, dt);
-    }
-
-    public update(dt: number): void {
-        this.vel.subVectors(this.pose.p, this.prevPose.p);
-        this.vel.multiplyScalar(1.0 / dt);
-
-        let dq = new THREE.Quaternion();
-        dq.multiplyQuaternions(this.pose.q, this.prevPose.q.conjugate());
-
-        this.omega.set(
-            dq.x * 2.0 / dt,
-            dq.y * 2.0 / dt,
-            dq.z * 2.0 / dt
-        );
-
-        if (dq.w < 0.0)
-            this.omega.set(-this.omega.x, -this.omega.y, -this.omega.z);
-
-        // this.omega.multiplyScalar(1.0 - 1.0 * dt);
-        // this.vel.multiplyScalar(1.0 - 1.0 * dt);
-
-        this.mesh.position.copy(this.pose.p);
-        this.mesh.quaternion.copy(this.pose.q);
     }
 
     public getVelocityAt(pos: Vec3): Vec3 {
@@ -166,9 +155,56 @@ export class RigidBody {
             this.applyRotation(dq);
     }
 
-    // public addTo(scene: THREE.Scene, world: CANNON.World) {
-    //     scene.add(this.mesh);
-    //     world.addBody(this.body);
-    // }
+    public integrate(dt: number, gravity: Vec3): void {
+        // @TODO apply force here
+        // this->vel += glm::vec3(0, this->gravity, 0) * dt;
+        // this->vel += this->force * this->invMass * dt;
+        // this->omega += this->torque * this->invInertia * dt;
+        // this->pose.p += this->vel * dt;
+        // this->applyRotation(this->omega, dt);
+
+        this.prevPose.copy(this.pose);
+        this.vel.addScaledVector(gravity, dt * this.gravity);
+        this.pose.p.addScaledVector(this.vel, dt);
+        this.applyRotation(this.omega, dt);
+    }
+
+    public update(dt: number): void {
+        if (!this.isDynamic)
+            return;
+
+        this.vel.subVectors(this.pose.p, this.prevPose.p);
+        this.vel.multiplyScalar(1.0 / dt);
+
+        let dq = new THREE.Quaternion();
+        dq.multiplyQuaternions(this.pose.q, this.prevPose.q.conjugate());
+
+        this.omega.set(
+            dq.x * 2.0 / dt,
+            dq.y * 2.0 / dt,
+            dq.z * 2.0 / dt
+        );
+
+        if (dq.w < 0.0)
+            this.omega.set(-this.omega.x, -this.omega.y, -this.omega.z);
+
+        // this.omega.multiplyScalar(1.0 - 1.0 * dt);
+        // this.vel.multiplyScalar(1.0 - 1.0 * dt);
+
+        // @TODO maybe only update collider,
+        // leave mesh to update only once per frame (after substeps)
+        this.updateGeometry();
+        this.updateCollider();
+    }
+
+    private updateGeometry() {
+        console.log(this.pose.p);
+        this.mesh.position.copy(this.pose.p);
+        this.mesh.quaternion.copy(this.pose.q);
+    }
+
+    private updateCollider() {
+        this.collider.updateRotation(this.pose.q);
+    }
 
 }
