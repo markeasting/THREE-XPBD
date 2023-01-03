@@ -1,7 +1,8 @@
 import * as THREE from 'three'
-import * as CANNON from 'cannon'
 // import { OrbitControls } from '@three-ts/orbit-controls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { RigidBody } from '../physics/RigidBody';
+import { World } from '../physics/World';
 
 export interface SceneInterface {
     onActivate(): void;
@@ -13,15 +14,13 @@ export interface SceneInterface {
 export class BaseScene implements SceneInterface {
 
     public active: boolean = true;
-    
+
     public scene:  THREE.Scene;
     public camera: THREE.PerspectiveCamera;
 
     protected meshes: Array<THREE.Mesh> = [];
-    protected bodies: Array<CANNON.Body> = [];
 
-    protected world = new CANNON.World();
-    protected world_timeSinceLastCalled = 0;
+    public world = new World();
 
     constructor() {
         this.scene  = new THREE.Scene();
@@ -31,19 +30,19 @@ export class BaseScene implements SceneInterface {
         new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
 
         // World
-        this.world.broadphase = new CANNON.SAPBroadphase(this.world);
-        this.world.defaultContactMaterial.friction = 0;
+        // this.world.broadphase = new CANNON.SAPBroadphase(this.world);
+        // this.world.defaultContactMaterial.friction = 0;
 
-        // Align THREE and CANNON axes (z up)
+        // Align THREE and physics axes (z up)
         THREE.Object3D.DefaultUp.set( 0, 0, 1 );
-        this.camera.up.set( 0, 0, 1 );
+        // this.camera.up.set( 0, 0, 1 );
         this.world.gravity.set(0, 0, -0.1);
     }
 
     protected insert(otherScene: BaseScene) {
         this.scene.add(otherScene.scene);
     }
-    
+
     public onResize(width: number, height: number) {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
@@ -56,12 +55,12 @@ export class BaseScene implements SceneInterface {
     public update(time: number, dt: number) {}
 
     public updatePhysics(time: number, dt: number) {
-        // const t = (Date.now() / 1000);
+        this.world.update(dt);
+    }
 
-        this.world.step(dt, this.world_timeSinceLastCalled);
-
-        this.world_timeSinceLastCalled = time - this.world_timeSinceLastCalled;
-
+    public addBody(body: RigidBody) {
+        this.scene.add(body.mesh);
+        this.world.add(body);
     }
 
 }

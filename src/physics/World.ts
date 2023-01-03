@@ -14,6 +14,10 @@ export class World {
 
     }
 
+    add(body: RigidBody) {
+        this.bodies.push(body);
+    }
+
     public update(dt: number): void {
         this.solver.update(this.bodies, dt, this.gravity);
     }
