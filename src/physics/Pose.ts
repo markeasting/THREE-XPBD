@@ -39,16 +39,17 @@ export class Pose {
 
     invRotate(v: Vec3): void {
         // v = v * glm::conjugate(this->q);
-        v.applyQuaternion(this.q.conjugate())
+        const inv = this.q.clone().conjugate();
+        v.applyQuaternion(inv);
     }
 
     transform(v: Vec3): void {
-        this.rotate(v);
-        this.translate(v);
+        v.applyQuaternion(this.q);
+        v.add(this.p);
     }
 
     invTransform(v: Vec3): void {
-        this.invTranslate(v);
+        v.sub(this.p);
         this.invRotate(v);
     }
 

@@ -58,7 +58,8 @@ export class MyScene extends BaseScene {
             new MeshCollider(boxMesh.geometry)
             // new BoxCollider(new Vec3(1, 2, 1))
         )
-        box.pose.p.set(0, 0, 0.6);
+        box.setBox(new Vec3(1, 2, 1), 1);
+        box.pose.p.set(0, 0, 2);
         this.addBody(box);
 
         const ground = new RigidBody(new THREE.Mesh(

@@ -97,9 +97,12 @@ export class RigidBody {
 
     public getVelocityAt(pos: Vec3): Vec3 {
         const vel = new Vec3(0.0, 0.0, 0.0);
-        vel.subVectors(pos, this.pose.p);
-        vel.cross(this.omega);
-        vel.subVectors(this.vel, vel);
+
+        if (this.isDynamic) {
+            vel.subVectors(pos, this.pose.p);
+            vel.cross(this.omega);
+            vel.subVectors(this.vel, vel);
+        }
 
         return vel;
     }
@@ -123,7 +126,9 @@ export class RigidBody {
             n.y * n.y * this.invInertia.y +
             n.z * n.z * this.invInertia.z;
 
-        if (pos !== null)
+        // if (pos !== null)
+        //     w += this.invMass;
+        if (this.pose.p.length() > 0.0001) // from CPP
             w += this.invMass;
 
         return w;
