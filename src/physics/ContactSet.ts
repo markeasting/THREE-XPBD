@@ -22,16 +22,22 @@ export class ContactSet {
 
     /**
      * Penetration depth
+     * 
+     * Recalculated each position solve!
      */
     d: number = 0.0;
 
     /**
      * Relative velocity
+     * 
+     * Recalculated each velocity solve!
      */
     vrel = new Vec3(0.0, 0.0, 0.0);
 
     /**
      * Normal velocity
+     * 
+     * Recalculated each velocity solve!
      */
     vn: number = 0;
 

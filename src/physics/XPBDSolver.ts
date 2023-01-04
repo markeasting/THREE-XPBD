@@ -8,7 +8,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 1;
+    static numSubsteps = 20;
     static numPosIters = 1;
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
@@ -190,14 +190,20 @@ export class XPBDSolver {
 
         for (const contact of contacts) {
 
+            // @TODO recalculate p and D properly
+            const A = contact.A;
+            const B = contact.B;
+            const contactPointW = CoordinateSystem.localToWorld(contact.pLocal, A.pose.q, A.pose.p);
+            const d = contactPointW.clone().sub(B.pose.p).dot(contact.n);
+            contact.d = d;
+            contact.p = contactPointW;
+
             if(contact.d >= 0.0)
                 continue; // Contact has been solved
 
-            // glm::vec3 posCorr = -contact.d * contact.n;
             const posCorr = contact.n
                 .clone()
                 .multiplyScalar(-contact.d)
-                // .multiplyScalar(1/XPBDSolver.numSubsteps)
 
             this.applyPositionSolve(
                 contact,
@@ -226,8 +232,8 @@ export class XPBDSolver {
             const vn = v.dot(contact.n);
 
             // glm::vec3 vt = v - (contact->n * vn);
-            // const vt = v.clone().add(contact.n.clone().multiplyScalar(vn));
-            const vt = v.clone().sub(contact.n.clone().multiplyScalar(vn));
+            const vt = v.clone().add(contact.n.clone().multiplyScalar(vn));
+            // const vt = v.clone().sub(contact.n.clone().multiplyScalar(vn));
             const vt_length = vt.length();
 
             // (30) Friction
@@ -235,7 +241,10 @@ export class XPBDSolver {
                 const Fn = -contact.lambdaN / (h * h);
                 // console.log(Fn, 1/contact.A.invMass);
                 // dv -= glm::normalize(vt) * std::min((float) h * contact.friction * Fn, vt_length);
-                dv.sub(vt.clone().normalize().multiplyScalar(Math.min((h * contact.friction * Fn), vt_length)))
+                const dvFriction = vt.clone()
+                    .normalize()
+                    .multiplyScalar(Math.min((h * contact.friction * Fn), vt_length));
+                dv.sub(dvFriction)
             }
 
             // (31, 32) @TODO dampening
