@@ -12,8 +12,10 @@ export class Collider {
 
     // polygons: Array<any> = []; // Array<Polygon>;
     vertices: Array<Vec3> = []; // Array<Vertex>;
-    indices: Uint16Array = new Uint16Array();
-    uniqueIndices: Uint16Array = new Uint16Array();
+    // indices: Uint16Array = new Uint16Array();
+    // uniqueIndices: Uint16Array = new Uint16Array();
+    indices: Array<number> = [];
+    uniqueIndices: Array<number> = [];
 
     relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
 
@@ -22,7 +24,7 @@ export class Collider {
     }
 
     public updateRotation(q: Quat): void {
-
+        // console.log('updateRotation not implemented')
     }
 
 };
@@ -79,27 +81,54 @@ export class MeshCollider extends Collider {
 
     override setGeometry(geometry: THREE.BufferGeometry): void {
 
-        const v = new Vec3();
-        const vPositions = geometry.attributes.position.array as Float32Array;
-        const indices = geometry.index?.array as Uint16Array;
+        // const v = new Vec3();
+        // const vPositions = [...geometry.attributes.position.array as Float32Array] as Array<number>;
+        // const indices = geometry.index?.array as Uint16Array;
 
-        for (const v of vPositions) {
-            const vertex = new Vec3().fromArray(vPositions, 1 * 3);
-            this.vertices.push(vertex);
-        }
+        // // const epsilon = Number.EPSILON * 2;
+        // // const uniqueVertices = vPositions.sort().filter((item, index, self) => {
+        // //     // Check if the item is a number and if it is outside of the threshold
+        // //     if (Math.abs(item - Math.round(self[index - 1])) > epsilon) {
+        // //         // Check if the item is not already in the array
+        // //         return self.indexOf(item) === index;
+        // //     }
+        // //     return false;
+        // // });
 
-        if(indices.length > 0) {
-            this.indices = indices; // not sure if correct
-            this.uniqueIndices = this.indices.filter((v, i, a) => a.indexOf(v) === i);
-        }
-        // } else if (geometry.vertices.size() > 0) {
+        // // console.log(uniqueVertices);
 
-        //     for (int i = 0; i < geometry.vertices.size(); i++) {
-        //         std::cout << "Generating collider indices #INEFFICIENT" << std::endl;
-        //         this->indices.push_back(i);
-        //         this->uniqueIndices.push_back(i);
-        //     }
-
+        // for (let i = 0; i < vPositions.length / 3; i++) {
+        //     const vertex = new Vec3().fromArray(vPositions, i * 3);
+        //     this.vertices.push(vertex);
         // }
+
+        // if(indices.length > 0) {
+        //     this.indices = indices; // not sure if correct
+        //     this.uniqueIndices = this.indices.filter((v, i, a) => a.indexOf(v) === i);
+        // }
+        // // } else if (geometry.vertices.size() > 0) {
+
+        // //     for (int i = 0; i < geometry.vertices.size(); i++) {
+        // //         std::cout << "Generating collider indices #INEFFICIENT" << std::endl;
+        // //         this->indices.push_back(i);
+        // //         this->uniqueIndices.push_back(i);
+        // //     }
+
+        // // }
+
+        // HACKED
+        this.vertices = [
+            new Vec3(-0.5, 1, 0.5 ),
+            new Vec3(-0.5, -1, 0.5 ),
+            new Vec3(0.5, 1, 0.5 ),
+            new Vec3(0.5, -1, 0.5 ),
+            new Vec3(0.5, 1, -0.5 ),
+            new Vec3(0.5, -1, -0.5 ),
+            new Vec3(-0.5, 1, -0.5 ),
+            new Vec3(-0.5, -1, -0.5 ),
+        ];
+
+        this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+        this.uniqueIndices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
     }
 };

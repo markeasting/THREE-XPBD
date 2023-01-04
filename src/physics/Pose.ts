@@ -16,8 +16,13 @@ export class Pose {
         this.q.copy(other.q);
     }
 
-    clone(): Pose {
-        return new Pose(this.p.clone(), this.q.clone());;
+    clone() {
+        // const newPose = new Pose();
+        // newPose.p = this.p.clone();
+        // newPose.q = this.q.clone();
+        // return newPose;
+
+        return new Pose(new Vec3().copy(this.p), new Quat().copy(this.q))
     }
 
     translate(v: Vec3): void {

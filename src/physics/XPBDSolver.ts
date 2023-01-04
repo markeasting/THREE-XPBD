@@ -8,13 +8,13 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 2;
+    static numSubsteps = 1;
     static numPosIters = 1;
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
 
-        if (dt === 0)
-            return;
+        // if (dt === 0)
+        //     return;
 
         // const h = dt / XPBDSolver.numSubsteps;
         const h = (1 / 60) / XPBDSolver.numSubsteps;
@@ -60,7 +60,7 @@ export class XPBDSolver {
 
                 // k*dt*vbody (3.5)
                 // const float collisionMargin = 2.0f * (float) dt * glm::length(A.vel - B.vel);
-                const collisionMargin = 2.0 * dt * A.vel.sub(B.vel).length();
+                const collisionMargin = 2.0 * dt * new Vec3().subVectors(A.vel, B.vel).length();
 
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
@@ -76,7 +76,6 @@ export class XPBDSolver {
                                 for(let i = 0; i < MC.uniqueIndices.length; i++) {
                                     const v = MC.vertices[MC.uniqueIndices[i]];
 
-                                    // Assuming v is type Vertex
                                     // const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
                                     const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
 
@@ -157,7 +156,7 @@ export class XPBDSolver {
                                     B.getVelocityAt(contactSet.p)
                                 );
 
-                                contactSet.vrel = vrel.clone();
+                                contactSet.vrel = vrel;
 
                                 // contactSet->vn = glm::dot(contactSet->n, vrel);
                                 contactSet.vn = vrel.dot(contactSet.n);
@@ -174,7 +173,12 @@ export class XPBDSolver {
                     }
                 break;
             }
+
+            // Only solve 1 contact at a time
+            break; 
         }
+
+        console.log(contacts[0]);
 
         return contacts;
     }
@@ -186,8 +190,6 @@ export class XPBDSolver {
             if(contact.d >= 0.0)
                 continue; // Contact has been solved
 
-            console.log(contact.d);
-
             // contact.A.hasCollided = true;
             // contact.B.hasCollided = true;
 
@@ -195,6 +197,8 @@ export class XPBDSolver {
             const posCorr = contact.n
                 .clone()
                 .multiplyScalar(-contact.d);
+
+            console.log(contact.d, posCorr);
 
             this.applyBodyPairCorrection(
                 contact.A,
@@ -249,8 +253,10 @@ export class XPBDSolver {
                 const vn_reflected = Math.max(-e * contact.vn, 0.0);
                 // dv += contact.n * (-vn + std::max(-e * contact.vn, 0.0));
                 // dv += contact.n * (vn_reflected - vn); // Remove velocity added by update step (only meaningful if no collisions have occured)
-                dv.add(contact.n.clone().multiplyScalar(vn_reflected - vn))
+                dv.add(new Vec3().copy(contact.n).multiplyScalar(vn_reflected - vn))
             // }
+
+            console.log('dv', dv);
 
             this.applyBodyPairCorrection(
                 contact.A,
