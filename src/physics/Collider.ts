@@ -19,10 +19,6 @@ export class Collider {
 
     relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
 
-    public setGeometry(geometry: THREE.BufferGeometry): void {
-        console.log('Not supported');
-    }
-
     public updateRotation(q: Quat): void {
         // console.log('updateRotation not implemented')
     }
@@ -75,13 +71,14 @@ export class SphereCollider extends Collider {
 export class MeshCollider extends Collider {
     colliderType = ColliderType.ConvexMesh;
 
-    constructor(geometry: THREE.BufferGeometry) {
+    constructor(whichOne: 'box'|'tetra') {
         super();
 
-        this.setGeometry(geometry);
+        this.setGeometry(whichOne);
     }
 
-    override setGeometry(geometry: THREE.BufferGeometry): void {
+    // override setGeometry(geometry: THREE.BufferGeometry): void {
+    setGeometry(whichOne: 'box'|'tetra'): void {
 
         // const v = new Vec3();
         // const vPositions = [...geometry.attributes.position.array as Float32Array] as Array<number>;
@@ -118,19 +115,44 @@ export class MeshCollider extends Collider {
 
         // // }
 
-        // HACKED
-        this.vertices = [
-            new Vec3(-0.5, 1, 0.5 ),
-            new Vec3(-0.5, -1, 0.5 ),
-            new Vec3(0.5, 1, 0.5 ),
-            new Vec3(0.5, -1, 0.5 ),
-            new Vec3(0.5, 1, -0.5 ),
-            new Vec3(0.5, -1, -0.5 ),
-            new Vec3(-0.5, 1, -0.5 ),
-            new Vec3(-0.5, -1, -0.5 ),
-        ];
+        // HACKED cube
+        if (whichOne == 'box') {
+            this.vertices = [
+                new Vec3(-0.5, 1, 0.5 ),
+                new Vec3(-0.5, -1, 0.5 ),
+                new Vec3(0.5, 1, 0.5 ),
+                new Vec3(0.5, -1, 0.5 ),
+                new Vec3(0.5, 1, -0.5 ),
+                new Vec3(0.5, -1, -0.5 ),
+                new Vec3(-0.5, 1, -0.5 ),
+                new Vec3(-0.5, -1, -0.5 ),
+            ];
 
-        this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
-        this.uniqueIndices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+            this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+            this.uniqueIndices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+        }
+
+        // HACKED tetra
+        if (whichOne == 'tetra') {
+            const size = 1;
+            const sqrt8over9 = 0.9428090415820633658 * size;
+            const sqrt2over9 = 0.4714045207910316829 * size;
+            const sqrt2over3 = 0.8164965809277260327 * size;
+            const oneThird = 0.333333333333333333 * size;
+
+            this.vertices = [
+                new Vec3(0, -oneThird, sqrt8over9),
+                new Vec3(sqrt2over3, -oneThird, -sqrt2over9), 
+                new Vec3(-sqrt2over3, -oneThird, -sqrt2over9),
+                new Vec3(0, size, 0),
+            ];
+
+            this.uniqueIndices = [
+                2, 1, 0,
+                1, 2, 3,
+                0, 3, 2,
+                1, 3, 0
+            ];
+        }
     }
 };
