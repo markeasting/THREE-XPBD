@@ -22,6 +22,8 @@ export class AthmosphereScene extends BaseScene {
 
         const ground = new THREE.Mesh( groundGeo, groundMat );
         ground.receiveShadow = true;
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.z = 0;
         scene.add( ground );
         
         // Fog (doesnt work here? But does in parent scene?)

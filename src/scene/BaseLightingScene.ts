@@ -13,8 +13,8 @@ export class BaseLightingScene extends BaseScene {
                 color: 0x444444, 
             })
         );
-        // ground.rotation.x = -Math.PI / 2;
-        // ground.position.z = 0;
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.z = 0;
         this.scene.add( ground )
 
         const p1 = new PointLight(this.scene, 0xf2ddc5);
