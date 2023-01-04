@@ -8,7 +8,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 1;
+    static numSubsteps = 5;
     static numPosIters = 1;
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
@@ -34,7 +34,7 @@ export class XPBDSolver {
 
             // (Collisions)
             for (let j = 0; j < XPBDSolver.numPosIters; j++)
-                this.solvePositions(contacts, dt);
+                this.solvePositions(contacts, h);
 
             for (let j = 0; j < bodies.length; j++)
                 bodies[j].update(h);
@@ -44,7 +44,7 @@ export class XPBDSolver {
             //     joints[j].solveVel(h);
 
             // (Collisions)
-            this.solveVelocities(contacts, dt);
+            this.solveVelocities(contacts, h);
         }
     }
 
@@ -175,10 +175,8 @@ export class XPBDSolver {
             }
 
             // Only solve 1 contact at a time
-            break; 
+            break;
         }
-
-        console.log(contacts[0]);
 
         return contacts;
     }
@@ -197,8 +195,6 @@ export class XPBDSolver {
             const posCorr = contact.n
                 .clone()
                 .multiplyScalar(-contact.d);
-
-            console.log(contact.d, posCorr);
 
             this.applyBodyPairCorrection(
                 contact.A,
@@ -230,7 +226,6 @@ export class XPBDSolver {
             // );
             const v = contact.vrel.clone();
             // const vn = glm::dot(contact.n, v);
-            // const vn = contact.n.dot(v);
             const vn = v.dot(contact.n);
 
             // glm::vec3 vt = v - (contact.n * vn);
@@ -255,8 +250,6 @@ export class XPBDSolver {
                 // dv += contact.n * (vn_reflected - vn); // Remove velocity added by update step (only meaningful if no collisions have occured)
                 dv.add(new Vec3().copy(contact.n).multiplyScalar(vn_reflected - vn))
             // }
-
-            console.log('dv', dv);
 
             this.applyBodyPairCorrection(
                 contact.A,
@@ -297,6 +290,9 @@ export class XPBDSolver {
         let w0 = body0 ? body0.getInverseMass(normal, pos0) : 0.0;
         let w1 = body1 ? body1.getInverseMass(normal, pos1) : 0.0;
 
+        // if (isNaN(w0)) w0 = 0;
+        // if (isNaN(w1)) w1 = 0;
+
         let w = w0 + w1;
 
         // @TODO use EPS here instead
@@ -305,6 +301,7 @@ export class XPBDSolver {
 
         let lambda = -C / (w + compliance / dt / dt);
         normal.multiplyScalar(-lambda);
+
         if (body0)
             body0.applyCorrection(normal, pos0, velocityLevel);
         if (body1) {

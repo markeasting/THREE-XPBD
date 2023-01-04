@@ -105,6 +105,9 @@ export class RigidBody {
     }
 
     public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
+        if (!this.isDynamic)
+            return 0;
+
         let n = new Vec3();
 
         if (pos === null)
@@ -129,10 +132,8 @@ export class RigidBody {
     public applyCorrection(corr: Vec3, pos: Vec3 | null = null, velocityLevel = false): void {
         if (!this.isDynamic)
             return;
-            
-        let dq = new Vec3();
 
-        console.log('pose pre corr', JSON.stringify(this.pose.p));
+        let dq = new Vec3();
 
         if (pos === null)
             dq.copy(corr);
@@ -146,16 +147,12 @@ export class RigidBody {
             dq.cross(corr);
         }
 
-        console.log('pose post corr', JSON.stringify(this.pose.p));
-
         this.pose.invRotate(dq);
-
         dq.set(
             this.invInertia.x * dq.x,
             this.invInertia.y * dq.y,
             this.invInertia.z * dq.z
         );
-
         this.pose.rotate(dq);
 
         if (velocityLevel)
@@ -179,20 +176,14 @@ export class RigidBody {
         this.vel.addScaledVector(gravity, dt);
         this.pose.p.addScaledVector(this.vel, dt);
         this.applyRotation(this.omega, dt);
-        
-        console.log('umm 0', JSON.stringify(this.pose.p));
     }
 
     public update(dt: number): void {
         if (!this.isDynamic)
             return;
 
-        // Suddenly, pose has null values here
-        console.log('umm 1', JSON.stringify(this.pose));
-            
         this.vel.subVectors(this.pose.p, this.prevPose.p);
         this.vel.multiplyScalar(1.0 / dt);
-        console.log('v', JSON.stringify(this.vel));
 
         let dq = new Quat;
         dq.multiplyQuaternions(this.pose.q, this.prevPose.q.conjugate());
@@ -211,7 +202,6 @@ export class RigidBody {
 
         // @TODO maybe only update collider,
         // leave mesh to update only once per frame (after substeps)
-        console.log('umm 2', JSON.stringify(this.pose.p));
         this.updateGeometry();
         this.updateCollider();
     }
