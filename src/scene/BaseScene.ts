@@ -2,6 +2,7 @@ import * as THREE from 'three'
 // import { OrbitControls } from '@three-ts/orbit-controls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RigidBody } from '../physics/RigidBody';
+import { Vec3 } from '../physics/Vec3';
 import { World } from '../physics/World';
 
 export interface SceneInterface {
@@ -23,12 +24,20 @@ export class BaseScene implements SceneInterface {
     public world = new World();
 
     constructor() {
+        
         this.scene  = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 5000);
 
-        // @TODO get canvas element from somewhere
-        new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
+        const controls = new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
 
+        if (localStorage.getItem('cam')) {
+            const state = JSON.parse(localStorage.getItem('cam')!);
+            this.camera.position.copy(state.pos);
+            controls.target.copy(state.target);
+            controls.update();
+        } else {
+            this.camera.position.set(2, 5, 1);
+        }
         // World
         // this.world.broadphase = new CANNON.SAPBroadphase(this.world);
         // this.world.defaultContactMaterial.friction = 0;
@@ -36,10 +45,18 @@ export class BaseScene implements SceneInterface {
         // y-up -> z up
         // THREE.Object3D.DefaultUp.set( 0, 0, 1 );
         // this.camera.up.set( 0, 0, 1 );
+
+        document.addEventListener('mouseup', () => {
+            localStorage.setItem('cam', JSON.stringify({
+                pos: this.camera.position,
+                target: new Vec3(0, 1, 0)
+            }))
+        })
     }
 
-    protected insert(otherScene: BaseScene) {
-        this.scene.add(otherScene.scene);
+    protected insert(otherScene: THREE.Scene) {
+        this.scene.add(otherScene);
+        this.scene.fog = otherScene.fog; // Nice hack 
     }
 
     public onResize(width: number, height: number) {
