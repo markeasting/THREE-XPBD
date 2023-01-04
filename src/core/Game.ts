@@ -20,10 +20,10 @@ export class Game {
             this.sceneManager.fitContent();
         })
 
-        window.addEventListener('keyup', (e) => {
-            if (e.code == 'Space')
-                this.update(1 / 60);
-        })
+        // window.addEventListener('keyup', (e) => {
+        //     if (e.code == 'Space')
+        //         this.update(1 / 60);
+        // })
     }
 
     update(time: DOMHighResTimeStamp) {
@@ -33,8 +33,8 @@ export class Game {
 
         this.sceneManager.update(this.time, this.dt);
 
-        // requestAnimationFrame(time => {
-        //     this.update(time);
-        // });
+        requestAnimationFrame(time => {
+            this.update(time);
+        });
     }
 }
