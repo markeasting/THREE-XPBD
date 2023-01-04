@@ -39,7 +39,7 @@
 
     void main() {
 
-      float h = normalize( vWorldPosition + offset ).z;
+      float h = normalize( vWorldPosition + offset ).y;
       gl_FragColor = vec4( mix( 
         bottomColor, 
         topColor, 

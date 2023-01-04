@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>PBD Body Chain</title>
+		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            th, td {
+                padding: 2px;
+            }
+            body {
+                padding: 10px 50px;
+                font-family: verdana; 
+                line-height: 1.5;
+                font-size: 15px;
+            }
+            h1 {
+                font-family: verdana; 
+            }
+            #gui {
+                padding: 10px;
+            }
+            .button {
+              background-color: #555555;
+              border: none;
+              color: white;
+              padding: 8px 8px;
+              border-radius: 5px;
+              text-align: center;
+              text-decoration: none;
+              display: inline-block;
+              font-size: 16px;
+            }
+            .slider {
+              -webkit-appearance: none;
+              width: 80px;
+              height: 6px;
+              border-radius: 5px;
+              background: #d3d3d3;
+              outline: none;
+              opacity: 0.7;
+              -webkit-transition: .2s;
+              transition: opacity .2s;
+            }
+            .slider:hover {
+              opacity: 1;
+            }
+            .slider::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 15px;
+              height: 15px;
+              border-radius: 50%;
+              background: #202020;
+              cursor: pointer;
+            }
+            </style>        
+	</head>
+	
+	<body>
+
+        <h1>Chain of 100 Bodies</h1> Matthias M&uuml;ller, Nvidia
+        <br> <br>       
+        The challenge is to simulate a chain of 99 small boxes and one 100x the weight at the bottom.<br><br>
+        These are the specs:
+        <ul>
+            <li>Small boxes: 2cm x 4cm x 2cm, big box: 20cm x 4cm x 20cm</li>
+            <li>Gravity = -10 m/s^2</li>
+            <li>Joints attached alternating to opposite corners</li>
+            <li>Time step = 1/60s</li>
+        </ul>
+
+        Grab the boxes if you can. Hit [F5] to restart. <br> <br>
+          
+        <div id="container"></div>
+        
+        <a href = "https://github.com/matthias-research/pages/blob/master/challenges/PBD.js" class ="button" target = "_blank">PBD.js</a>        
+        <a href = "https://github.com/matthias-research/pages/blob/master/challenges/bodyChainPBD.html" class ="button" target = "_blank">bodyChainPBD.html</a>        
+
+		<script src="https://threejs.org/build/three.js"></script>
+
+		<script src="PBD.js"></script>
+
+		<script type="module">
+			
+			// physics scene
+
+			var gravity = new THREE.Vector3(0.0, -10.0, 0.0);
+			var numSubsteps = 40;
+			var timeStep = 1.0 / 60.0;
+
+			var numObjects = 100;
+			var objectsSize = new THREE.Vector3(0.02, 0.04, 0.02);
+			var lastObjectsSize = new THREE.Vector3(0.2, 0.04, 0.2);
+
+			var rotDamping = 1000.0;
+            var posDamping = 1000.0;
+
+			var bodies = [];
+			var joints = [];
+
+			// visual scene
+
+			var scene;
+			var camera;
+			var renderer;
+			var container = document.getElementById( 'container' );
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var grabDistance = 0.0;
+			var grabJoint = null;
+
+			var raycaster = new THREE.Raycaster();
+			raycaster.layers.set( 1 );
+			raycaster.params.Mesh.threshold = 3;
+
+			var mousePos = new THREE.Vector2();
+			var mouseDown = false;
+			var cameraLookAt = new THREE.Vector3(0.0, 3.0, 0.0);
+			var camPosition = new THREE.Vector3(0.0, 3.0, 4.0);
+			var cameraDirX = new THREE.Vector3(0.0, 0.0, 0.0);
+			var cameraDirY = new THREE.Vector3(0.0, 0.0, 0.0);
+			var cameraDirZ = new THREE.Vector3(0.0, 0.0, 0.0);
+					
+			function init() {
+			
+				scene = new THREE.Scene();
+				
+				// Lights
+				
+				scene.add( new THREE.AmbientLight( 0x505050 ) );	
+				scene.fog = new THREE.Fog( 0x000000, 0, 15 );				
+
+				var spotLight = new THREE.SpotLight( 0xffffff );
+				spotLight.angle = Math.PI / 5;
+				spotLight.penumbra = 0.2;
+				spotLight.position.set( 2, 3, 3 );
+				spotLight.castShadow = true;
+				spotLight.shadow.camera.near = 3;
+				spotLight.shadow.camera.far = 10;
+				spotLight.shadow.mapSize.width = 1024;
+				spotLight.shadow.mapSize.height = 1024;
+				scene.add( spotLight );
+
+				var dirLight = new THREE.DirectionalLight( 0x55505a, 1 );
+				dirLight.position.set( 0, 3, 0 );
+				dirLight.castShadow = true;
+				dirLight.shadow.camera.near = 1;
+				dirLight.shadow.camera.far = 10;
+
+				dirLight.shadow.camera.right = 1;
+				dirLight.shadow.camera.left = - 1;
+				dirLight.shadow.camera.top	= 1;
+				dirLight.shadow.camera.bottom = - 1;
+
+				dirLight.shadow.mapSize.width = 1024;
+				dirLight.shadow.mapSize.height = 1024;
+				scene.add( dirLight );
+				
+				// Geometry
+
+				var material = new THREE.MeshPhongMaterial( {
+					color: 0x80ee10,
+					shininess: 100,
+					side: THREE.DoubleSide
+				} );
+
+				var ground = new THREE.Mesh(
+					new THREE.PlaneBufferGeometry( 20, 20, 1, 1 ),
+					new THREE.MeshPhongMaterial( { color: 0xa0adaf, shininess: 150 } )
+				);
+
+				ground.rotation.x = - Math.PI / 2; // rotates X/Y to X/Z
+				ground.receiveShadow = true;
+				scene.add( ground );
+				
+				var helper = new THREE.GridHelper( 20, 20 );
+				helper.material.opacity = 0.5;
+				helper.material.transparent = true;
+				helper.position.set(0, 0.001, 0);
+				scene.add( helper );				
+				
+				// Renderer
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.shadowMap.enabled = true;
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( 0.8 * window.innerWidth, 0.5 * window.innerHeight );
+				window.addEventListener( 'resize', onWindowResize, false );
+				container.appendChild( renderer.domElement );
+				
+				// Camera
+						
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 100);
+				camera.position.set( camPosition.x, camPosition.y, camPosition.z );				
+				camera.lookAt(cameraLookAt);
+				camera.updateMatrixWorld();	
+				
+				scene.add( camera );
+
+				createObjects();
+
+				// interaction
+
+				container.addEventListener( 'mousedown', onMouse, false );
+				container.addEventListener( 'mousemove', onMouse, false );
+				container.addEventListener( 'mouseup', onMouse, false );
+				container.addEventListener( 'wheel', onWheel, false );
+				container.addEventListener( 'touchstart', onTouch, false );
+				container.addEventListener( 'touchend', onTouch, false );
+				container.addEventListener( 'touchmove', onTouch, false );			
+			}
+
+			// create objects  -----------------------------------------------------------
+
+			function createObjects() {
+                
+                let pos = new THREE.Vector3(0.0, (numObjects * objectsSize.y + lastObjectsSize.y) * 1.4 + 0.2, 0.0);
+				let pose = new PBD.Pose();
+				let lastBody = null;
+				let jointPose0 = new PBD.Pose();
+                let jointPose1 = new PBD.Pose();
+                jointPose0.q.setFromAxisAngle(new THREE.Vector3(0.0, 0.0, 1.0), 0.5 * Math.PI)
+                jointPose1.q.setFromAxisAngle(new THREE.Vector3(0.0, 0.0, 1.0), 0.5 * Math.PI)
+				let lastSize = objectsSize.clone();
+								
+				for (let i = 0; i < numObjects; i++) {                
+
+					let size = i < numObjects - 1 ? objectsSize : lastObjectsSize;
+
+					// graphics
+
+					let boxVis = new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial({color: 0xf78a1d}));
+					boxVis.scale.set(size.x, size.y, size.z);
+					boxVis.name = "box " + i;
+					boxVis.layers.enable(1);
+					boxVis.castShadow = true;
+					boxVis.receiveShadow = true;
+
+					scene.add(boxVis);
+
+					// physics
+
+					pose.p.set(pos.x, pos.y - i * objectsSize.y, pos.z);
+
+					let boxBody = new PBD.Body(pose, boxVis);
+					boxBody.setBox(size);
+					bodies.push(boxBody);
+										
+					let s = i % 2 == 0 ? -0.5 : 0.5;
+                    jointPose0.p.set(s * size.x, 0.5 * size.y, s * size.z);
+					jointPose1.p.set( s * lastSize.x, -0.5 * lastSize.y, s * lastSize.z);
+
+					if (!lastBody) {
+						jointPose1.copy(jointPose0);
+						jointPose1.p.add(pose.p);
+					}
+
+					let joint = new PBD.Joint(PBD.JointType.SPHERICAL, boxBody, lastBody, jointPose0, jointPose1);
+					joint.rotDamping = rotDamping;
+                    joint.posDamping = posDamping;
+                    joints.push(joint);
+					
+					lastBody = boxBody;
+					lastSize.copy(size);
+				}
+			}	
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+				requestAnimationFrame( animate );
+				render();
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+				PBD.simulate(bodies, joints, timeStep, numSubsteps, gravity);
+			}			
+
+			// scene interaction -----------------------------------------------------------
+
+			function handleCameraMotion(dx, dy) {
+				let scale = 0.01;
+				let prev = camera.position.distanceTo(cameraLookAt);
+				cameraDirZ.subVectors(cameraLookAt, camera.position);
+				cameraDirX.set(cameraDirZ.z, 0.0, -cameraDirZ.x, 0.0);
+				cameraDirX.normalize();
+				cameraDirY.crossVectors(cameraDirZ, cameraDirX);
+				cameraDirY.normalize();
+				camera.position.addScaledVector(cameraDirX, scale * dx);
+				camera.position.addScaledVector(cameraDirY, scale * dy);
+				cameraDirZ.subVectors(cameraLookAt, camera.position);
+				cameraDirZ.normalize();
+				let delta = camera.position.distanceTo(cameraLookAt) - prev;
+				camera.position.addScaledVector(cameraDirZ, -delta);
+				camera.lookAt(cameraLookAt);
+			}
+
+			function handleCameraZoom(d) {
+				let scale = 1.0 - 0.003 * d;
+				let dist = camera.position.distanceTo(cameraLookAt);
+				if (d > 0.0 && dist < 0.2 || d < 0.0 && dist > 5.0)
+					return;
+
+				camera.position.set(
+					cameraLookAt.x + (camera.position.x - cameraLookAt.x) * scale,				
+					cameraLookAt.y + (camera.position.y - cameraLookAt.y) * scale,				
+					cameraLookAt.z + (camera.position.z - cameraLookAt.z) * scale);	
+				camera.updateMatrixWorld();
+			}
+
+			function startGrab(x, y) {
+                var rect = renderer.domElement.getBoundingClientRect();	
+				mousePos.x = ((x - rect.left) / rect.width ) * 2 - 1;
+				mousePos.y = -((y - rect.top) / rect.height ) * 2 + 1;
+				raycaster.setFromCamera( mousePos, camera );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				if (intersects.length > 0) {
+					let body = intersects[0].object.userData.physicsBody;	
+					grabDistance = intersects[0].distance;
+					let pose0 = new PBD.Pose();
+					let pose1 = new PBD.Pose();
+
+					let hit = raycaster.ray.origin.clone();
+					hit.addScaledVector(raycaster.ray.direction, grabDistance);
+					pose1.p.copy(hit);
+					body.pose.invTransform(hit);
+					pose0.p.copy(hit);					
+					grabJoint = new PBD.Joint(PBD.JointType.SPHERICAL, body, null, pose0, pose1);
+					grabJoint.compliance = 10.0;
+					joints.push(grabJoint);
+				}
+			}
+
+			function moveGrabbed(x, y) {
+				if (!grabJoint)
+					return;					
+
+                var rect = renderer.domElement.getBoundingClientRect();	
+				mousePos.x = ((x - rect.left) / rect.width ) * 2 - 1;
+				mousePos.y = -((y - rect.top) / rect.height ) * 2 + 1;
+				raycaster.setFromCamera( mousePos, camera );
+				grabJoint.localPose1.p.copy(raycaster.ray.origin);
+				grabJoint.localPose1.p.addScaledVector(raycaster.ray.direction, grabDistance);
+			}
+
+			function endGrab() {
+				if (grabJoint) {
+					joints.pop();
+					grabJoint = null;
+				}
+			}
+						
+			
+			function onMouse( evt ) 
+			{
+				event.preventDefault();
+				if (evt.type == "mousedown") {
+					startGrab(evt.clientX, evt.clientY);
+					mouseDown = true;
+				}
+				else if (evt.type == "mousemove" && mouseDown) {
+					if (grabJoint)
+						moveGrabbed(evt.clientX, evt.clientY);
+					else
+						handleCameraMotion(evt.movementX, evt.movementY);
+				}
+				else if (evt.type == "mouseup" || evt.type == "mouseout") {
+					mouseDown = false;
+					endGrab();
+				}
+			}
+
+			function onWheel( evt ) 
+			{
+				handleCameraZoom(-evt.deltaY * 0.1 );
+			}
+
+			var touchCoords = [ { x : 0.0, y : 0.0}, { x : 0.0, y : 0.0}];
+
+			function onTouch( evt ) {
+				event.preventDefault();
+
+				if (evt.type == "touchdown") {
+					if (evt.touches.length == 1)
+						startGrab(evt.touches[0].clientX, evt.touches[0].clientY);
+				}
+
+				if (evt.type == "touchmove") {
+					if (grabJoint) {
+						moveGrabbed(evt.touches[0].clientX, evt.touches[0].clientY);
+					}
+					else {
+						if (evt.touches.length == 1) {
+							handleCameraMotion(
+								evt.touches[0].clientX - touchCoords[0].x,
+								evt.touches[0].clientY - touchCoords[0].y);
+						}
+						else if (evt.touches.length == 2) {
+							let px = (touchCoords[1].x - touchCoords[0].x);
+							let py = (touchCoords[1].y - touchCoords[0].y);
+							let p = Math.sqrt(px * px + py * py);
+							let dx = (evt.touches[1].clientX - evt.touches[0].clientX);
+							let dy = (evt.touches[1].clientY - evt.touches[0].clientY);
+							let d = Math.sqrt(dx * dx + dy * dy);
+							handleCameraZoom(d - p);
+						}
+					}
+				}
+				else if (evt.type == "touchup") {
+					if (evt.touches.length == 0)
+						endGrab();
+				}
+				if (evt.touches.length <= 2) {
+					for (let i = 0; i < evt.touches.length; i++) {
+						touchCoords[i].x = evt.touches[i].clientX;
+						touchCoords[i].y = evt.touches[i].clientY;
+					}
+				}				
+			}
+
+			init();
+			animate();											
+
+		</script>
+
+	</body>
+</html>
