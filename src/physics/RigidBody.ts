@@ -4,6 +4,8 @@ import { Vec3 } from './Vec3';
 import { Collider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
 import { Quat } from './Quaternion';
+import { XPBDSolver } from './XPBDSolver';
+import { CoordinateSystem } from './CoordinateSystem';
 
 export class RigidBody {
 
@@ -25,6 +27,10 @@ export class RigidBody {
     public force = new Vec3();
     public torque = new Vec3();
     public gravity = 1.0;
+    
+    public bounciness = 0.6; // coefficient of restitution (e)
+    public staticFriction = 0.5;
+    public dynamicFriction = 0.3;
 
     public isDynamic = true;
 
@@ -41,6 +47,18 @@ export class RigidBody {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         // mesh.userData.physicsBody = this; // idk
+
+        window.addEventListener('keydown', (e) => {
+            const tetraPointL = new Vec3(0, 1, 0);
+            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, this.pose.q, this.pose.p);
+
+            if (e.code == 'KeyQ') {
+                this.applyForceW(
+                    new Vec3(0, 100, 0),
+                    tetraPointW
+                );
+            }
+        })
     }
 
     public addTo(scene: BaseScene) {
@@ -56,6 +74,13 @@ export class RigidBody {
 
         this.updateGeometry();
         this.updateCollider();
+    }
+
+    public applyForceW(force: Vec3, worldPos: Vec3 = new Vec3(0,0,0)) {
+        const F = force.clone();
+
+        this.force.add(F);
+        this.torque.add(F.cross(this.pose.p.clone().sub(worldPos)))
     }
 
     public setBox(size: Vec3, density = 1.0): void {
@@ -95,10 +120,19 @@ export class RigidBody {
         this.pose.q.normalize();
     }
 
-    public getVelocityAt(pos: Vec3): Vec3 {
+    public getVelocityAt(pos: Vec3, alternativeVersion = false): Vec3 {
+        // vel = this->vel + glm::cross(this->omega, (pos - this->pose.p));
         const vel = new Vec3(0.0, 0.0, 0.0);
 
-        if (this.isDynamic) {
+        if (!this.isDynamic) 
+            return vel;
+
+        if (alternativeVersion) {
+            // const localPoint = CoordinateSystem.worldToLocal(pos, this.pose.q, this.pose.p);
+            // console.log(localPoint);
+            // const radialV = localPoint.cross(this.omega);
+            // vel.addVectors(this.vel, radialV);
+        } else {
             vel.subVectors(pos, this.pose.p);
             vel.cross(this.omega);
             vel.subVectors(this.vel, vel);
@@ -178,9 +212,17 @@ export class RigidBody {
         // this->applyRotation(this->omega, dt);
 
         this.prevPose.copy(this.pose);
-        this.vel.addScaledVector(gravity, dt);
+
+        this.vel.addScaledVector(gravity.clone().multiplyScalar(this.gravity), dt);
+        this.vel.addScaledVector(this.force.clone().multiplyScalar(this.invMass), dt);
+        this.omega.addScaledVector(this.torque.clone().multiply(this.invInertia), dt);
         this.pose.p.addScaledVector(this.vel, dt);
         this.applyRotation(this.omega, dt);
+
+        // this.prevPose.copy(this.pose);
+        // this.vel.addScaledVector(gravity, dt);
+        // this.pose.p.addScaledVector(this.vel, dt);
+        // this.applyRotation(this.omega, dt);
     }
 
     public update(dt: number): void {

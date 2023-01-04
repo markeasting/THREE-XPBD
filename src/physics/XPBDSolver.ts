@@ -8,7 +8,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 5;
+    static numSubsteps = 1;
     static numPosIters = 1;
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
@@ -46,17 +46,31 @@ export class XPBDSolver {
             // (Collisions)
             this.solveVelocities(contacts, h);
         }
+
+        for (const body of bodies) {
+            body.force.set(0, 0, 0);
+            body.torque.set(0, 0, 0);
+        }
     }
 
     private broadPhaseCollision(bodies: Array<RigidBody>, dt: number) {
 
         const contacts: Array<CollisionPair> = [];
 
+        const combinations: Array<string> = [];
+
         for (const A of bodies) {
             for (const B of bodies) {
 
-                if ((A == B) || (!A.isDynamic && !B.isDynamic))
+                if (!A.isDynamic && !B.isDynamic)
                     continue;
+
+                const guid = [A.mesh.id, B.mesh.id].sort().toString();
+
+                if (combinations.includes(guid))
+                    continue;
+
+                combinations.push(guid);
 
                 // k*dt*vbody (3.5)
                 // const float collisionMargin = 2.0f * (float) dt * glm::length(A.vel - B.vel);
@@ -76,17 +90,11 @@ export class XPBDSolver {
                                 for(let i = 0; i < MC.uniqueIndices.length; i++) {
                                     const v = MC.vertices[MC.uniqueIndices[i]];
 
-                                    // const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
                                     const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-
-                                    // const signedDistance = glm::dot(N, (contactPointW - B.pose.p));
-                                    // const signedDistance = N.dot(contactPointW.sub(B.pose.p));
-                                    const signedDistance = contactPointW.sub(B.pose.p).dot(N);
+                                    const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
 
                                     if(signedDistance < collisionMargin) {
-                                        const e = 0.5; // 0.5 * (A.bounciness + B.bounciness);
-                                        const friction = 0.5; // 0.5 * (A.staticFriction + B.staticFriction);
-                                        contacts.push({ A, B, e, friction });
+                                        contacts.push({ A, B });
                                     }
                                 }
 
@@ -106,13 +114,23 @@ export class XPBDSolver {
 
         const contacts: Array<ContactSet> = [];
 
+        const combinations: Array<string> = [];
+
         for (const collision of collisions) {
 
             const A = collision.A;
             const B = collision.B;
 
-            if ((A == B) || (!A.isDynamic && !B.isDynamic))
+            // This check is already done in broadphase, skip?
+            if (!A.isDynamic && !B.isDynamic)
                 continue;
+
+            const guid = [A.mesh.id, B.mesh.id].sort().toString();
+
+            if (combinations.includes(guid))
+                continue;
+
+            combinations.push(guid);
 
             switch(A.collider.colliderType) {
                 case ColliderType.ConvexMesh :
@@ -122,49 +140,39 @@ export class XPBDSolver {
                             const MC = A.collider as MeshCollider;
                             const PC = B.collider as PlaneCollider;
 
-                            const N = PC.normal;
-
-                            const contactSet = new ContactSet(A, B);
-
-                            let deepestPenetration = 0.0;
+                            const N = PC.normal; // ASSUMES NORMALIZED PLANE NORMAL!!
 
                             // @TODO check if vertex is actually inside plane size :)
+                            // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
                             for(let i = 0; i < MC.uniqueIndices.length; i++) {
                                 const v = MC.vertices[MC.uniqueIndices[i]];
 
-                                // Assuming v is type Vertex
-                                // const contactPointW = CoordinateSystem.localToWorld(v.position, A.pose.q, A.pose.p);
                                 const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
+                                const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
 
-                                // const signedDistance = glm::dot(N, (contactPointW - B.pose.p));
-                                // const signedDistance = N.dot(contactPointW.sub(B.pose.p));
-                                const signedDistance = contactPointW.sub(B.pose.p).dot(N);
-
-                                if(signedDistance < deepestPenetration) {
-                                    deepestPenetration = signedDistance;
-
+                                if (signedDistance < 0.0) {
+                                    const contactSet = new ContactSet(A, B);
+                                    contactSet.pLocal = v;
                                     contactSet.p = contactPointW;
                                     contactSet.d = signedDistance;
                                     contactSet.n = N;
+
+                                    // Velocities
+                                    const vrel = new Vec3().subVectors(
+                                        A.getVelocityAt(contactSet.p),
+                                        B.getVelocityAt(contactSet.p)
+                                    );
+                                        
+                                    contactSet.vrel = vrel;
+                                    contactSet.vn = vrel.dot(contactSet.n);
+    
+                                    // Other properties
+                                    // (These used to be stored in `collision` from broadphase)
+                                    contactSet.e = 0.5 * (A.bounciness + B.bounciness);
+                                    contactSet.friction = 0.5 * (A.staticFriction + B.staticFriction);
+
+                                    contacts.push(contactSet);
                                 }
-                            }
-
-                            if(deepestPenetration < 0.0) {
-                                // glm::vec3 vrel = A->getVelocityAt(contactSet->p) - B->getVelocityAt(contactSet->p);
-                                const vrel = new Vec3().subVectors(
-                                    A.getVelocityAt(contactSet.p),
-                                    B.getVelocityAt(contactSet.p)
-                                );
-
-                                contactSet.vrel = vrel;
-
-                                // contactSet->vn = glm::dot(contactSet->n, vrel);
-                                contactSet.vn = vrel.dot(contactSet.n);
-
-                                contactSet.e = collision.e;
-                                contactSet.friction = collision.friction;
-
-                                contacts.push(contactSet);
                             }
 
                             break;
@@ -173,9 +181,6 @@ export class XPBDSolver {
                     }
                 break;
             }
-
-            // Only solve 1 contact at a time
-            break;
         }
 
         return contacts;
@@ -188,23 +193,16 @@ export class XPBDSolver {
             if(contact.d >= 0.0)
                 continue; // Contact has been solved
 
-            // contact.A.hasCollided = true;
-            // contact.B.hasCollided = true;
-
             // glm::vec3 posCorr = -contact.d * contact.n;
             const posCorr = contact.n
                 .clone()
-                .multiplyScalar(-contact.d);
+                .multiplyScalar(-contact.d)
+                // .multiplyScalar(1/XPBDSolver.numSubsteps)
 
-            this.applyBodyPairCorrection(
-                contact.A,
-                contact.B,
+            this.applyPositionSolve(
+                contact,
                 posCorr,
-                0.0,
                 h,
-                contact.p,
-                contact.p,
-                false
             );
 
             // // @TODO eq. 27, 28
@@ -220,36 +218,38 @@ export class XPBDSolver {
             let dv = new Vec3();
 
             // (29) Relative velocity
-            // const v = new Vec3().subVectors(
-            //     contact.A.getVelocityAt(contact.p),
-            //     contact.B.getVelocityAt(contact.p)
-            // );
-            const v = contact.vrel.clone();
-            // const vn = glm::dot(contact.n, v);
+            // My guy, dont set this contact.vrel as it doesn't update between substeps!
+            const v = new Vec3().subVectors(
+                contact.A.getVelocityAt(contact.p),
+                contact.B.getVelocityAt(contact.p)
+            );
             const vn = v.dot(contact.n);
 
-            // glm::vec3 vt = v - (contact.n * vn);
-            // float vt_length = glm::length(vt);
+            // glm::vec3 vt = v - (contact->n * vn);
+            // const vt = v.clone().add(contact.n.clone().multiplyScalar(vn));
+            const vt = v.clone().sub(contact.n.clone().multiplyScalar(vn));
+            const vt_length = vt.length();
 
-            // // (30) Friction
-            // if(vt_length > 0.001f) {
-            //     float h_squared = (float) h * (float) h;
-            //     float Fn = -contact.lambdaN / h_squared;
-            //     dv -= glm::normalize(vt) * std::min((float) h * contact.friction * Fn, vt_length);
-            // }
+            // (30) Friction
+            if(vt_length > 0.001) {
+                const Fn = -contact.lambdaN / (h * h);
+                // console.log(Fn, 1/contact.A.invMass);
+                // dv -= glm::normalize(vt) * std::min((float) h * contact.friction * Fn, vt_length);
+                dv.sub(vt.clone().normalize().multiplyScalar(Math.min((h * contact.friction * Fn), vt_length)))
+            }
 
             // (31, 32) @TODO dampening
 
             // (34), restitution
-            // if(vn < 0.01f) {
-                // @TODO use gravity from World
-                const e = (Math.abs(vn) > (1.0 * 9.81 * h)) ? contact.e : 0.0;
+            // @TODO use gravity from World
+            const e = (Math.abs(vn) > (1.0 * 9.81 * h)) 
+                ? contact.e 
+                : 0.0;
 
-                const vn_reflected = Math.max(-e * contact.vn, 0.0);
-                // dv += contact.n * (-vn + std::max(-e * contact.vn, 0.0));
-                // dv += contact.n * (vn_reflected - vn); // Remove velocity added by update step (only meaningful if no collisions have occured)
-                dv.add(new Vec3().copy(contact.n).multiplyScalar(vn_reflected - vn))
-            // }
+            const vn_reflected = Math.max(-e * contact.vn, 0.0);
+            // dv += contact.n * (-vn + std::max(-e * contact.vn, 0.0));
+            // dv += contact.n * (vn_reflected - vn); // Remove velocity added by update step (only meaningful if no collisions have occured)
+            dv.add(contact.n.clone().multiplyScalar(vn_reflected - vn))
 
             this.applyBodyPairCorrection(
                 contact.A,
@@ -261,11 +261,26 @@ export class XPBDSolver {
                 contact.p,
                 true
             );
-
-            // contact.A.hasCollided = false;
-            // contact.B.hasCollided = false;
-
         }
+    }
+
+    private applyPositionSolve(
+        contact: ContactSet,
+        corr: Vec3,
+        dt: number,
+    ) {
+        const lambda = this.applyBodyPairCorrection(
+            contact.A,
+            contact.B,
+            corr,
+            0.0,
+            dt,
+            contact.p,
+            contact.p,
+            false
+        )
+
+        contact.lambdaN += lambda; // Assuming n is in the normal direction of the collision plane
     }
 
     private applyBodyPairCorrection(
@@ -277,36 +292,36 @@ export class XPBDSolver {
         pos0: Vec3 | null = null,
         pos1: Vec3 | null = null,
         velocityLevel = false
-    ): void
+    ): number
     {
 
-        let C = corr.length();
-        if ( C == 0.0)
-            return;
+        const C = corr.length();
+        // if ( C == 0.0)
+        //     return 0;
+        if (C < 0.00001)
+            return 0;
 
-        let normal = corr.clone();
+        const normal = corr.clone();
         normal.normalize();
+        
+        const w0 = body0 ? body0.getInverseMass(normal, pos0) : 0.0;
+        const w1 = body1 ? body1.getInverseMass(normal, pos1) : 0.0;
 
-        let w0 = body0 ? body0.getInverseMass(normal, pos0) : 0.0;
-        let w1 = body1 ? body1.getInverseMass(normal, pos1) : 0.0;
-
-        // if (isNaN(w0)) w0 = 0;
-        // if (isNaN(w1)) w1 = 0;
-
-        let w = w0 + w1;
+        const w = w0 + w1;
 
         // @TODO use EPS here instead
         if (w == 0.0)
-            return;
+            return 0;
 
-        let lambda = -C / (w + compliance / dt / dt);
+        const lambda = -C / (w + compliance / dt / dt);
         normal.multiplyScalar(-lambda);
 
         if (body0)
             body0.applyCorrection(normal, pos0, velocityLevel);
         if (body1) {
-            normal.multiplyScalar(-1.0);
-            body1.applyCorrection(normal, pos1, velocityLevel);
+            body1.applyCorrection(normal.multiplyScalar(-1.0), pos1, velocityLevel);
         }
+
+        return lambda;
     }
 }

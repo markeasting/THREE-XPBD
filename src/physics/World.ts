@@ -4,8 +4,8 @@ import { XPBDSolver } from "./XPBDSolver";
 
 export class World {
 
-    // public gravity = new Vec3(0, -9.81, 0);
-    public gravity = new Vec3(0, 0, -9.81);
+    public gravity = new Vec3(0, -9.81, 0);
+    // public gravity = new Vec3(0, 0, -9.81);
 
     public bodies: Array<RigidBody> = [];
 

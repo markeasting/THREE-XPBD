@@ -42,14 +42,16 @@ export class PlaneCollider extends Collider {
     colliderType = ColliderType.Plane;
 
     size = new Vec2(1.0, 1.0);
-    normal = new Vec3(0.0, 0.0, 1.0);
-    normalRef = new Vec3(0.0, 0.0, 1.0);
+    normal = new Vec3(0.0, 1.0, 0.0);
+    normalRef = new Vec3(0.0, 1.0, 0.0);
 
-    constructor(size: Vec2, normal = new Vec3(0.0, 0.0, 1.0)) {
+    constructor(size: Vec2, normal?: Vec3) {
         super();
 
         this.size = size;
-        this.normal = normal.normalize();
+        
+        if (normal)
+            this.normal = normal.normalize();
         // this.normalRef = this.normalRef.copy(this.normal); // idk?
     }
 

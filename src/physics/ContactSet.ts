@@ -6,9 +6,14 @@ export class ContactSet {
     B: RigidBody;
 
     /**
-     * Contact point / position
+     * Contact point / position (world)
      */
     p = new Vec3(0.0, 0.0, 0.0);
+
+    /**
+     * Contact point / position (local)
+     */
+    pLocal = new Vec3(0.0, 0.0, 0.0);
 
     /**
      * Contact normal

@@ -17,13 +17,14 @@ export class CoordinateSystem {
     //     return localVector + translation;
     // }
 
-    static worldToLocal(worldVector: Vec3, inverseRotation: Quat, translation: Vec3): Vec3 {
+    // @TODO needs testing!
+    static worldToLocal(worldVector: Vec3, rotation: Quat, translation: Vec3): Vec3 {
         // return inverseRotation * (worldVector - translation);
 
         return new Vec3()
             .copy(worldVector)
             .sub(translation)
-            .applyQuaternion(inverseRotation);
+            .applyQuaternion(rotation.clone().invert());
     }
 
     // static worldToLocal(worldVector: Vec3, translation: Vec3): Vec3 {

@@ -15,8 +15,8 @@ export class MyScene extends BaseScene {
     }
 
     override init() {
-        this.camera.position.set(4, 10, 2)
-        this.camera.lookAt(0,0,0);
+        this.camera.position.set(2, 5, 1)
+        this.camera.lookAt(0, 1, 0);
 
         // this.insert(new BaseLightingScene);
 
@@ -59,7 +59,8 @@ export class MyScene extends BaseScene {
             // new BoxCollider(new Vec3(1, 2, 1))
         )
         box.setBox(new Vec3(1, 2, 1), 1);
-        box.pose.p.set(0, 0, 2);
+        box.pose.p.set(0, 3, 0);
+        box.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
         this.addBody(box);
 
         const ground = new RigidBody(new THREE.Mesh(
@@ -71,7 +72,7 @@ export class MyScene extends BaseScene {
             new PlaneCollider(new Vec2(100, 100))
         )
         // Ugh:
-        // ground.pose.q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
+        ground.pose.q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
         // ground.pose.p.copy(CoordinateSystem.worldToLocal(new Vec3(0, 0, -5), ground.pose.q, ground.pose.p));
         ground.makeStatic();
 

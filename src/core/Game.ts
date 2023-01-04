@@ -20,10 +20,10 @@ export class Game {
             this.sceneManager.fitContent();
         })
 
-        // window.addEventListener('keyup', (e) => {
-        //     if (e.code == 'Space')
-        //         this.update(1 / 60);
-        // })
+        window.addEventListener('keydown', (e) => {
+            if (e.code == 'Space')
+                this.update(1 / 60);
+        })
     }
 
     update(time: DOMHighResTimeStamp) {
