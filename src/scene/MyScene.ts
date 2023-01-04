@@ -10,6 +10,7 @@ import { Vec2 } from '../physics/Vec2';
 import { AthmosphereScene } from './AthmosphereScene';
 import { Box } from '../physics/body/Box';
 import { Tetra } from '../physics/body/Tetra';
+import { OmgScene } from './OmgScene';
 
 export class MyScene extends BaseScene {
 
