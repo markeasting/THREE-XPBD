@@ -35,7 +35,7 @@ export class RigidBody {
         this.collider = collider;
 
         this.pose = new Pose(mesh.position, mesh.quaternion);
-        this.prevPose = this.pose;
+        this.prevPose = this.pose.clone();
 
         // @TODO move somewhere else
         mesh.castShadow = true;
@@ -96,7 +96,7 @@ export class RigidBody {
     }
 
     public getVelocityAt(pos: Vec3): Vec3 {
-        let vel = new Vec3(0.0, 0.0, 0.0);
+        const vel = new Vec3(0.0, 0.0, 0.0);
         vel.subVectors(pos, this.pose.p);
         vel.cross(this.omega);
         vel.subVectors(this.vel, vel);
@@ -198,6 +198,7 @@ export class RigidBody {
 
         // @TODO maybe only update collider,
         // leave mesh to update only once per frame (after substeps)
+        console.log(this.pose.p);
         this.updateGeometry();
         this.updateCollider();
     }
