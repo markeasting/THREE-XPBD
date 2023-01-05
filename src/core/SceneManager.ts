@@ -46,8 +46,16 @@ export class SceneManager {
             scene.updatePhysics(time, dt);
             scene.update(time, dt);
 
+            this.renderer.autoClear = true;
             this.renderer.render(
                 scene.scene,
+                scene.camera
+            );
+
+            // this.renderer.clearDepth();
+            this.renderer.autoClear = false;
+            this.renderer.render(
+                scene.world.scene,
                 scene.camera
             );
         }

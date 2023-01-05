@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import { Quat } from "./Quaternion";
 import { RigidBody } from "./RigidBody";
 import { CollisionPair } from "./CollisionPair";
@@ -10,6 +11,22 @@ export class XPBDSolver {
 
     static numSubsteps = 20;
     static numPosIters = 1;
+
+    private scene: THREE.Scene;
+    private debugVector = new THREE.ArrowHelper();
+
+    constructor(scene: THREE.Scene) {
+        this.scene = scene;
+        this.scene.add(new THREE.AxesHelper(1));
+        this.scene.add(this.debugVector);
+        this.scene.add(new THREE.GridHelper(100));
+    }
+
+    private dd(vec: Vec3, pos: Vec3) {
+        this.debugVector.position.copy(pos);
+        this.debugVector.setDirection(vec.clone().normalize())
+        this.debugVector.setLength(vec.length())
+    }
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
 
@@ -244,6 +261,9 @@ export class XPBDSolver {
                 const dvFriction = vt.clone()
                     .normalize()
                     .multiplyScalar(Math.min((h * contact.friction * Fn), vt_length));
+
+                this.dd(dvFriction, contact.p);
+
                 dv.sub(dvFriction)
             }
 

@@ -7,8 +7,13 @@ export function Box() {
         
     const boxMesh = new THREE.Mesh(
         new THREE.BoxGeometry(1, 2, 1),
-        new THREE.MeshPhongMaterial({
+        // new THREE.MeshPhongMaterial({
+        //     color: 0xffffff,
+        //     wireframe: true,
+        // }),
+        new THREE.MeshBasicMaterial({
             color: 0xffffff,
+            wireframe: true,
         })
     );
     const box = new RigidBody(

@@ -33,8 +33,8 @@ export class Game {
 
         this.sceneManager.update(this.time, this.dt);
 
-        requestAnimationFrame(time => {
-            this.update(time);
-        });
+        // requestAnimationFrame(time => {
+        //     this.update(time);
+        // });
     }
 }

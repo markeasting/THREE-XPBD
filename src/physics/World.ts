@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import { RigidBody } from "./RigidBody";
 import { Vec3 } from "./Vec3";
 import { XPBDSolver } from "./XPBDSolver";
@@ -5,14 +6,18 @@ import { XPBDSolver } from "./XPBDSolver";
 export class World {
 
     public gravity = new Vec3(0, -9.81, 0);
-    // public gravity = new Vec3(0, 0, -9.81);
 
     public bodies: Array<RigidBody> = [];
 
-    private solver = new XPBDSolver();
+    /**
+     * Debug scene
+     */
+    public scene = new THREE.Scene();
+
+    private solver: XPBDSolver;
 
     constructor() {
-
+        this.solver = new XPBDSolver(this.scene);
     }
 
     public add(body: RigidBody) {
