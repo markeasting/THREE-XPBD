@@ -9,7 +9,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 20;
+    static numSubsteps = 10;
     static numPosIters = 1;
 
     private scene: THREE.Scene;
@@ -18,14 +18,20 @@ export class XPBDSolver {
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this.scene.add(new THREE.AxesHelper(1));
-        this.scene.add(this.debugVector);
         this.scene.add(new THREE.GridHelper(100));
+        this.scene.add(this.debugVector);
     }
 
-    private dd(vec: Vec3, pos: Vec3) {
-        this.debugVector.position.copy(pos);
-        this.debugVector.setDirection(vec.clone().normalize())
-        this.debugVector.setLength(vec.length())
+    private dd(vec: Vec3, pos: Vec3 = new Vec3(), length?: number) {
+        length = length ? length : vec.length()
+
+        if (pos)
+            this.debugVector.position.copy(pos);
+
+        this.debugVector.setDirection(vec.clone().normalize());
+        this.debugVector.setLength(length);
+
+        console.log(vec, pos, length);
     }
 
     public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
@@ -101,14 +107,13 @@ export class XPBDSolver {
                                 const MC = A.collider as MeshCollider;
                                 const PC = B.collider as PlaneCollider;
 
-                                const N = PC.normal;
-
                                 // This should be a simple AABB check instead of actual loop over all vertices
                                 for(let i = 0; i < MC.uniqueIndices.length; i++) {
                                     const v = MC.vertices[MC.uniqueIndices[i]];
 
                                     const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-                                    const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
+                                    // const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
+                                    const signedDistance = PC.plane.distanceToPoint(contactPointW);
 
                                     if(signedDistance < collisionMargin) {
                                         contacts.push({ A, B });
@@ -157,7 +162,7 @@ export class XPBDSolver {
                             const MC = A.collider as MeshCollider;
                             const PC = B.collider as PlaneCollider;
 
-                            const N = PC.normal; // ASSUMES NORMALIZED PLANE NORMAL!!
+                            const N = PC.plane.normal; // ASSUMES NORMALIZED PLANE NORMAL!!
 
                             // @TODO check if vertex is actually inside plane size :)
                             // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
@@ -165,30 +170,34 @@ export class XPBDSolver {
                                 const v = MC.vertices[MC.uniqueIndices[i]];
 
                                 const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-                                const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
+                                // const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
+                                const signedDistance = PC.plane.distanceToPoint(contactPointW);
 
                                 if (signedDistance < 0.0) {
-                                    const contactSet = new ContactSet(A, B);
-                                    contactSet.pLocal = v;
-                                    contactSet.p = contactPointW;
-                                    contactSet.d = signedDistance;
-                                    contactSet.n = N;
+                                    const contact = new ContactSet(A, B, PC.plane);
+                                    contact.n = N.clone();
+                                    contact.d = signedDistance;
 
-                                    // Velocities
-                                    const vrel = new Vec3().subVectors(
-                                        A.getVelocityAt(contactSet.p),
-                                        B.getVelocityAt(contactSet.p)
-                                    );
-                                        
-                                    contactSet.vrel = vrel;
-                                    contactSet.vn = vrel.dot(contactSet.n);
-    
-                                    // Other properties
+                                    // Checked, these seem to be correct
+                                    contact.r1 = v.clone();
+                                    contact.r2 = PC.plane.projectPoint(contactPointW, contact.r2); // I HOPE THIS IS CORRECT
+
+                                    contact.p1 = contactPointW;
+                                    // Move point back 'up' the normal
+                                    // @TODO check if in some cases, this should be subtraction instead!!
+                                    contact.p2 = contactPointW.clone().addScalar(contact.d);
+                                    
+                                    // Set initial relative velocity
+                                    // contact.v = new Vec3().subVectors(
+                                    //     contact.A.getVelocityAt(contact.p1),
+                                    //     contact.B.getVelocityAt(contact.p2)
+                                    // );
+
                                     // (These used to be stored in `collision` from broadphase)
-                                    contactSet.e = 0.5 * (A.bounciness + B.bounciness);
-                                    contactSet.friction = 0.5 * (A.staticFriction + B.staticFriction);
+                                    contact.e = 0.5 * (A.bounciness + B.bounciness);
+                                    contact.friction = 0.5 * (A.staticFriction + B.staticFriction);
 
-                                    contacts.push(contactSet);
+                                    contacts.push(contact);
                                 }
                             }
 
@@ -207,150 +216,243 @@ export class XPBDSolver {
 
         for (const contact of contacts) {
 
-            // @TODO recalculate p and D properly
             const A = contact.A;
             const B = contact.B;
-            const contactPointW = CoordinateSystem.localToWorld(contact.pLocal, A.pose.q, A.pose.p);
-            const d = contactPointW.clone().sub(B.pose.p).dot(contact.n);
-            contact.d = d;
-            contact.p = contactPointW;
+            const contactPointW = CoordinateSystem.localToWorld(contact.r1, A.pose.q, A.pose.p);
+            // const contactPointW = contact.p1;
+            // const signedDistance = contactPointW.clone().sub(B.pose.p).dot(contact.n);
+            const signedDistance = contact.plane.distanceToPoint(contactPointW);
+
+            contact.n = contact.plane.normal;
+            contact.d = signedDistance;
 
             if(contact.d >= 0.0)
-                continue; // Contact has been solved
+                continue;
 
-            const posCorr = contact.n
+            // Update actual contact positions
+            contact.p1 = contactPointW;
+            // Move point back 'up' the normal
+            // @TODO check if in some cases, this should be subtraction instead!
+            contact.p2 = contactPointW.clone().addScalar(contact.d);
+            
+            // Δx = dn
+            const dx = contact.n
                 .clone()
                 .multiplyScalar(-contact.d)
+            // const dx2 = contact.n.clone()
+            //     .multiplyScalar(
+            //         new Vec3().subVectors(contact.p1, contact.p2).dot(contact.n)
+            //     );
 
-            this.applyPositionSolve(
-                contact,
-                posCorr,
+            let delta_lambda = this.positional_constraint_get_delta_lambda(
+                contact.A,
+                contact.B,
+                dx,
+                0.0,
                 h,
+                contact.p1,
+                contact.p2,
+                contact.lambda_n
             );
 
-            // // @TODO eq. 27, 28
-            // const glm::vec3 p1prev = contact.A.prevPose.p + contact.A.prevPose.q * r1;
-            // const glm::vec3 p2prev = contact.B.prevPose.p + contact.B.prevPose.q * r2;
+            this.constraint_apply(
+                contact.A,
+                contact.B,
+                contact.p1,
+                contact.p2,
+                dx,
+                false,
+                delta_lambda
+            );
+            contact.lambda_n += delta_lambda;
+
+
+		    // Recalculate entity pair preprocessed data and p1/p2
+            // calculate_positional_constraint_preprocessed_data
+            const contactPointW2 = CoordinateSystem.localToWorld(contact.r1, A.pose.q, A.pose.p);
+            const signedDistance2 = contact.plane.distanceToPoint(contactPointW2);
+            contact.n = contact.plane.normal;
+            contact.d = signedDistance2;
+
+
+            // eq. 27, 28 - friction
+            // We should also add a constraint for static friction, but only if lambda_t < u_s * lambda_n
+            delta_lambda = this.positional_constraint_get_delta_lambda(
+                contact.A,
+                contact.B,
+                dx,
+                0.0,
+                h,
+                contact.p1,
+                contact.p2,
+                contact.lambda_t
+            );
+
+            const lambda_n = contact.lambda_n;
+            const lambda_t = contact.lambda_t + delta_lambda;
+
+            if (lambda_t > contact.friction * lambda_n) {
+                // const p1_til: Vec3 = gm_vec3_add(A.prevPose.p,
+                //     quaternion_apply_to_vec3(A.prevPose.q, contact.r1_lc));
+                // @TODO Is this just localToWorld?? 
+                const p1_til: Vec3 = A.prevPose.p.clone().add(
+                    contact.r1.clone().applyQuaternion(A.prevPose.q)
+                );
+
+                // const p2_til: Vec3 = gm_vec3_add(B.prevPose.p,
+                //     quaternion_apply_to_vec3(B.prevPose.q, contact.r2_lc));
+                // @TODO Is this just localToWorld?? 
+                const p2_til: Vec3 = B.prevPose.p.clone().add(
+                    contact.r2.clone().applyQuaternion(B.prevPose.q)
+                );
+
+                // const delta_p: Vec3 = gm_vec3_subtract(gm_vec3_subtract(p1, p1_til), gm_vec3_subtract(p2, p2_til));
+                const delta_p: Vec3 = new Vec3().subVectors(
+                    new Vec3().subVectors(contact.p1, p1_til), 
+                    new Vec3().subVectors(contact.p2, p2_til)
+                );
+                
+                // const delta_p_t: Vec3 = gm_vec3_subtract(delta_p, gm_vec3_scalar_product(
+                //     gm_vec3_dot(delta_p, contact.n), contact.n));
+                const delta_p_t: Vec3 = new Vec3().subVectors(delta_p, 
+                    contact.n.clone().multiplyScalar(delta_p.dot(contact.n))
+                );
+
+                this.constraint_apply(
+                    contact.A,
+                    contact.B,
+                    contact.p1,
+                    contact.p2,
+                    delta_p_t,
+                    false,
+                    delta_lambda
+                );
+
+                contact.lambda_t += delta_lambda;
+            }
+
+
         }
     }
 
+    // Parts taken from `felipeek/raw-physics`
     private solveVelocities(contacts: Array<ContactSet>, h: number) {
 
         for (const contact of contacts) {
-
-            let dv = new Vec3();
+            const dv = new Vec3();
 
             // (29) Relative velocity
-            // My guy, dont set this contact.vrel as it doesn't update between substeps!
+            // @NOTE: equation (29) was modified here -> modified the same as I did in CPP version
             const v = new Vec3().subVectors(
-                contact.A.getVelocityAt(contact.p),
-                contact.B.getVelocityAt(contact.p)
+                contact.A.getVelocityAt(contact.p1),
+                contact.B.getVelocityAt(contact.p2)
+            );
+            const vPrev = new Vec3().subVectors(
+                contact.A.getVelocityAt(contact.p1, true),
+                contact.B.getVelocityAt(contact.p2, true)
             );
             const vn = v.dot(contact.n);
-
-            // glm::vec3 vt = v - (contact->n * vn);
-            const vt = v.clone().add(contact.n.clone().multiplyScalar(vn));
-            // const vt = v.clone().sub(contact.n.clone().multiplyScalar(vn));
-            const vt_length = vt.length();
-
+            const vt = new Vec3().subVectors(v, contact.n.clone().multiplyScalar(vn));
+            
             // (30) Friction
-            if(vt_length > 0.001) {
-                const Fn = -contact.lambdaN / (h * h);
-                // console.log(Fn, 1/contact.A.invMass);
-                // dv -= glm::normalize(vt) * std::min((float) h * contact.friction * Fn, vt_length);
-                const dvFriction = vt.clone()
-                    .normalize()
-                    .multiplyScalar(Math.min((h * contact.friction * Fn), vt_length));
-
-                this.dd(dvFriction, contact.p);
-
-                dv.sub(dvFriction)
-            }
-
-            // (31, 32) @TODO dampening
+            const fn = contact.lambda_n / h; // simplifly h^2 by ommiting h in the next calculation
+            // @NOTE: equation (30) was modified here
+            const friction = Math.min(contact.friction * Math.abs(fn), vt.length());
+            dv.add(vt.clone().normalize().multiplyScalar(-friction));
 
             // (34), restitution
-            // @TODO use gravity from World
-            const e = (Math.abs(vn) > (1.0 * 9.81 * h)) 
+            const e = (Math.abs(vn) > (2.0 * 9.81 * h)) 
                 ? contact.e 
                 : 0.0;
 
-            const vn_reflected = Math.max(-e * contact.vn, 0.0);
-            // dv += contact.n * (-vn + std::max(-e * contact.vn, 0.0));
-            // dv += contact.n * (vn_reflected - vn); // Remove velocity added by update step (only meaningful if no collisions have occured)
-            dv.add(contact.n.clone().multiplyScalar(vn_reflected - vn))
+            const restitution = -vn + Math.min(-e * vPrev.dot(contact.n), 0.0);
+            // WHY must restitution this be negative here? 
+            // I think it's because of the position update
+            // This step probably *removes* some of the added restitution velocity
+            dv.add(contact.n.clone().multiplyScalar(restitution)); 
 
-            this.applyBodyPairCorrection(
+            const lambda = this.positional_constraint_get_delta_lambda(
                 contact.A,
                 contact.B,
                 dv,
                 0.0,
                 h,
-                contact.p,
-                contact.p,
-                true
+                contact.p1,
+                contact.p2,
+                contact.lambda
             );
+
+            this.constraint_apply(
+                contact.A,
+                contact.B,
+                contact.p1,
+                contact.p2,
+                dv,
+                true,
+                lambda
+            );
+
+            contact.v.copy(v);
         }
     }
 
-    private applyPositionSolve(
-        contact: ContactSet,
-        corr: Vec3,
-        dt: number,
-    ) {
-        const lambda = this.applyBodyPairCorrection(
-            contact.A,
-            contact.B,
-            corr,
-            0.0,
-            dt,
-            contact.p,
-            contact.p,
-            false
-        )
-
-        contact.lambdaN += lambda; // Assuming n is in the normal direction of the collision plane
-    }
-
-    private applyBodyPairCorrection(
+    private positional_constraint_get_delta_lambda(
         body0: RigidBody,
         body1: RigidBody,
         corr: Vec3,
         compliance: number,
-        dt: number,
+        h: number,
         pos0: Vec3 | null = null,
         pos1: Vec3 | null = null,
-        velocityLevel = false
+        lambda: number,
     ): number
     {
 
         const C = corr.length();
-        // if ( C == 0.0)
-        //     return 0;
-        if (C < 0.00001)
+
+        if (C < 0.000001)
             return 0;
 
-        const normal = corr.clone();
-        normal.normalize();
+        const n = corr.clone();
+        n.normalize();
         
-        const w0 = body0 ? body0.getInverseMass(normal, pos0) : 0.0;
-        const w1 = body1 ? body1.getInverseMass(normal, pos1) : 0.0;
+        const w0 = body0 ? body0.getInverseMass(n, pos0) : 0.0;
+        const w1 = body1 ? body1.getInverseMass(n, pos1) : 0.0;
 
         const w = w0 + w1;
 
         // @TODO use EPS here instead
         if (w == 0.0)
             return 0;
+            
+        // const dlambda = -C / (w + compliance / dt / dt);
+        const til_compliance = compliance / (h * h);
+        const dlambda = (-C - til_compliance * lambda) / (w0 + w1 + til_compliance);
 
-        const lambda = -C / (w + compliance / dt / dt);
-        normal.multiplyScalar(-lambda);
+        return dlambda;
+    }
 
-        if (body0)
-            body0.applyCorrection(normal, pos0, velocityLevel);
-        if (body1) {
-            body1.applyCorrection(normal.multiplyScalar(-1.0), pos1, velocityLevel);
-        }
+    private constraint_apply(
+        body0: RigidBody,
+        body1: RigidBody,
+        pos0: Vec3 | null = null,
+        pos1: Vec3 | null = null,
+        corr: Vec3,
+        velocityLevel = false,
+        dlambda: number,
+    ): void
+    {
 
-        return lambda;
+        const C = corr.length();
+
+        if (C < 0.000001)
+            return;
+
+        // p = Δλn
+        const p = new Vec3(corr.x / C, corr.y / C, corr.z / C);
+        p.multiplyScalar(dlambda); 
+
+        body0.applyCorrection(p.multiplyScalar(-1.0), pos0, velocityLevel);
+        body1.applyCorrection(p, pos1, velocityLevel);
     }
 }
