@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import { Quat } from "./Quaternion";
 import { Vec3 } from "./Vec3";
 import { Vec2 } from "./Vec2";
@@ -41,13 +42,20 @@ export class PlaneCollider extends Collider {
     normal = new Vec3(0.0, 1.0, 0.0);
     normalRef = new Vec3(0.0, 1.0, 0.0);
 
+    plane = new THREE.Plane(new Vec3(0, 1, 0));
+
+    /**
+     * @TODO plane distance / constant
+     */
     constructor(size: Vec2, normal?: Vec3) {
         super();
 
         this.size = size;
         
-        if (normal)
+        if (normal) {
             this.normal = normal.normalize();
+            this.plane = new THREE.Plane(normal);
+        }
         // this.normalRef = this.normalRef.copy(this.normal); // idk?
     }
 
