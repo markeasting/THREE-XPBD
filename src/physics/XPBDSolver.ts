@@ -9,7 +9,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 10;
+    static numSubsteps = 30;
     static numPosIters = 1;
 
     private scene: THREE.Scene;
@@ -273,7 +273,8 @@ export class XPBDSolver {
             const signedDistance2 = contact.plane.distanceToPoint(contactPointW2);
             contact.n = contact.plane.normal;
             contact.d = signedDistance2;
-
+            contact.p1 = contactPointW2;
+            contact.p2 = contactPointW2.clone().addScalar(contact.d);
 
             // eq. 27, 28 - friction
             // We should also add a constraint for static friction, but only if lambda_t < u_s * lambda_n
