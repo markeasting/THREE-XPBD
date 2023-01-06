@@ -18,6 +18,10 @@ export class RigidBody {
     public vel = new Vec3(0.0, 0.0, 0.0);
     public omega = new Vec3(0.0, 0.0, 0.0);
 
+    // Pre velocity solve velocities
+    public velPrev = new Vec3(0.0, 0.0, 0.0);
+    public omegaPrev = new Vec3(0.0, 0.0, 0.0);
+
     // private mass = 1.0;
     private invMass = 1.0;
 
@@ -120,25 +124,22 @@ export class RigidBody {
         this.pose.q.normalize();
     }
 
-    public getVelocityAt(pos: Vec3, alternativeVersion = false): Vec3 {
-        // vel = this->vel + glm::cross(this->omega, (pos - this->pose.p));
-        const vel = new Vec3(0.0, 0.0, 0.0);
+    public getVelocityAt(pos: Vec3, usePrevVelocity = false): Vec3 {
 
-        if (!this.isDynamic) 
-            return vel;
+        if (!this.isDynamic)
+            return new Vec3(0, 0, 0);
 
-        if (alternativeVersion) {
-            // const localPoint = CoordinateSystem.worldToLocal(pos, this.pose.q, this.pose.p);
-            // console.log(localPoint);
-            // const radialV = localPoint.cross(this.omega);
-            // vel.addVectors(this.vel, radialV);
-        } else {
-            vel.subVectors(pos, this.pose.p);
-            vel.cross(this.omega);
-            vel.subVectors(this.vel, vel);
-        }
+        // Original
+        // let vel = new THREE.Vector3(0.0, 0.0, 0.0);					
+        // vel.subVectors(pos, this.pose.p);
+        // vel.cross(this.omega);
+        // vel.subVectors(this.vel, vel);
+        // return vel;
 
-        return vel;
+        const v = usePrevVelocity ? this.velPrev.clone() : this.vel.clone();
+        const o = usePrevVelocity ? this.omegaPrev.clone() : this.omega.clone();
+
+        return v.clone().add(o.clone().cross(new Vec3().subVectors(pos, this.pose.p)));
     }
 
     public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
@@ -228,6 +229,10 @@ export class RigidBody {
     public update(dt: number): void {
         if (!this.isDynamic)
             return;
+
+        // Store the current velocities (this is needed for the velocity solver)
+        this.velPrev.copy(this.vel);
+        this.omegaPrev.copy(this.omega);
 
         this.vel.subVectors(this.pose.p, this.prevPose.p);
         this.vel.multiplyScalar(1.0 / dt);
