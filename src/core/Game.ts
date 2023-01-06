@@ -21,8 +21,10 @@ export class Game {
         })
 
         window.addEventListener('keydown', (e) => {
-            if (e.code == 'Space')
-                this.update(1 / 60);
+            if (e.code == 'Space') {
+                // this.update(1 / 60);
+                this.sceneManager.update(this.time, this.dt, true);
+            }
         })
     }
 
@@ -31,10 +33,10 @@ export class Game {
         this.time = time;
         this.dt = (this.time - this.prevTime) / 1000;
 
-        this.sceneManager.update(this.time, this.dt);
+        this.sceneManager.update(this.time, this.dt, true);
 
-        // requestAnimationFrame(time => {
-        //     this.update(time);
-        // });
+        requestAnimationFrame(time => {
+            this.update(time);
+        });
     }
 }

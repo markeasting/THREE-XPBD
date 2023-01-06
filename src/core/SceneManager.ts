@@ -38,12 +38,14 @@ export class SceneManager {
         }
     }
 
-    public update(time: number, dt: number) {
+    public update(time: number, dt: number, enablePhysics = true) {
 
         const scene = this.activeScene;
 
         if (scene) {
-            scene.updatePhysics(time, dt);
+            if (enablePhysics)
+                scene.updatePhysics(time, dt);
+                
             scene.update(time, dt);
 
             this.renderer.autoClear = true;
