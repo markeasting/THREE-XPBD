@@ -10,7 +10,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
 
 export class XPBDSolver {
 
-    static numSubsteps = 10;
+    static numSubsteps = 15;
 
     private scene: Scene;
     // private debugVector = new ArrowHelper();

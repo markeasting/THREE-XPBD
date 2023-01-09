@@ -256,6 +256,12 @@ export class RigidBody {
         // this.omega.multiplyScalar(1.0 - 1.0 * dt);
         // this.vel.multiplyScalar(1.0 - 1.0 * dt);
 
+        if (this.vel.length() < 0.005)
+            this.vel.multiplyScalar(0);
+
+        if (this.omega.length() < 0.005)
+            this.omega.multiplyScalar(0);
+
         // @TODO maybe only update collider,
         // leave mesh to update only once per frame (after substeps)
         this.updateGeometry();
