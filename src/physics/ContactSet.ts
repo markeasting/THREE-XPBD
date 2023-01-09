@@ -66,4 +66,16 @@ export class ContactSet {
 
         this.plane = contactPlane;
     }
+
+    public update(): void {
+        // @TODO maybe recalculate N as well
+        const A = this.A;
+        const B = this.B;
+
+        const p1 = A.pose.p.clone().add(this.r1.clone().applyQuaternion(A.pose.q));
+        const p2 = B.pose.p.clone().add(this.r2.clone().applyQuaternion(B.pose.q));
+
+        this.p1 = p1;
+        this.p2 = p2;
+    }
 };

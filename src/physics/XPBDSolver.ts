@@ -222,7 +222,7 @@ export class XPBDSolver {
 
                                 /* (26) - p1 -- note: p1 === point (localToWorld(v)) */
                                 const r1 = v;
-                                const p1 = r1.clone().applyQuaternion(A.pose.q).add(A.pose.p);
+                                const p1 = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
 
                                 /* (26) - p2 */
                                 // const signedDistance = PC.plane.distanceToPoint(contactPointW);
@@ -278,26 +278,10 @@ export class XPBDSolver {
         }
     }
 
-    private _updatePos(contact: ContactSet) {
-        // @TODO maybe recalculate N as well
-        const A = contact.A;
-        const B = contact.B;
-
-        const r1 = contact.r1;
-        const p1 = A.pose.p.clone().add(r1.clone().applyQuaternion(A.pose.q));
-        const r2 = contact.r2;
-        const p2 = B.pose.p.clone().add(r2.clone().applyQuaternion(B.pose.q));
-
-        contact.r1 = r1;
-        contact.r2 = r2;
-        contact.p1 = p1;
-        contact.p2 = p2;
-    }
-
     private _solvePenetration(contact: ContactSet, h: number) {
 
         /* (26) - p1 & p2 */
-        this._updatePos(contact);
+        contact.update();
 
         /* (3.5) Penetration depth -- Note: sign was flipped! */
         contact.d = - contact.n.dot(new Vec3().subVectors(contact.p1, contact.p2));
@@ -328,9 +312,6 @@ export class XPBDSolver {
 
     private _solveFriction(contact: ContactSet, h: number) {
 
-        const A = contact.A;
-        const B = contact.B;
-
         /* (3.5)
          * To handle static friction we compute the relative
          * motion of the contact points and its tangential component
@@ -339,7 +320,7 @@ export class XPBDSolver {
         /* (26) Positions in current state and before the substep integration */
         const p1prev = contact.p1 // A.prevPose.p.clone().add(contact.r1.clone().applyQuaternion(A.prevPose.q));
         const p2prev = contact.p1 // B.prevPose.p.clone().add(contact.r2.clone().applyQuaternion(B.prevPose.q));
-        this._updatePos(contact);
+        contact.update();
 
         /* (27) (28) Relative motion and tangential component */
         const dp = new Vec3().subVectors(
