@@ -6,15 +6,15 @@ export class BaseLightingScene extends THREE.Scene {
     constructor() {
         super();
 
-        // const ground = new THREE.Mesh(
-        //     new THREE.PlaneGeometry(100, 100), 
-        //     new THREE.MeshPhongMaterial({
-        //         color: 0x444444, 
-        //     })
-        // );
-        // ground.rotation.x = -Math.PI / 2;
-        // ground.position.z = 0;
-        // this.add( ground )
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100),
+            new THREE.MeshPhongMaterial({
+                color: 0x444444,
+            })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.z = 0;
+        this.add( ground )
 
         const p1 = new PointLight(this, 0xf2ddc5);
         p1.light.castShadow = true;

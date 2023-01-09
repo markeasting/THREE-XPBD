@@ -24,7 +24,7 @@ export class MyScene extends BaseScene {
         this.orbitControls.target.copy(lookAt);
         this.orbitControls.update();
 
-        this.insert(new BaseLightingScene);
+        this.insert(new AthmosphereScene);
 
         this.addGeometry();
     }
@@ -55,16 +55,16 @@ export class MyScene extends BaseScene {
         }
 
         const ground = new RigidBody(new THREE.Mesh(
-            new THREE.PlaneGeometry(20, 20, 5, 5),
+            new THREE.PlaneGeometry(0.1, 0.1, 5, 5),
                 new THREE.MeshPhongMaterial({
                     color: 0xffffff,
-                    wireframe: true,
+                    // wireframe: true,
                 })
             ),
             new PlaneCollider(new Vec2(100, 100))
         )
         ground.pose.q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
-        ground.pose.p.copy(new Vec3(0, -1, 0));
+        ground.pose.p.copy(new Vec3(0, 0, 0));
         ground.makeStatic();
 
         this.addBody(ground);
