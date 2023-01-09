@@ -397,7 +397,7 @@ export class XPBDSolver {
                 : 0.0;
 
             const vn_tilde = contact.vn;
-            const restitution = -vn + Math.max(-e * vn_tilde, 0.0);
+            const restitution = -vn + Math.min(-e * vn_tilde, 0.0);
             dv.add(contact.n.clone().multiplyScalar(restitution));
 
             /* (33) Velocity update */
