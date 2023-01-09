@@ -3,21 +3,15 @@ import { RigidBody } from "./RigidBody";
 import { Vec3 } from "./Vec3";
 
 export class ContactSet {
-    
+
     A: RigidBody;
     B: RigidBody;
 
     plane: Plane;
 
-    // dlambda: number = 0;    // Δλ   - delta lambda (current iteration)
     lambda: number = 0;     //  λ   - lambda
     lambda_n: number = 0;   //  λn  - lambda N (normal)
     lambda_t: number = 0;   //  λn  - lambda T (tangential)
-
-    // /**
-    //  * Contact point (world, global)
-    //  */
-    // p = new Vec3(0.0, 0.0, 0.0);
 
     /**
      * Contact point (world, on A)
@@ -46,29 +40,18 @@ export class ContactSet {
 
     /**
      * Penetration depth
-     * 
-     * Set to the initial depth on instantiation. 
-     * 
-     * Recalculated each position solve!
      */
     d: number = 0.0;
 
-    v: Vec3 = new Vec3(0.0, 0.0, 0.0);        // relative velocity
-    // vprev: Vec3 = new Vec3(0.0, 0.0, 0.0);    // relative velocity (previous)
+    /**
+     * Relative velocity
+     */
+    vrel = new Vec3(0.0, 0.0, 0.0);
 
-    // /**
-    //  * Relative velocity
-    //  * 
-    //  * Recalculated each velocity solve!
-    //  */
-    // vrel = new Vec3(0.0, 0.0, 0.0);
-
-    // /**
-    //  * Normal velocity
-    //  * 
-    //  * Recalculated each velocity solve!
-    //  */
-    // vn: number = 0;
+    /**
+     * Normal velocity
+     */
+    vn: number = 0;
 
     e: number = 0; // Coefficient of restitution
 
