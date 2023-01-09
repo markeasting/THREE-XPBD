@@ -18,6 +18,7 @@ export class BaseScene implements SceneInterface {
 
     public scene:  THREE.Scene;
     public camera: THREE.PerspectiveCamera;
+    public orbitControls: OrbitControls;
 
     protected meshes: Array<THREE.Mesh> = [];
 
@@ -27,13 +28,13 @@ export class BaseScene implements SceneInterface {
         this.scene  = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 5000);
 
-        const controls = new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
+        this.orbitControls = new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
 
         if (localStorage.getItem('cam')) {
             const state = JSON.parse(localStorage.getItem('cam')!);
             this.camera.position.copy(state.pos);
-            controls.target.copy(state.target);
-            controls.update();
+            this.orbitControls.target.copy(state.target);
+            this.orbitControls.update();
         } else {
             this.camera.position.set(2, 5, 1);
         }
@@ -55,8 +56,8 @@ export class BaseScene implements SceneInterface {
 
     protected insert(otherScene: THREE.Scene) {
         this.scene.add(otherScene);
-        this.scene.fog = otherScene.fog; // Nice hack 
-        this.scene.background = otherScene.background; // Nice hack 
+        this.scene.fog = otherScene.fog; // Nice hack
+        this.scene.background = otherScene.background; // Nice hack
     }
 
     public onResize(width: number, height: number) {
