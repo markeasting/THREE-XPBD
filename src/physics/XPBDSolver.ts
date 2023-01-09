@@ -381,7 +381,7 @@ export class XPBDSolver {
             /* (30) Friction */
             const Fn = -contact.lambda_n / (h * h);
             const friction = Math.min(h * contact.friction * Fn, vt.length());
-            dv.sub(vt.clone().normalize().multiplyScalar(friction));
+            dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
 
             /* (31, 32) @TODO dampening */
 
@@ -431,8 +431,7 @@ export class XPBDSolver {
         if (C < 0.000001)
             return 0;
 
-        const n = corr.clone();
-        n.normalize();
+        const n = Vec3.normalize(corr);
 
         const w0 = body0 ? body0.getInverseMass(n, pos0) : 0.0;
         const w1 = body1 ? body1.getInverseMass(n, pos1) : 0.0;
