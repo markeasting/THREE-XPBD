@@ -31,7 +31,7 @@ export class RigidBody {
     public force = new Vec3();
     public torque = new Vec3();
     public gravity = 1.0;
-    
+
     public bounciness = 0.6; // coefficient of restitution (e)
     public staticFriction = 0.5;
     public dynamicFriction = 0.3;
@@ -130,7 +130,7 @@ export class RigidBody {
             return new Vec3(0, 0, 0);
 
         // Original
-        // let vel = new THREE.Vector3(0.0, 0.0, 0.0);					
+        // let vel = new THREE.Vector3(0.0, 0.0, 0.0);
         // vel.subVectors(pos, this.pose.p);
         // vel.cross(this.omega);
         // vel.subVectors(this.vel, vel);
@@ -199,6 +199,10 @@ export class RigidBody {
             this.omega.add(dq);
         else
             this.applyRotation(dq);
+
+        // @TODO remove later
+        // this.updateGeometry();
+        // this.updateCollider();
     }
 
     public integrate(dt: number, gravity: Vec3): void {

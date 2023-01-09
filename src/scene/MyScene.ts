@@ -41,14 +41,14 @@ export class MyScene extends BaseScene {
         // );
         // this.scene.add(boxMesh);
 
-        for (let index = 0; index < 1; index++) {
+        for (let index = 0; index < 10; index++) {
             const b = Box();
-            // b.pose.p.set(
-            //     Math.random() * 8 - 4,
-            //     Math.random() * 4 + 1,
-            //     Math.random() * 8 - 4
-            // );
-            b.pose.p.set(0.5, 0.5, 0);
+            b.pose.p.set(
+                Math.random() * 8 - 4,
+                Math.random() * 4 + 1,
+                Math.random() * 8 - 4
+            );
+            // b.pose.p.set(-1.5, 5.5, 1);
             // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
             b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
             this.addBody(b);
