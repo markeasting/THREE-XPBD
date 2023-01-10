@@ -95,8 +95,11 @@ export class XPBDSolver {
 
         for (let i = 0; i < XPBDSolver.numSubsteps; i++) {
 
+            /* (3.5)
+             * At each substep we iterate through the pairs
+             * checking for actual collisions.
+             */
             const contacts = this.getContacts(collisions);
-
             // if (contacts.length > 0)
             //     return;
 
@@ -147,9 +150,8 @@ export class XPBDSolver {
                 if (combinations.includes(guid))
                     continue;
 
-                // k*dt*vbody (3.5)
-                // const float collisionMargin = 2.0f * (float) dt * glm::length(A.vel - B.vel);
-                const collisionMargin = 2.0 * dt * new Vec3().subVectors(A.vel, B.vel).length();
+                /* (3.5) k * dt * vbody */
+                const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
 
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
@@ -212,7 +214,7 @@ export class XPBDSolver {
                             const MC = A.collider as MeshCollider;
                             const PC = B.collider as PlaneCollider;
 
-                            const N = PC.plane.normal;
+                            const N = new Vec3().copy(PC.plane.normal);
 
                             // @TODO check if vertex is actually inside plane size :)
                             // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
@@ -226,14 +228,15 @@ export class XPBDSolver {
 
                                 /* (26) - p2 */
                                 // const signedDistance = PC.plane.distanceToPoint(contactPointW);
-                                const signedDistance = N.dot(p1.clone().sub(B.pose.p));
-                                const p2 = p1.clone().sub(N.clone().multiplyScalar(signedDistance));
+                                const signedDistance = Vec3.dot(N, Vec3.sub(p1, B.pose.p));
+                                const p2 = Vec3.sub(p1, Vec3.mul(N, signedDistance));
                                 const r2 = CoordinateSystem.worldToLocal(p2, B.pose.q, B.pose.p);
 
                                 /* (3.5) Penetration depth -- Note: sign was flipped! */
-                                // const d = - N.dot(new Vec3().subVectors(p1, p2));
+                                // const d = - N.dot(Vec3.sub(p1, p2));
                                 const d = -signedDistance; // This matches the calculation above!
 
+                                /* (3.5) if d ≤ 0 we skip the contact */
                                 if (d <= 0.0)
                                     continue;
 
@@ -247,7 +250,7 @@ export class XPBDSolver {
                                 contact.p2 = p2;
 
                                 // Set initial relative velocity
-                                contact.vrel = new Vec3().subVectors(
+                                contact.vrel = Vec3.sub(
                                     contact.A.getVelocityAt(contact.p1),
                                     contact.B.getVelocityAt(contact.p2)
                                 );
@@ -284,16 +287,14 @@ export class XPBDSolver {
         contact.update();
 
         /* (3.5) Penetration depth -- Note: sign was flipped! */
-        contact.d = - contact.n.dot(new Vec3().subVectors(contact.p1, contact.p2));
+        contact.d = - Vec3.dot(Vec3.sub(contact.p1, contact.p2), contact.n);
 
         /* (3.5) if d ≤ 0 we skip the contact */
         if(contact.d <= 0.0)
             return;
 
         /* (3.5) Resolve penetration (Δx = dn using a = 0 and λn) */
-        const dx = contact.n
-            .clone()
-            .multiplyScalar(contact.d)
+        const dx = Vec3.mul(contact.n, contact.d);
 
         const delta_lambda = this.applyBodyPairCorrection(
             contact.A,
@@ -323,13 +324,13 @@ export class XPBDSolver {
         contact.update();
 
         /* (27) (28) Relative motion and tangential component */
-        const dp = new Vec3().subVectors(
-            new Vec3().subVectors(contact.p1, p1prev),
-            new Vec3().subVectors(contact.p1, p2prev)
+        const dp = Vec3.sub(
+            Vec3.sub(contact.p1, p1prev),
+            Vec3.sub(contact.p1, p2prev)
         );
-        /* (!!) sign was flipped here! */
-        const dp_t = new Vec3().subVectors(
-            contact.n.clone().multiplyScalar(dp.dot(contact.n)),
+        /* Note: the sign of dp_t was flipped! (Eq. 28) */
+        const dp_t = Vec3.sub(
+            Vec3.mul(contact.n, contact.n.dot(dp)),
             dp
         );
 
@@ -367,21 +368,17 @@ export class XPBDSolver {
              * Recalculate v and vn since the velocities are
              * solved *after* the body update step.
              */
-            const v = new Vec3().subVectors(
+            const v = Vec3.sub(
                 contact.A.getVelocityAt(contact.p1),
                 contact.B.getVelocityAt(contact.p2)
             );
-            // const vPrev = new Vec3().subVectors(
-            //     contact.A.getVelocityAt(contact.p1, true),
-            //     contact.B.getVelocityAt(contact.p2, true)
-            // );
-            const vn = v.dot(contact.n);
-            const vt = new Vec3().subVectors(v, contact.n.clone().multiplyScalar(vn));
+            const vn = Vec3.dot(v, contact.n);
+            const vt = Vec3.sub(v, Vec3.mul(contact.n, vn));
 
             /* (30) Friction */
             const Fn = -contact.lambda_n / (h * h);
             const friction = Math.min(h * contact.friction * Fn, vt.length());
-            dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
+            dv.sub(Vec3.normalize(vt).mul(friction));
 
             /* (31, 32) @TODO dampening */
 
@@ -392,13 +389,11 @@ export class XPBDSolver {
              * Note:
              * `vn_tilde` was already calculated before the position solve (Eq. 29)
              */
-            const e = (Math.abs(vn) > (2.0 * 9.81 * h))
-                ? contact.e
-                : 0.0;
-
+            const threshold = 2.0 * 9.81 * h;
+            const e = Math.abs(vn) > threshold ? contact.e : 0.0;
             const vn_tilde = contact.vn;
             const restitution = -vn + Math.min(-e * vn_tilde, 0.0);
-            dv.add(contact.n.clone().multiplyScalar(restitution));
+            dv.add(Vec3.mul(contact.n, restitution));
 
             /* (33) Velocity update */
             this.applyBodyPairCorrection(
