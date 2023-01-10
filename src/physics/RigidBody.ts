@@ -44,7 +44,7 @@ export class RigidBody {
         this.mesh = mesh;
         this.collider = collider;
 
-        this.pose = new Pose(mesh.position, mesh.quaternion);
+        this.pose = new Pose(new Vec3().copy(mesh.position), mesh.quaternion);
         this.prevPose = this.pose.clone();
 
         // @TODO move somewhere else
@@ -138,8 +138,10 @@ export class RigidBody {
 
         const v = usePrevVelocity ? this.velPrev.clone() : this.vel.clone();
         const o = usePrevVelocity ? this.omegaPrev.clone() : this.omega.clone();
+        const p = usePrevVelocity ? this.prevPose.p.clone() : this.pose.p.clone();
 
-        return v.clone().add(o.clone().cross(new Vec3().subVectors(pos, this.pose.p)));
+        // return v.clone().add(o.clone().cross(new Vec3().subVectors(pos, p)));
+        return Vec3.add(v, Vec3.cross(o, Vec3.sub(pos, p)));
     }
 
     public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
@@ -218,8 +220,8 @@ export class RigidBody {
 
         this.prevPose.copy(this.pose);
 
-        this.vel.addScaledVector(gravity.clone().multiplyScalar(this.gravity), dt);
-        this.vel.addScaledVector(this.force.clone().multiplyScalar(this.invMass), dt);
+        this.vel.add(Vec3.mul(gravity, this.gravity * dt));
+        this.vel.add(Vec3.mul(this.force, this.invMass * dt));
         this.omega.addScaledVector(this.torque.clone().multiply(this.invInertia), dt);
         this.pose.p.addScaledVector(this.vel, dt);
         this.applyRotation(this.omega, dt);
