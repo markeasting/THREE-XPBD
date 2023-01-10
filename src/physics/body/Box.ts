@@ -19,9 +19,12 @@ export function Box(width: number = 1.0, height?: number, depth?: number): Rigid
         // })
     );
     
-    const box = new RigidBody(new MeshCollider('box'))
-    box.setMesh(boxMesh);
-    box.setBox(new Vec3(width, height, depth), 1);
+    const box = new RigidBody(
+            new MeshCollider()
+                .setGeometry('box', width, height, depth)
+        )
+        .setMesh(boxMesh)
+        .setBox(new Vec3(width, height, depth), 1)
 
     return box;
 
