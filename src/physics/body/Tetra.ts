@@ -3,19 +3,23 @@ import { MeshCollider } from '../Collider';
 import { RigidBody } from '../RigidBody';
 import { Vec3 } from '../Vec3';
 
-export function Tetra() {
+export function Tetra(size: number = 1.0): RigidBody {
         
-    const boxMesh = new THREE.Mesh(
-        new THREE.TetrahedronGeometry(1, 0),
+    const tetraMesh = new THREE.Mesh(
+        new THREE.TetrahedronGeometry(size, 0),
         new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-        })
+            // color: 0xffffff,
+            color: 0x00ffcc,
+        }),
     );
-    const box = new RigidBody(
-        boxMesh,
-        new MeshCollider('tetra')
-    )
-    box.setBox(new Vec3(1, 1, 1), 1);
-    
-    return box;
+
+    const vPositions = [...tetraMesh.geometry.attributes.position.array as Float32Array] as Array<number>;
+    const indices = tetraMesh.geometry.index?.array as Uint16Array;
+    console.log(vPositions, indices);
+
+    const tetra = new RigidBody(new MeshCollider().setGeometry('tetra'))
+        .setMesh(tetraMesh)
+        // .setBox(new Vec3(size, size, size), 1); // @TODO tetra inertia
+
+    return tetra;
 }
