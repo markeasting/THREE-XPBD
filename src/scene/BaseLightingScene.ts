@@ -12,6 +12,7 @@ export class BaseLightingScene extends THREE.Scene {
                 color: 0x444444,
             })
         );
+        ground.receiveShadow = true;
         ground.rotation.x = -Math.PI / 2;
         ground.position.z = 0;
         this.add( ground )
@@ -21,6 +22,7 @@ export class BaseLightingScene extends THREE.Scene {
         p1.light.position.set(7, 10, 3);
 
         const p2 = new PointLight(this, 0xd6deed);
+        p2.light.castShadow = true;
         p2.light.position.set(-7, 10, -3);
 
         // const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );

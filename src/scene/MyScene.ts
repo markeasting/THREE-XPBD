@@ -19,12 +19,12 @@ export class MyScene extends BaseScene {
     }
 
     override init() {
-        const lookAt = new Vec3(0, -1, 0);
+        const lookAt = new Vec3(0, 1, 0);
         this.camera.lookAt(lookAt);
         this.orbitControls.target.copy(lookAt);
         this.orbitControls.update();
 
-        this.insert(new AthmosphereScene);
+        this.insert(new OmgScene);
 
         this.addGeometry();
     }
@@ -42,8 +42,8 @@ export class MyScene extends BaseScene {
         // this.scene.add(boxMesh);
         
 
-        for (let index = 0; index < 10; index++) {
-            const b = Box();
+        for (let index = 0; index < 2; index++) {
+            const b = Box(1, 2, 1);
             b.pose.p.set(
                 Math.random() * 8 - 4,
                 Math.random() * 2 + 3,
@@ -76,11 +76,12 @@ export class MyScene extends BaseScene {
     public update(time: number, dt: number, keys: Record<string, boolean>): void {
 
         if (keys.KeyQ) {
+            const body = this.world.bodies[0];
             const tetraPointL = new Vec3(0, 0.5, 0);
-            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, this.world.bodies[0].pose.q, this.world.bodies[0].pose.p);
+            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose.q, body.pose.p);
 
-            this.world.bodies[0].applyForceW(
-                new Vec3(0, 20, 0),
+            body.applyForceW(
+                new Vec3(0, body.mass * this.world.gravity.y * -2.0, 0),
                 tetraPointW
             );
         }
