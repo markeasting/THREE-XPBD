@@ -17,8 +17,8 @@ export class XPBDSolver extends BaseSolver {
         if (dt === 0)
             return;
 
-        const h = dt / this.numSubsteps;
-        // const h = (1 / 60) / this.numSubsteps;
+        // const h = dt / this.numSubsteps;
+        const h = (1 / 60) / this.numSubsteps;
         // const h = (1 / 120) / this.numSubsteps;
 
         const collisions = this.collectCollisionPairs(bodies, dt);
