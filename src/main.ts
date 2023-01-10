@@ -1,5 +1,4 @@
 import { Game } from './core/Game';
-import { CarScene } from './scene/CarScene';
 import { MyScene } from './scene/MyScene';
 import './style.css'
 
