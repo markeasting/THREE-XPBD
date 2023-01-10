@@ -24,7 +24,7 @@ export class MyScene extends BaseScene {
         this.orbitControls.target.copy(lookAt);
         this.orbitControls.update();
 
-        this.insert(new OmgScene);
+        this.insert(new BaseLightingScene);
 
         this.addGeometry();
     }

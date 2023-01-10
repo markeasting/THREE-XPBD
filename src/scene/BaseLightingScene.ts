@@ -28,7 +28,7 @@ export class BaseLightingScene extends THREE.Scene {
         // const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
         // this.add( directionalLight );
 
-        const ambientLight = new THREE.AmbientLight( 0x404040 );
+        const ambientLight = new THREE.AmbientLight( 0xffffff, 0.35 );
         this.add( ambientLight );
 
     }
