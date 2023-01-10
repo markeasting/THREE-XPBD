@@ -21,7 +21,8 @@ export class Game {
         this.canvas = document.getElementById(canvasID) as HTMLCanvasElement;
 
         this.renderer = new THREE.WebGLRenderer({
-            canvas: this.canvas
+            canvas: this.canvas,
+            antialias: true,
         });
         this.renderer.setPixelRatio(1);
 
