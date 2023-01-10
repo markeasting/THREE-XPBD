@@ -79,14 +79,8 @@ export class SphereCollider extends Collider {
 export class MeshCollider extends Collider {
     colliderType = ColliderType.ConvexMesh;
 
-    constructor(whichOne: 'box'|'tetra') {
-        super();
-
-        this.setGeometry(whichOne);
-    }
-
-    // override setGeometry(geometry: THREE.BufferGeometry): void {
-    setGeometry(whichOne: 'box'|'tetra'|'point', width = 1.0, height = 1.0, depth = 1.0): void {
+    // override setGeometry(geometry: THREE.BufferGeometry): this {
+    setGeometry(whichOne: 'box'|'tetra'|'point', width = 1.0, height = 1.0, depth = 1.0): this {
 
         // const v = new Vec3();
         // const vPositions = [...geometry.attributes.position.array as Float32Array] as Array<number>;
@@ -165,8 +159,10 @@ export class MeshCollider extends Collider {
                 2, 1, 0,
                 1, 2, 3,
                 0, 3, 2,
-                1, 3, 0
+                1, 3, 0,
             ];
         }
+
+        return this;
     }
 };
