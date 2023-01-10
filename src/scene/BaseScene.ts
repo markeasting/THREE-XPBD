@@ -26,7 +26,7 @@ export class BaseScene implements SceneInterface {
 
     constructor() {
         this.scene  = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 5000);
+        this.camera = new THREE.PerspectiveCamera(70, 1, 0.1, 5000);
 
         this.orbitControls = new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
 
@@ -77,8 +77,7 @@ export class BaseScene implements SceneInterface {
     }
 
     public addBody(body: RigidBody) {
-        this.scene.add(body.mesh);
-        this.world.add(body);
+        body.addTo(this);
     }
 
     public draw(renderer: THREE.WebGLRenderer) {
