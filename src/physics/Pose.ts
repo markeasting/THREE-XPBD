@@ -6,7 +6,7 @@ export class Pose {
     p: Vec3 // = new Vec3(0.0, 0.0, 0.0);
     q: Quat // = new Quat(1.0, 0.0, 0.0, 0.0);
 
-    constructor(p: Vec3, q: Quat) {
+    constructor(p: Vec3 = new Vec3(0, 0, 0), q: Quat = new Quat()) {
         this.p = p;
         this.q = q;
     }
