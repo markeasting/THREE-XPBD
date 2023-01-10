@@ -26,6 +26,7 @@ export class RigidBody {
 
     // private mass = 1.0;
     private invMass = 1.0;
+    public get mass() { return 1 / this.invMass; }
 
     // private mass = 1.0;
     private invInertia = new Vec3(1.0, 1.0, 1.0);
@@ -34,7 +35,7 @@ export class RigidBody {
     public torque = new Vec3();
     public gravity = 1.0;
 
-    public bounciness = 0.6; // coefficient of restitution (e)
+    public bounciness = 0.5; // coefficient of restitution (e)
     public staticFriction = 0.5;
     public dynamicFriction = 0.3;
 
@@ -97,6 +98,8 @@ export class RigidBody {
             1.0 / (size.y * size.y + size.z * size.z) / mass,
             1.0 / (size.z * size.z + size.x * size.x) / mass,
             1.0 / (size.x * size.x + size.y * size.y) / mass);
+
+        console.log(1/this.invMass);
 
         return this;
     }
