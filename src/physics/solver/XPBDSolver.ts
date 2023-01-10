@@ -299,12 +299,6 @@ export class XPBDSolver extends BaseSolver {
             const vn = Vec3.dot(v, contact.n);
             const vt = Vec3.sub(v, Vec3.mul(contact.n, vn));
 
-            // const vPrev = Vec3.sub(
-            //     contact.A.getVelocityAt(contact.p1, true),
-            //     contact.B.getVelocityAt(contact.p2, true)
-            // );
-            // const vnPrev = Vec3.dot(vPrev, contact.n);
-
             /* (30) Friction */
             const Fn = -contact.lambda_n / (h * h);
             const friction = Math.min(h * contact.friction * Fn, vt.length());
@@ -322,7 +316,7 @@ export class XPBDSolver extends BaseSolver {
             const threshold = 2.0 * 9.81 * h;
             const e = Math.abs(vn) <= threshold ? 0.0 : contact.e;
             const vn_tilde = contact.vn;
-            const restitution = -vn + Math.min(-e * vn_tilde, 0.0);
+            const restitution = -vn + Math.max(-e * vn_tilde, 0.0);
             dv.add(Vec3.mul(contact.n, restitution));
 
             /* (33) Velocity update */
