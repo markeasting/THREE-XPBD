@@ -86,7 +86,7 @@ export class MeshCollider extends Collider {
     }
 
     // override setGeometry(geometry: THREE.BufferGeometry): void {
-    setGeometry(whichOne: 'box'|'tetra'): void {
+    setGeometry(whichOne: 'box'|'tetra', width = 1.0, height = 1.0, depth = 1.0): void {
 
         // const v = new Vec3();
         // const vPositions = [...geometry.attributes.position.array as Float32Array] as Array<number>;
@@ -126,23 +126,27 @@ export class MeshCollider extends Collider {
         // HACKED cube
         if (whichOne == 'box') {
             this.vertices = [
-                new Vec3(-0.5, 1, 0.5 ),
-                new Vec3(-0.5, -1, 0.5 ),
-                new Vec3(0.5, 1, 0.5 ),
-                new Vec3(0.5, -1, 0.5 ),
-                new Vec3(0.5, 1, -0.5 ),
-                new Vec3(0.5, -1, -0.5 ),
-                new Vec3(-0.5, 1, -0.5 ),
-                new Vec3(-0.5, -1, -0.5 ),
+                new Vec3(-width/2, height/2, depth/2 ),
+                new Vec3(-width/2, -height/2, depth/2 ),
+                new Vec3(width/2, height/2, depth/2 ),
+                new Vec3(width/2, -height/2, depth/2 ),
+                new Vec3(width/2, height/2, -depth/2 ),
+                new Vec3(width/2, -height/2, -depth/2 ),
+                new Vec3(-width/2, height/2, -depth/2 ),
+                new Vec3(-width/2, -height/2, -depth/2 ),
             ];
 
             this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
             this.uniqueIndices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+
+            // this.vertices = [new Vec3(0, 0, 0)];
+            // this.indices = [ 0 ];
+            // this.uniqueIndices = [ 0 ];
         }
 
         // HACKED tetra
         if (whichOne == 'tetra') {
-            const size = 1;
+            const size = width;
             const sqrt8over9 = 0.9428090415820633658 * size;
             const sqrt2over9 = 0.4714045207910316829 * size;
             const sqrt2over3 = 0.8164965809277260327 * size;

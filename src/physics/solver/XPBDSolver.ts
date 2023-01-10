@@ -1,99 +1,29 @@
-import * as THREE from 'three'
 import { ArrowHelper, AxesHelper, Box3, Box3Helper, Color, Object3D, Scene } from 'three';
-import { Quat } from "./Quaternion";
-import { RigidBody } from "./RigidBody";
-import { CollisionPair } from "./CollisionPair";
-import { ContactSet } from "./ContactSet";
-import { Vec3 } from "./Vec3";
-import { CoordinateSystem } from "./CoordinateSystem";
-import { ColliderType, MeshCollider, PlaneCollider } from "./Collider";
+import { RigidBody } from "../RigidBody";
+import { CollisionPair } from "../CollisionPair";
+import { ContactSet } from "../ContactSet";
+import { Vec3 } from "../Vec3";
+import { Quat } from "../Quaternion";
+import { CoordinateSystem } from "../CoordinateSystem";
+import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
+import { BaseSolver } from './BaseSolver';
 
-export class XPBDSolver {
+export class XPBDSolver extends BaseSolver {
 
-    static numSubsteps = 15;
+    private numSubsteps = 15;
 
-    private scene: Scene;
-    // private debugVector = new ArrowHelper();
+    public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3): void {
 
-    private debug: Record<string, Object3D>  = {
-        _debug: new ArrowHelper(),
-        n: new ArrowHelper(),
-        d: new ArrowHelper(),
-        r1: new ArrowHelper(),
-        r2: new ArrowHelper(),
-        A: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xcccccc)),
-        B: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xcccccc)),
-        p1: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xffff00)),
-        p2: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xff00ff)),
-    }
+        if (dt === 0)
+            return;
 
-    constructor(scene: Scene) {
-        this.scene = scene;
-        this.scene.add(new AxesHelper(1));
-        // this.scene.add(new GridHelper(100));
+        const h = dt / this.numSubsteps;
+        // const h = (1 / 60) / this.numSubsteps;
+        // const h = (1 / 120) / this.numSubsteps;
 
-        // this.scene.add(this.debugVector);
+        const collisions = this.collectCollisionPairs(bodies, dt);
 
-        for (const d in this.debug) {
-            this.scene.add(this.debug[d]);
-        }
-        (this.debug._debug as ArrowHelper).setColor(0x00ff00);
-        (this.debug.n as ArrowHelper).setColor(0x00ffff);
-        (this.debug.d as ArrowHelper).setColor(0xff0000);
-        (this.debug.r2 as ArrowHelper).setColor(0xff00ff);
-    }
-
-    private dd(vec: Vec3, pos?: Vec3) {
-        this.setDebugVector('_debug', vec, pos);
-    }
-
-    private setDebugVector(key: string, vec: Vec3, pos?: Vec3) {
-        const arrow = this.debug[key] as ArrowHelper;
-        if (pos)
-            arrow.position.copy(pos);
-        arrow.setDirection(vec.clone().normalize());
-        arrow.setLength(vec.length());
-    }
-
-    private setDebugPoint(key: string, pos: Vec3, size = 0.1) {
-        const box = this.debug[key] as Box3Helper;
-        box.box = new Box3().setFromCenterAndSize(pos, new Vec3(size, size, size))
-    }
-
-    private debugContact(contact: ContactSet) {
-        for (const key in contact) {
-            this.setDebugPoint('A', contact.A.pose.p, 0.02);
-            this.setDebugPoint('B', contact.B.pose.p, 0.02);
-
-            if (key == 'n')
-                this.setDebugVector(key, contact.n, contact.p2)
-            if (key == 'd')
-                this.setDebugVector(key, contact.n.clone().multiplyScalar(contact.d), contact.p1);
-            if (key == 'r1')
-                // this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose.q, contact.A.pose.p));
-                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose.q, contact.A.pose.p).sub(contact.A.pose.p), contact.A.pose.p);
-            if (key == 'r2')
-                // this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose.q, contact.B.pose.p));
-                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose.q, contact.B.pose.p).sub(contact.B.pose.p), contact.B.pose.p);
-            if (key == 'p1')
-                this.setDebugPoint(key, contact.p1)
-            if (key == 'p2')
-                this.setDebugPoint(key, contact.p2)
-        }
-    }
-
-    public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3) {
-
-        // if (dt === 0)
-        //     return;
-
-        // const h = dt / XPBDSolver.numSubsteps;
-        const h = (1 / 60) / XPBDSolver.numSubsteps;
-        // const h = (1 / 120) / XPBDSolver.numSubsteps;
-
-        const collisions = this.collectCollisionPairs(bodies, h); // Should this be h instead of dt?
-
-        for (let i = 0; i < XPBDSolver.numSubsteps; i++) {
+        for (let i = 0; i < this.numSubsteps; i++) {
 
             /* (3.5)
              * At each substep we iterate through the pairs
@@ -110,7 +40,6 @@ export class XPBDSolver {
             // for (let j = 0; j < joints.length; j++)
             //     joints[j].solvePos(h);
 
-            // (Collisions)
             this.solvePositions(contacts, h);
 
             for (let j = 0; j < bodies.length; j++)
@@ -120,7 +49,6 @@ export class XPBDSolver {
             // for (let j = 0; j < joints.length; j++)
             //     joints[j].solveVel(h);
 
-            // (Collisions)
             this.solveVelocities(contacts, h);
         }
 
@@ -198,10 +126,6 @@ export class XPBDSolver {
 
             const A = collision.A;
             const B = collision.B;
-
-            // This check is already done in broadphase, skip?
-            if (!A.isDynamic && !B.isDynamic)
-                continue;
 
             if (A.mesh.id == B.mesh.id)
                 continue;
@@ -375,6 +299,12 @@ export class XPBDSolver {
             const vn = Vec3.dot(v, contact.n);
             const vt = Vec3.sub(v, Vec3.mul(contact.n, vn));
 
+            // const vPrev = Vec3.sub(
+            //     contact.A.getVelocityAt(contact.p1, true),
+            //     contact.B.getVelocityAt(contact.p2, true)
+            // );
+            // const vnPrev = Vec3.dot(vPrev, contact.n);
+
             /* (30) Friction */
             const Fn = -contact.lambda_n / (h * h);
             const friction = Math.min(h * contact.friction * Fn, vt.length());
@@ -390,7 +320,7 @@ export class XPBDSolver {
              * `vn_tilde` was already calculated before the position solve (Eq. 29)
              */
             const threshold = 2.0 * 9.81 * h;
-            const e = Math.abs(vn) > threshold ? contact.e : 0.0;
+            const e = Math.abs(vn) <= threshold ? 0.0 : contact.e;
             const vn_tilde = contact.vn;
             const restitution = -vn + Math.min(-e * vn_tilde, 0.0);
             dv.add(Vec3.mul(contact.n, restitution));

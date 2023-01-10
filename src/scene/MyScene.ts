@@ -40,12 +40,13 @@ export class MyScene extends BaseScene {
         //     })
         // );
         // this.scene.add(boxMesh);
+        
 
         for (let index = 0; index < 10; index++) {
             const b = Box();
             b.pose.p.set(
                 Math.random() * 8 - 4,
-                Math.random() * 4 + 1,
+                Math.random() * 2 + 3,
                 Math.random() * 8 - 4
             );
             // b.pose.p.set(-1.5, 5.5, 1);
@@ -54,21 +55,35 @@ export class MyScene extends BaseScene {
             this.addBody(b);
         }
 
-        const ground = new RigidBody(new THREE.Mesh(
-            new THREE.PlaneGeometry(0.1, 0.1, 5, 5),
+        const ground = new RigidBody(
+            new PlaneCollider(new Vec2(100, 100)),
+            new THREE.Mesh(
+                new THREE.PlaneGeometry(0.1, 0.1, 5, 5),
                 new THREE.MeshPhongMaterial({
                     color: 0xffffff,
                     // wireframe: true,
                 })
-            ),
-            new PlaneCollider(new Vec2(100, 100))
-        )
+            )
+        );
         ground.pose.q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
         ground.pose.p.copy(new Vec3(0, 0, 0));
         ground.makeStatic();
 
         this.addBody(ground);
 
+    }
+
+    public update(time: number, dt: number, keys: Record<string, boolean>): void {
+
+        if (keys.KeyQ) {
+            const tetraPointL = new Vec3(0, 0.5, 0);
+            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, this.world.bodies[0].pose.q, this.world.bodies[0].pose.p);
+
+            this.world.bodies[0].applyForceW(
+                new Vec3(0, 20, 0),
+                tetraPointW
+            );
+        }
     }
 
 }

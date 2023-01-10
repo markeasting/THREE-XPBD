@@ -9,7 +9,7 @@ export interface SceneInterface {
     onActivate(): void;
     onDeactivate(): void;
     init(): void;
-    update(time: number, dt: number): void;
+    update(time: number, dt: number, keys: Record<string, boolean>): void;
 }
 
 export class BaseScene implements SceneInterface {
@@ -69,15 +69,23 @@ export class BaseScene implements SceneInterface {
     public onDeactivate() {}
 
     public init() {}
-    public update(time: number, dt: number) {}
+    public update(time: number, dt: number, keys: Record<string, boolean>) {}
 
-    public updatePhysics(time: number, dt: number) {
-        this.world.update(dt);
+    public updatePhysics(dt: number, enabled = true) {
+        if (enabled)
+            this.world.update(dt);
     }
 
     public addBody(body: RigidBody) {
         this.scene.add(body.mesh);
         this.world.add(body);
+    }
+
+    public draw(renderer: THREE.WebGLRenderer) {
+        renderer.render(
+            this.scene,
+            this.camera
+        );
     }
 
 }

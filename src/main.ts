@@ -6,7 +6,7 @@ window.onload = function() {
 
     const game = new Game('canvas');
 
-    game.sceneManager.add(MyScene);
+    game.add(new MyScene());
     // game.sceneManager.add(CarScene);
     // game.sceneManager.activate('CarScene');
 

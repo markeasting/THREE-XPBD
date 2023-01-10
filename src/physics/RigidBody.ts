@@ -4,7 +4,7 @@ import { Vec3 } from './Vec3';
 import { Collider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
 import { Quat } from './Quaternion';
-import { XPBDSolver } from './XPBDSolver';
+import { XPBDSolver } from './solver/XPBDSolver';
 import { CoordinateSystem } from './CoordinateSystem';
 
 export class RigidBody {
@@ -40,37 +40,37 @@ export class RigidBody {
 
     static maxRotationPerSubstep = 0.5;
 
-    constructor(mesh: THREE.Mesh, collider: Collider) {
-        this.mesh = mesh;
+    constructor(collider: Collider, mesh?: THREE.Mesh) {
         this.collider = collider;
 
+        if (mesh) {
+            this.setMesh(mesh);
+        }
+
+        return this;
+    }
+
+    public addTo(scene: BaseScene): this {
+        scene.scene.add(this.mesh);
+        scene.world.add(this);
+
+        return this;
+    }
+
+    public setMesh(mesh: THREE.Mesh): this {
+        this.mesh = mesh;
+        // mesh.userData.physicsBody = this; // idk
         this.pose = new Pose(new Vec3().copy(mesh.position), mesh.quaternion);
         this.prevPose = this.pose.clone();
-
+        
         // @TODO move somewhere else
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        // mesh.userData.physicsBody = this; // idk
 
-        window.addEventListener('keydown', (e) => {
-            const tetraPointL = new Vec3(0, 1, 0);
-            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, this.pose.q, this.pose.p);
-
-            if (e.code == 'KeyQ') {
-                this.applyForceW(
-                    new Vec3(0, 100, 0),
-                    tetraPointW
-                );
-            }
-        })
+        return this;
     }
 
-    public addTo(scene: BaseScene) {
-        scene.scene.add(this.mesh);
-        scene.world.add(this);
-    }
-
-    public makeStatic() {
+    public makeStatic(): this {
         this.isDynamic = false;
         this.gravity = 0.0;
         this.invMass = 0.0;
@@ -78,16 +78,11 @@ export class RigidBody {
 
         this.updateGeometry();
         this.updateCollider();
+
+        return this;
     }
 
-    public applyForceW(force: Vec3, worldPos: Vec3 = new Vec3(0,0,0)) {
-        const F = force.clone();
-
-        this.force.add(F);
-        this.torque.add(F.cross(this.pose.p.clone().sub(worldPos)))
-    }
-
-    public setBox(size: Vec3, density = 1.0): void {
+    public setBox(size: Vec3, density = 1.0): this {
         let mass = size.x * size.y * size.z * density;
         this.invMass = 1.0 / mass;
         mass /= 12.0;
@@ -95,33 +90,8 @@ export class RigidBody {
             1.0 / (size.y * size.y + size.z * size.z) / mass,
             1.0 / (size.z * size.z + size.x * size.x) / mass,
             1.0 / (size.x * size.x + size.y * size.y) / mass);
-    }
 
-    public applyRotation(rot: Vec3, scale: number = 1.0): void {
-
-        // safety clamping. This happens very rarely if the solver
-        // wants to turn the body by more than 30 degrees in the
-        // orders of milliseconds
-        let maxPhi = 0.5;
-        let phi = rot.length();
-        if (phi * scale > RigidBody.maxRotationPerSubstep)
-            scale = RigidBody.maxRotationPerSubstep / phi;
-
-        let dq = new Quat(
-            rot.x * scale,
-            rot.y * scale,
-            rot.z * scale,
-            0.0
-        );
-        dq.multiply(this.pose.q);
-
-        this.pose.q.set(
-            this.pose.q.x + 0.5 * dq.x,
-            this.pose.q.y + 0.5 * dq.y,
-            this.pose.q.z + 0.5 * dq.z,
-            this.pose.q.w + 0.5 * dq.w
-        );
-        this.pose.q.normalize();
+        return this;
     }
 
     public getVelocityAt(pos: Vec3, usePrevVelocity = false): Vec3 {
@@ -130,7 +100,7 @@ export class RigidBody {
             return new Vec3(0, 0, 0);
 
         // Original
-        // let vel = new THREE.Vector3(0.0, 0.0, 0.0);
+        // let vel = new Vec3(0.0, 0.0, 0.0);
         // vel.subVectors(pos, this.pose.p);
         // vel.cross(this.omega);
         // vel.subVectors(this.vel, vel);
@@ -207,6 +177,33 @@ export class RigidBody {
         // this.updateCollider();
     }
 
+    public applyRotation(rot: Vec3, scale: number = 1.0): void {
+
+        // safety clamping. This happens very rarely if the solver
+        // wants to turn the body by more than 30 degrees in the
+        // orders of milliseconds
+        let maxPhi = 0.5;
+        let phi = rot.length();
+        if (phi * scale > RigidBody.maxRotationPerSubstep)
+            scale = RigidBody.maxRotationPerSubstep / phi;
+
+        let dq = new Quat(
+            rot.x * scale,
+            rot.y * scale,
+            rot.z * scale,
+            0.0
+        );
+        dq.multiply(this.pose.q);
+
+        this.pose.q.set(
+            this.pose.q.x + 0.5 * dq.x,
+            this.pose.q.y + 0.5 * dq.y,
+            this.pose.q.z + 0.5 * dq.z,
+            this.pose.q.w + 0.5 * dq.w
+        );
+        this.pose.q.normalize();
+    }
+
     public integrate(dt: number, gravity: Vec3): void {
         if (!this.isDynamic)
             return;
@@ -268,6 +265,13 @@ export class RigidBody {
         // leave mesh to update only once per frame (after substeps)
         this.updateGeometry();
         this.updateCollider();
+    }
+
+    public applyForceW(force: Vec3, worldPos: Vec3 = new Vec3(0,0,0)) {
+        const F = force.clone();
+
+        this.force.add(F);
+        this.torque.add(F.cross(this.pose.p.clone().sub(worldPos)))
     }
 
     private updateGeometry() {

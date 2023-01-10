@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { RigidBody } from "./RigidBody";
 import { Vec3 } from "./Vec3";
-import { XPBDSolver } from "./XPBDSolver";
+import { XPBDSolver } from "./solver/XPBDSolver";
 
 export class World {
 
@@ -26,6 +26,15 @@ export class World {
 
     public update(dt: number): void {
         this.solver.update(this.bodies, dt, this.gravity);
+    }
+
+    public draw(renderer: THREE.WebGLRenderer, camera: THREE.Camera) {
+        renderer.autoClear = false;
+        renderer.render(
+            this.scene,
+            camera
+        );
+        renderer.autoClear = true;
     }
 
 }
