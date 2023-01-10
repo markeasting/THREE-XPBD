@@ -9,11 +9,13 @@ import { CoordinateSystem } from './CoordinateSystem';
 
 export class RigidBody {
 
-    public mesh: THREE.Mesh;
+    public id: number = 0;
+
+    public mesh?: THREE.Mesh;
     public collider: Collider;
 
-    public pose: Pose;
-    public prevPose: Pose;
+    public pose = new Pose();
+    public prevPose = new Pose();
 
     public vel = new Vec3(0.0, 0.0, 0.0);
     public omega = new Vec3(0.0, 0.0, 0.0);
@@ -51,17 +53,22 @@ export class RigidBody {
     }
 
     public addTo(scene: BaseScene): this {
-        scene.scene.add(this.mesh);
+        if (this.mesh)
+            scene.scene.add(this.mesh);
+
         scene.world.add(this);
 
         return this;
     }
 
-    public setMesh(mesh: THREE.Mesh): this {
+    public setMesh(mesh: THREE.Mesh, applyTransform = true): this {
         this.mesh = mesh;
         // mesh.userData.physicsBody = this; // idk
-        this.pose = new Pose(new Vec3().copy(mesh.position), mesh.quaternion);
-        this.prevPose = this.pose.clone();
+
+        if (applyTransform) {
+            this.pose = new Pose(new Vec3().copy(mesh.position), mesh.quaternion);
+            this.prevPose = this.pose.clone();
+        }
         
         // @TODO move somewhere else
         mesh.castShadow = true;
@@ -275,8 +282,10 @@ export class RigidBody {
     }
 
     private updateGeometry() {
-        this.mesh.position.copy(this.pose.p);
-        this.mesh.quaternion.copy(this.pose.q);
+        if (this.mesh) {
+            this.mesh.position.copy(this.pose.p);
+            this.mesh.quaternion.copy(this.pose.q);
+        }
     }
 
     private updateCollider() {

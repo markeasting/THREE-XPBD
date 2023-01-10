@@ -7,7 +7,11 @@ export class World {
 
     public gravity = new Vec3(0, -9.81, 0);
 
-    public bodies: Array<RigidBody> = [];
+    #bodies: Array<RigidBody> = [];
+
+    public get bodies() {
+        return this.#bodies;
+    }
 
     /**
      * Debug scene
@@ -21,7 +25,8 @@ export class World {
     }
 
     public add(body: RigidBody) {
-        this.bodies.push(body);
+        const len = this.bodies.push(body);
+        body.id = len;
     }
 
     public update(dt: number): void {

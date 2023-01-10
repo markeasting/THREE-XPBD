@@ -70,10 +70,10 @@ export class XPBDSolver extends BaseSolver {
                 if (!A.isDynamic && !B.isDynamic)
                     continue;
 
-                if (A.mesh.id == B.mesh.id)
+                if (A.id == B.id)
                     continue;
 
-                const guid = [A.mesh.id, B.mesh.id].sort().toString();
+                const guid = [A.id, B.id].sort().toString();
 
                 if (combinations.includes(guid))
                     continue;
@@ -103,7 +103,7 @@ export class XPBDSolver extends BaseSolver {
                                 }
 
                                 if(deepestPenetration < collisionMargin) {
-                                    collisions.push({ A, B });
+                                    collisions.push(new CollisionPair( A, B ));
                                 }
 
                                 break;
@@ -126,9 +126,6 @@ export class XPBDSolver extends BaseSolver {
 
             const A = collision.A;
             const B = collision.B;
-
-            if (A.mesh.id == B.mesh.id)
-                continue;
 
             switch(A.collider.colliderType) {
                 case ColliderType.ConvexMesh :

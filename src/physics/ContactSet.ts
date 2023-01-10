@@ -61,6 +61,9 @@ export class ContactSet {
     Fn: number = 0; // Current constraint force (normal direction) == -contact.lambda_n / (h * h);
 
     constructor(A: RigidBody, B: RigidBody, contactPlane: Plane) {
+        if (A === B || A.id == B.id)
+            throw new Error('Cannot create a ContactSet with the same body');
+
         this.A = A;
         this.B = B;
 
