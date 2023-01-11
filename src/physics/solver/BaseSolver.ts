@@ -6,12 +6,9 @@ import { Quat } from "../Quaternion";
 import { Vec3 } from "../Vec3";
 import { CoordinateSystem } from "../CoordinateSystem";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
+import { Constraint } from '../constraint/Constraint';
 
-export interface Solver {
-    update(bodies: Array<RigidBody>, dt: number, gravity: Vec3): void
-}
-
-export class BaseSolver implements Solver {
+export class BaseSolver {
 
     protected scene?: Scene;
 
@@ -83,6 +80,6 @@ export class BaseSolver implements Solver {
         }
     }
     
-    public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3): void {}
+    public update(bodies: Array<RigidBody>, constraints: Array<Constraint>, dt: number, gravity: Vec3): void {}
 
 }

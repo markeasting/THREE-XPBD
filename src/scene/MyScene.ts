@@ -55,6 +55,8 @@ export class MyScene extends BaseScene {
             this.addBody(b);
         }
 
+        this.world.addConstraint(this.world.bodies[0], this.world.bodies[1]);
+
         const ground = new RigidBody(
             new PlaneCollider(new Vec2(100, 100)),
             new THREE.Mesh(

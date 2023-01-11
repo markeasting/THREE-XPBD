@@ -7,12 +7,13 @@ import { Quat } from "../Quaternion";
 import { CoordinateSystem } from "../CoordinateSystem";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
+import { Constraint } from '../constraint/Constraint';
 
 export class XPBDSolver extends BaseSolver {
 
     private numSubsteps = 15;
 
-    public update(bodies: Array<RigidBody>, dt: number, gravity: Vec3): void {
+    public update(bodies: Array<RigidBody>, constraints: Array<Constraint>, dt: number, gravity: Vec3): void {
 
         if (dt === 0)
             return;
@@ -37,8 +38,8 @@ export class XPBDSolver extends BaseSolver {
                 bodies[j].integrate(h, gravity);
 
             // (Constraints)
-            // for (let j = 0; j < joints.length; j++)
-            //     joints[j].solvePos(h);
+            for (let j = 0; j < constraints.length; j++)
+                constraints[j].solvePos(h);
 
             this.solvePositions(contacts, h);
 
@@ -46,8 +47,8 @@ export class XPBDSolver extends BaseSolver {
                 bodies[j].update(h);
 
             // (Constraints)
-            // for (let j = 0; j < joints.length; j++)
-            //     joints[j].solveVel(h);
+            for (let j = 0; j < constraints.length; j++)
+                constraints[j].solveVel(h);
 
             this.solveVelocities(contacts, h);
         }
@@ -118,7 +119,7 @@ export class XPBDSolver extends BaseSolver {
         return collisions;
     }
 
-    public getContacts(collisions: Array<CollisionPair>) {
+    public getContacts(collisions: Array<CollisionPair>): Array<ContactSet> {
 
         const contacts: Array<ContactSet> = [];
 
@@ -220,7 +221,7 @@ export class XPBDSolver extends BaseSolver {
         /* (3.5) Resolve penetration (Δx = dn using a = 0 and λn) */
         const dx = Vec3.mul(contact.n, contact.d);
 
-        const delta_lambda = this.applyBodyPairCorrection(
+        const delta_lambda = XPBDSolver.applyBodyPairCorrection(
             contact.A,
             contact.B,
             dx,
@@ -266,7 +267,7 @@ export class XPBDSolver extends BaseSolver {
          * Note: with 1 position iteration, lambdaT is always zero!
          */
         if (contact.lambda_t > contact.friction * contact.lambda_n) {
-            this.applyBodyPairCorrection(
+            XPBDSolver.applyBodyPairCorrection(
                 contact.A,
                 contact.B,
                 dp_t,
@@ -320,7 +321,7 @@ export class XPBDSolver extends BaseSolver {
             dv.add(Vec3.mul(contact.n, restitution));
 
             /* (33) Velocity update */
-            this.applyBodyPairCorrection(
+            XPBDSolver.applyBodyPairCorrection(
                 contact.A,
                 contact.B,
                 dv,
@@ -333,7 +334,7 @@ export class XPBDSolver extends BaseSolver {
         }
     }
 
-    private applyBodyPairCorrection(
+    static applyBodyPairCorrection(
         body0: RigidBody,
         body1: RigidBody,
         corr: Vec3,
