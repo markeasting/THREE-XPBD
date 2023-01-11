@@ -13,7 +13,7 @@ export interface Solver {
 
 export class BaseSolver implements Solver {
 
-    protected scene: Scene;
+    protected scene?: Scene;
 
     protected helpers: Record<string, Object3D>  = {
         _debug: new ArrowHelper(),
@@ -27,18 +27,21 @@ export class BaseSolver implements Solver {
         p2: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xff00ff)),
     }
 
-    constructor(scene: Scene) {
-        this.scene = scene;
-        this.scene.add(new AxesHelper(1));
-        // this.scene.add(new GridHelper(100));
+    constructor(scene?: Scene) {
+        if (scene) {
 
-        for (const d in this.helpers) {
-            this.scene.add(this.helpers[d]);
+            this.scene = scene;
+            this.scene.add(new AxesHelper(1));
+            // this.scene.add(new GridHelper(100));
+
+            for (const d in this.helpers) {
+                this.scene.add(this.helpers[d]);
+            }
+            (this.helpers._debug as ArrowHelper).setColor(0x00ff00);
+            (this.helpers.n as ArrowHelper).setColor(0x00ffff);
+            (this.helpers.d as ArrowHelper).setColor(0xff0000);
+            (this.helpers.r2 as ArrowHelper).setColor(0xff00ff);
         }
-        (this.helpers._debug as ArrowHelper).setColor(0x00ff00);
-        (this.helpers.n as ArrowHelper).setColor(0x00ffff);
-        (this.helpers.d as ArrowHelper).setColor(0xff0000);
-        (this.helpers.r2 as ArrowHelper).setColor(0xff00ff);
     }
 
     protected dd(vec: Vec3, pos?: Vec3) {

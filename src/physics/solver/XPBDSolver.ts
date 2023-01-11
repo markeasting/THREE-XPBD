@@ -118,7 +118,7 @@ export class XPBDSolver extends BaseSolver {
         return collisions;
     }
 
-    private getContacts(collisions: Array<CollisionPair>) {
+    public getContacts(collisions: Array<CollisionPair>) {
 
         const contacts: Array<ContactSet> = [];
 
@@ -131,59 +131,7 @@ export class XPBDSolver extends BaseSolver {
                 case ColliderType.ConvexMesh :
                     switch(B.collider.colliderType) {
                         case ColliderType.Plane : {
-
-                            const MC = A.collider as MeshCollider;
-                            const PC = B.collider as PlaneCollider;
-
-                            const N = new Vec3().copy(PC.plane.normal);
-
-                            // @TODO check if vertex is actually inside plane size :)
-                            // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
-                            for(let i = 0; i < MC.uniqueIndices.length; i++) {
-                                const v = MC.vertices[MC.uniqueIndices[i]];
-                                // const point = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-
-                                /* (26) - p1 -- note: p1 === point (localToWorld(v)) */
-                                const r1 = v;
-                                const p1 = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-
-                                /* (26) - p2 */
-                                // const signedDistance = PC.plane.distanceToPoint(contactPointW);
-                                const signedDistance = Vec3.dot(N, Vec3.sub(p1, B.pose.p));
-                                const p2 = Vec3.sub(p1, Vec3.mul(N, signedDistance));
-                                const r2 = CoordinateSystem.worldToLocal(p2, B.pose.q, B.pose.p);
-
-                                /* (3.5) Penetration depth -- Note: sign was flipped! */
-                                // const d = - N.dot(Vec3.sub(p1, p2));
-                                const d = -signedDistance; // This matches the calculation above!
-
-                                /* (3.5) if d ≤ 0 we skip the contact */
-                                if (d <= 0.0)
-                                    continue;
-
-                                const contact = new ContactSet(A, B, PC.plane);
-                                contact.n = N.clone();
-                                contact.d = signedDistance;
-
-                                contact.r1 = r1;
-                                contact.r2 = r2;
-                                contact.p1 = p1;
-                                contact.p2 = p2;
-
-                                // Set initial relative velocity
-                                contact.vrel = Vec3.sub(
-                                    contact.A.getVelocityAt(contact.p1),
-                                    contact.B.getVelocityAt(contact.p2)
-                                );
-                                contact.vn = contact.vrel.dot(contact.n);
-
-                                contact.e = 0.5 * (A.bounciness + B.bounciness);
-                                contact.friction = 0.5 * (A.staticFriction + B.staticFriction);
-
-                                this.debugContact(contact);
-                                contacts.push(contact);
-                            }
-
+                            this._meshPlaneContact(contacts, A, B);
                             break;
                         }
                         default: break;
@@ -193,6 +141,61 @@ export class XPBDSolver extends BaseSolver {
         }
 
         return contacts;
+    }
+
+    public _meshPlaneContact(contacts: Array<ContactSet>, A: RigidBody, B: RigidBody) {
+        const MC = A.collider as MeshCollider;
+        const PC = B.collider as PlaneCollider;
+
+        const N = new Vec3().copy(PC.plane.normal);
+
+        // @TODO check if vertex is actually inside plane size :)
+        // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
+        for(let i = 0; i < MC.uniqueIndices.length; i++) {
+            const v = MC.vertices[MC.uniqueIndices[i]];
+            // const point = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
+
+            /* (26) - p1 -- note: p1 === point (localToWorld(v)) */
+            const r1 = v;
+            const p1 = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
+
+            /* (26) - p2 */
+            // const signedDistance = PC.plane.distanceToPoint(contactPointW);
+            const signedDistance = Vec3.dot(N, Vec3.sub(p1, B.pose.p));
+            const p2 = Vec3.sub(p1, Vec3.mul(N, signedDistance));
+            const r2 = CoordinateSystem.worldToLocal(p2, B.pose.q, B.pose.p);
+
+            /* (3.5) Penetration depth -- Note: sign was flipped! */
+            // const d = - N.dot(Vec3.sub(p1, p2));
+            const d = -signedDistance; // This matches the calculation above!
+
+            /* (3.5) if d ≤ 0 we skip the contact */
+            if (d <= 0.0)
+                continue;
+
+            const contact = new ContactSet(A, B, PC.plane);
+            contact.n = N.clone();
+            contact.d = signedDistance;
+
+            contact.r1 = r1;
+            contact.r2 = r2;
+            contact.p1 = p1;
+            contact.p2 = p2;
+
+            /* (29) Set initial relative velocity */
+            contact.vrel = Vec3.sub(
+                contact.A.getVelocityAt(contact.p1),
+                contact.B.getVelocityAt(contact.p2)
+            );
+            contact.vn = contact.vrel.dot(contact.n);
+
+            contact.e = 0.5 * (A.bounciness + B.bounciness);
+            contact.friction = 0.5 * (A.staticFriction + B.staticFriction);
+
+            this.debugContact(contact);
+            
+            contacts.push(contact);
+        }
     }
 
     private solvePositions(contacts: Array<ContactSet>, h: number) {
