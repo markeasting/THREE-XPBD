@@ -78,7 +78,14 @@ export class RigidBody {
         return this;
     }
 
-    public makeStatic(): this {
+    public setPos(x: number, y: number, z: number) {
+        this.pose.p.set(x, y, z);
+        this.updateGeometry();
+
+        return this;
+    }
+
+    public setStatic(): this {
         this.isDynamic = false;
         this.gravity = 0.0;
         this.invMass = 0.0;
@@ -98,8 +105,6 @@ export class RigidBody {
             1.0 / (size.y * size.y + size.z * size.z) / mass,
             1.0 / (size.z * size.z + size.x * size.x) / mass,
             1.0 / (size.x * size.x + size.y * size.y) / mass);
-
-        console.log(1/this.invMass);
 
         return this;
     }
