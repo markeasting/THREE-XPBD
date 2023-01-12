@@ -24,9 +24,11 @@ export class CameraHandler {
     private prevCamPos = this.camPos.clone();
     private nextCamPos = this.camPos.clone();
 
-    private camLerp = 0.08;
+    private lerpFactor = 0.08; // [0, 1]
+    private lerpFactorQuick = 0.5; // Lerp factor when skipping to the next location
 
     private isMobileDevice = false;
+    private frameDelta = 0; // dt (1 / FPS)
 
     private mouseDown = false;
     private mouse = new Vector2();
@@ -58,7 +60,9 @@ export class CameraHandler {
         document.addEventListener('wheel', this.onZoom.bind(this));
     }
 
-    public update(camera: Camera) {
+    public update(camera: Camera, dt: number) {
+
+        this.frameDelta = dt;
 
         if (this.mouseDown) {
             this.mouseDelta.subVectors(this.mouse, this.mousePrev);
@@ -70,8 +74,12 @@ export class CameraHandler {
         this.animateCam(camera as PerspectiveCamera, this.orbitControls);
     }
 
-    public set(position: Vec3, target: Vec3, speed = 0.08) {
-        this.camLerp = speed;
+    public set(position: Vec3, target: Vec3, lerpFactor = 0.08) {
+
+        /* Adjust lerp for refresh rate, e.g. 120Hz screens. */
+        const FPSratio = this.frameDelta / (1/60); 
+
+        this.lerpFactor = clamp(lerpFactor * FPSratio, 0, 1);
         this.prevCamPos = this.camPos.clone();
         this.prevCamTarget = this.camTarget.clone();
         this.nextCamTarget = target.clone();
@@ -93,41 +101,31 @@ export class CameraHandler {
 
         if (t < tMax) {
 
-            if (t > 0.5 && this.mouseDown) {
-                // Skip to the end location
-                this.camPos.copy(this.nextCamPos);
-                this.camTarget.copy(this.camTarget);
-                this.prevCamPos.copy(this.nextCamPos);
-                this.prevCamTarget.copy(this.nextCamTarget);
-
-                camera.position.copy(this.nextCamPos);
-                camera.lookAt(this.nextCamTarget);
-                orbitControls.target.copy(this.nextCamTarget);
+            /* Skip to the end location if the user clicks/taps the screen */
+            if (this.mouseDown && t > 0.5) {
+                this.set(this.nextCamPos, this.nextCamTarget, this.lerpFactorQuick);
             } else {
 
-                // Smoothly lerp to the next position
-                const tSmooth = smoothstep2(t, 1.33) * this.camLerp + 0.01;
+                /* Take over camera: smoothly lerp to the next position */
+                const tSmooth = this.lerpFactor < 0.5
+                    ? (smoothstep2(t, 1.33) * this.lerpFactor) + 0.01
+                    : this.lerpFactor;
 
-                // console.log('Lerping', t.toFixed(4));
                 this.camPos.lerp(this.nextCamPos, tSmooth);
                 this.camTarget.lerp(this.nextCamTarget, tSmooth);
                 
                 camera.position.copy(this.camPos);
                 camera.lookAt(this.camTarget);
                 orbitControls.target.copy(this.camTarget);
-                orbitControls.enabled = false;
             }
 
         } else {
-            // cam.position.copy(nextCamPos.value);
-            // cam.lookAt(nextCamTarget.value);
 
-            // Look around 
+            /* Look/pan around the scene */
+            // @TODO adjust look speed when zoomed in
             if (this.mouseDown) {
-                // @TODO adjust forward dir when zoomed in
                 const forward = camera.getWorldDirection(new Vec3());
                 orbitControls.target.copy(camera.position).addScaledVector(forward, 0.01);
-                orbitControls.enabled = true;
             }
         }
 
@@ -151,7 +149,6 @@ export class CameraHandler {
     }
 
     private onMouse(e: TouchEvent | MouseEvent) {
-        this.mouseDown = false;
 
         if (e instanceof TouchEvent) {
             this.mouseDown = e.type == 'touchmove' || e.type == 'touchstart';
@@ -159,11 +156,13 @@ export class CameraHandler {
         }
 
         if (e instanceof MouseEvent) {
+            if (e.type == 'mouseup')
+                this.mouseDown = false;
+
             this.mouseDown = (e.type == 'mousemove' && e.buttons > 0) 
                 || e.type == 'mousedown';
 
             this.onDrag(e);
-            console.log(this.mouseDown);
         }
     }
 
