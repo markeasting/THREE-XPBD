@@ -11,6 +11,10 @@ export class Vec3 extends Vector3 {
         return v.clone().multiplyScalar(s);
     }
 
+    static div(v: Vec3, s: number) {
+        return v.clone().divideScalar(s);
+    }
+
     static add(v1: Vec3, v2: Vec3) {
         return new Vec3().addVectors(v1, v2);
     }
