@@ -64,7 +64,7 @@ export class RigidBody {
 
     public setMesh(mesh: THREE.Mesh, applyTransform = true): this {
         this.mesh = mesh;
-        // mesh.userData.physicsBody = this; // idk
+        mesh.userData.physicsBody = this;
 
         if (applyTransform) {
             this.pose = new Pose(new Vec3().copy(mesh.position), mesh.quaternion);
