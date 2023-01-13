@@ -4,6 +4,10 @@ import { Vec3 } from "./Vec3";
 import { XPBDSolver } from "./solver/XPBDSolver";
 import { Constraint } from './constraint/Constraint';
 import { BaseConstraint } from './constraint/BaseConstraint';
+import { Game } from '../core/Game';
+import { Attachment } from './constraint/Attachment';
+import { CoordinateSystem } from './CoordinateSystem';
+import { Pose } from './Pose';
 
 export class World {
 
@@ -13,6 +17,9 @@ export class World {
     
     #constraints: Array<Constraint> = [];
     #constraintsFast: Array<BaseConstraint> = []; // All constraints in a single array
+
+    #grabConstraint: BaseConstraint | undefined;
+    #grabDistance: number = 0;
 
     public get bodies() {
         return this.#bodies;
@@ -27,6 +34,52 @@ export class World {
 
     constructor() {
         this.solver = new XPBDSolver(this.scene);
+
+        Game.events.on('RayCastEvent', e => {
+
+            this.#grabDistance = this.#grabConstraint
+                ? this.#grabDistance 
+                : e.intersection.distance;
+
+            const screenPos = new Vec3()
+                .copy(e.ray.origin)
+                .addScaledVector(Game.raycaster.ray.direction, this.#grabDistance )
+
+            if (this.#grabConstraint) {
+
+                this.#grabConstraint.localPose1.p = screenPos;
+
+            } else {
+
+                if (!e.body)
+                    return;
+        
+                // const screenPos = Vec3.mul(e.ray.origin as Vec3, e.intersection.distance);
+                this.#grabDistance = e.intersection.distance;
+                
+                const localPos = CoordinateSystem.worldToLocal(e.intersection.point as Vec3, e.body.pose.q, e.body.pose.p);
+
+                this.#grabConstraint = new Attachment(localPos, screenPos)
+                    .setBodies(e.body, null)    
+                    .setStiffness(e.body.mass * 100)
+                    .setDamping(e.body.mass * 10, e.body.mass * 10)
+
+                this.#constraintsFast.push(this.#grabConstraint);
+            }
+            
+        })
+
+        window.addEventListener('mousemove', () => {
+            if (!Game.mouseDown)
+                this.#grabConstraint = undefined;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (this.#grabConstraint) {
+                this.#grabConstraint = undefined;
+                this.#constraintsFast.pop();
+            }
+        });
     }
 
     public add(body: RigidBody) {
@@ -35,7 +88,6 @@ export class World {
     }
 
     public addConstraint(constraint: Constraint) {
-        // this.#constraints.push(constraint);
         this.#constraintsFast.push(...constraint.constraints);
     }
 
