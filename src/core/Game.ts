@@ -145,8 +145,6 @@ export class Game {
         if (e.type == 'mousemove' && Game.mouseDown) {
             Game.mouseDrag = true;
 
-            console.log(Game.keys);
-
             if (Game.keys.ControlLeft)
                 this.performRaycast('drag');
         }
