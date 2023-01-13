@@ -23,13 +23,13 @@ export class Game {
     static mouseDown = false;
     static mouseDrag = false;
 
+    static keys: Record<string, boolean> = {}
+
     private scene: BaseScene|undefined = undefined;
 
     private debugPhysics = false;
     private stepPhysics = false;
     
-    private keys: Record<string, boolean> = {}
-
     public dt = 0;
     public time = 0;
     public prevTime = 0;
@@ -55,7 +55,7 @@ export class Game {
         window.addEventListener('resize', this.fitContent.bind(this));
 
         window.addEventListener('keydown', (e) => {
-            this.keys[e.code] = true;
+            Game.keys[e.code] = true;
             
             if (e.code == 'Space') {
                 this.stepPhysics = true;
@@ -63,7 +63,7 @@ export class Game {
             }
         })
         window.addEventListener('keyup', (e) => {
-            this.keys[e.code] = false;
+            Game.keys[e.code] = false;
         })
 
         window.addEventListener( 'mousedown', this.onMouse.bind(this) );
@@ -114,7 +114,7 @@ export class Game {
 
         if (this.scene) {
             this.scene.updatePhysics(this.dt, !this.stepPhysics);
-            this.scene.update(time, this.dt, this.keys);
+            this.scene.update(time, this.dt, Game.keys);
             // this.scene.draw(Game.composer);
             Game.composer.render()
 
@@ -144,7 +144,11 @@ export class Game {
 
         if (e.type == 'mousemove' && Game.mouseDown) {
             Game.mouseDrag = true;
-            this.performRaycast('drag');
+
+            console.log(Game.keys);
+
+            if (Game.keys.ControlLeft)
+                this.performRaycast('drag');
         }
     }
 
