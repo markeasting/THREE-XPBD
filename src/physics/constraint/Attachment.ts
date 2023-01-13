@@ -28,7 +28,9 @@ export class Attachment extends BaseConstraint {
     solvePos(h: number) {
         this.updateGlobalPoses();
         
+        // @TODO generalize creating C (constraint error) and it's normal
         const corr = Vec3.sub(this.globalPose1.p, this.globalPose0.p);
+        this.normal = Vec3.normalize(corr);
 
         this.lambda = XPBDSolver.applyBodyPairCorrection(
             this.body0, 
