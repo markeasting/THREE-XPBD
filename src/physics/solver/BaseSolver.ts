@@ -80,6 +80,6 @@ export class BaseSolver {
         }
     }
     
-    public update(bodies: Array<RigidBody>, constraints: Array<Constraint>, dt: number, gravity: Vec3): void {}
+    // public update(bodies: Array<RigidBody>, constraints: Array<Constraint>, dt: number, gravity: Vec3): void {}
 
 }

@@ -8,12 +8,13 @@ import { CoordinateSystem } from "../CoordinateSystem";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
 import { Constraint } from '../constraint/Constraint';
+import { BaseConstraint } from '../constraint/BaseConstraint';
 
 export class XPBDSolver extends BaseSolver {
 
     private numSubsteps = 20;
 
-    public update(bodies: Array<RigidBody>, constraints: Array<Constraint>, dt: number, gravity: Vec3): void {
+    public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
 
         if (dt === 0)
             return;
