@@ -44,6 +44,8 @@ export abstract class BaseConstraint {
 
         this.globalPose0 = this.localPose0.clone();
         this.globalPose1 = this.localPose1.clone();
+
+        return this;
     }
     
     // m/N
@@ -55,6 +57,12 @@ export abstract class BaseConstraint {
     // N/m
     public setStiffness(stiffness: number) {
         this.compliance = 1/stiffness;
+        return this;
+    }
+
+    public setDamping(posDamping: number, rotDamping: number) {
+        this.posDamping = posDamping;
+        this.rotDamping = rotDamping;
         return this;
     }
 
