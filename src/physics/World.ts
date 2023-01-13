@@ -3,7 +3,6 @@ import { RigidBody } from "./RigidBody";
 import { Vec3 } from "./Vec3";
 import { XPBDSolver } from "./solver/XPBDSolver";
 import { Constraint } from './constraint/Constraint';
-import { Joint, JointType } from './constraint/Joint';
 
 export class World {
 
@@ -32,8 +31,8 @@ export class World {
         body.id = len;
     }
 
-    public addConstraint(body0: RigidBody, body1: RigidBody) {
-        this.#constraints.push(new Joint(JointType.FIXED, body0, body1))
+    public addConstraint(constraint: Constraint) {
+        this.#constraints.push(constraint)
     }
 
     public update(dt: number): void {
