@@ -135,19 +135,20 @@ export class Game {
         Game.pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
         Game.pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-        if (e.type == 'mousedown' || e.type == 'mousemove')
+        if (e.type == 'mousedown')
             Game.mouseDown = true;
 
-        if (e.type == 'mousemove')
-            Game.mouseDrag = true;
-        
         if (e.type == 'mouseup' || e.type == 'mouseout') {
             Game.mouseDown = false;
-            this.performRaycast('click');
+        }
+
+        if (e.type == 'mousemove' && Game.mouseDown) {
+            Game.mouseDrag = true;
+            this.performRaycast('drag');
         }
     }
 
-    private performRaycast(type: 'hover'|'click') {
+    private performRaycast(type: 'drag'|'click') {
         const scene = this.scene;
         
         if (!scene)
@@ -156,15 +157,16 @@ export class Game {
         Game.raycaster.setFromCamera(Game.pointer, scene.camera);
         const hits = Game.raycaster.intersectObjects(scene.scene.children);
 
+        Game.raycaster
+
         const item = hits[0];
 
-        if (item !== undefined) {
-            Game.events.emit(new RayCastEvent({
-                type: type,
-                raycast: item,
-                mesh: item.object,
-                body: item.object.userData.physicsBody
-            }));
-        }
+        Game.events.emit(new RayCastEvent({
+            type: type,
+            ray: Game.raycaster.ray,
+            intersection: item,
+            mesh: item?.object,
+            body: item?.object.userData.physicsBody
+        }));
     }
 }
