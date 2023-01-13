@@ -11,7 +11,7 @@ import { Constraint } from '../constraint/Constraint';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 15;
+    private numSubsteps = 20;
 
     public update(bodies: Array<RigidBody>, constraints: Array<Constraint>, dt: number, gravity: Vec3): void {
 
@@ -335,8 +335,8 @@ export class XPBDSolver extends BaseSolver {
     }
 
     static applyBodyPairCorrection(
-        body0: RigidBody,
-        body1: RigidBody,
+        body0: RigidBody | null,
+        body1: RigidBody | null,
         corr: Vec3,
         compliance: number,
         dt: number,
@@ -363,8 +363,8 @@ export class XPBDSolver extends BaseSolver {
         const dlambda = -C / (w + compliance / dt / dt);
         n.multiplyScalar(-dlambda);
 
-        body0.applyCorrection(n, pos0, velocityLevel);
-        body1.applyCorrection(n.multiplyScalar(-1.0), pos1, velocityLevel);
+        if (body0) body0.applyCorrection(n, pos0, velocityLevel);
+        if (body1) body1.applyCorrection(n.multiplyScalar(-1.0), pos1, velocityLevel);
 
         return dlambda;
     }

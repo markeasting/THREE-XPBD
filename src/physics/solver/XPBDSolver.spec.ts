@@ -17,7 +17,7 @@ describe('XPBDSolver', () => {
         const A = new RigidBody(new MeshCollider().setGeometry('box', 1.0))
         A.pose.p.setY(0.0);
 
-        const B = new RigidBody(new PlaneCollider(new Vec2(10, 10))).makeStatic();
+        const B = new RigidBody(new PlaneCollider(new Vec2(10, 10))).setStatic();
         B.id = 42;
 
         const collisions = [
