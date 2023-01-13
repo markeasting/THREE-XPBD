@@ -1,9 +1,10 @@
-import { Event, Intersection, Object3D } from 'three';
+import { Event, Intersection, Object3D, Ray } from 'three';
 import { RigidBody } from '../physics/RigidBody';
 
 export type RayCastEventArgs = {
-    type: 'click'|'hover';
-    raycast: Intersection<Object3D<Event>> | undefined;
+    type: 'drag'|'click';
+    ray: Ray,
+    intersection: Intersection<Object3D<Event>>;
     mesh: Object3D,
     body: RigidBody
 }
