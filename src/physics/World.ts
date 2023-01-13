@@ -61,8 +61,8 @@ export class World {
 
                 this.#grabConstraint = new Attachment(localPos, screenPos)
                     .setBodies(e.body, null)    
-                    .setStiffness(e.body.mass * 100)
-                    .setDamping(e.body.mass * 10, e.body.mass * 10)
+                    .setStiffness(e.body.mass * 500)
+                    .setDamping(e.body.mass * 100, e.body.mass * 100)
 
                 this.#constraintsFast.push(this.#grabConstraint);
             }
