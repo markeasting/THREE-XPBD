@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 // import { OrbitControls } from '@three-ts/orbit-controls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { Game } from '../core/Game';
 import { RigidBody } from '../physics/RigidBody';
 import { Vec3 } from '../physics/Vec3';
 import { World } from '../physics/World';
@@ -38,15 +39,18 @@ export class BaseScene implements SceneInterface {
         } else {
             this.camera.position.set(2, 5, 1);
         }
-        // World
-        // this.world.broadphase = new CANNON.SAPBroadphase(this.world);
-        // this.world.defaultContactMaterial.friction = 0;
 
         // y-up -> z up
         // THREE.Object3D.DefaultUp.set( 0, 0, 1 );
         // this.camera.up.set( 0, 0, 1 );
 
+        Game.events.on('RayCastEvent', e => {
+            this.orbitControls.enabled = false;
+        })
+
         document.addEventListener('mouseup', () => {
+            this.orbitControls.enabled = true;
+
             localStorage.setItem('cam', JSON.stringify({
                 pos: this.camera.position,
                 target: new Vec3(0, 1, 0)
