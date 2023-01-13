@@ -5,12 +5,23 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
+import { Raycaster } from 'three';
+import { Vec2 } from '../physics/Vec2';
+import { EventEmitter } from '../event/EventEmitter';
+import { RayCastEvent } from '../event/RayCastEvent';
 
 export class Game {
 
-    private canvas: HTMLCanvasElement;
-    private renderer: THREE.WebGLRenderer;
-    private composer: EffectComposer;
+    static canvas: HTMLCanvasElement;
+    static renderer: THREE.WebGLRenderer;
+    static composer: EffectComposer;
+    
+    static events = new EventEmitter();
+
+    static raycaster = new Raycaster();
+    static pointer = new Vec2();
+    static mouseDown = false;
+    static mouseDrag = false;
 
     private scene: BaseScene|undefined = undefined;
 
@@ -24,21 +35,21 @@ export class Game {
     public prevTime = 0;
 
     constructor(canvasID: string) {
-        this.canvas = document.getElementById(canvasID) as HTMLCanvasElement;
+        Game.canvas = document.getElementById(canvasID) as HTMLCanvasElement;
 
-        this.renderer = new THREE.WebGLRenderer({
-            canvas: this.canvas,
+        Game.renderer = new THREE.WebGLRenderer({
+            canvas: Game.canvas,
             antialias: false,
         });
-        this.composer = new EffectComposer( this.renderer );
+        Game.composer = new EffectComposer( Game.renderer );
         
         // Screen
-        this.renderer.setPixelRatio(1);
+        Game.renderer.setPixelRatio(1);
         this.fitContent();
 
         // Shadows
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+        Game.renderer.shadowMap.enabled = true;
+        Game.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
 
         // Events
         window.addEventListener('resize', this.fitContent.bind(this));
@@ -54,6 +65,10 @@ export class Game {
         window.addEventListener('keyup', (e) => {
             this.keys[e.code] = false;
         })
+
+        window.addEventListener( 'mousedown', this.onMouse.bind(this) );
+        window.addEventListener( 'mousemove', this.onMouse.bind(this) );
+        window.addEventListener( 'mouseup', this.onMouse.bind(this) );
     }
 
     private setupRenderPass() {
@@ -68,18 +83,18 @@ export class Game {
             0.8
         );
 
-        this.composer.addPass( renderPass );
-        this.composer.addPass( unrealBloomPass );
-        this.composer.addPass( smaaPass );
+        Game.composer.addPass( renderPass );
+        Game.composer.addPass( unrealBloomPass );
+        Game.composer.addPass( smaaPass );
     }
 
     private fitContent() {
-        const canvas = this.renderer.domElement;
+        const canvas = Game.canvas;
         const width  = canvas.clientWidth;
         const height = canvas.clientHeight;
 
-        this.renderer.setSize(width, height, false);
-        this.composer.setSize(width, height);
+        Game.renderer.setSize(width, height, false);
+        Game.composer.setSize(width, height);
 
         if (this.scene)
             this.scene.onResize(width, height)
@@ -100,16 +115,56 @@ export class Game {
         if (this.scene) {
             this.scene.updatePhysics(this.dt, !this.stepPhysics);
             this.scene.update(time, this.dt, this.keys);
-            // this.scene.draw(this.composer);
-            this.composer.render()
+            // this.scene.draw(Game.composer);
+            Game.composer.render()
 
             if (this.debugPhysics)
-                this.scene.world.draw(this.renderer, this.scene.camera);
+                this.scene.world.draw(Game.renderer, this.scene.camera);
 
         }
 
         requestAnimationFrame(time => {
             this.update(time);
         });
+    }
+
+    private onMouse(e: MouseEvent) {
+        e.preventDefault();
+
+        // Screen space normalized to [-1, 1]
+        Game.pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+        Game.pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        if (e.type == 'mousedown' || e.type == 'mousemove')
+            Game.mouseDown = true;
+
+        if (e.type == 'mousemove')
+            Game.mouseDrag = true;
+        
+        if (e.type == 'mouseup' || e.type == 'mouseout') {
+            Game.mouseDown = false;
+            this.performRaycast('click');
+        }
+    }
+
+    private performRaycast(type: 'hover'|'click') {
+        const scene = this.scene;
+        
+        if (!scene)
+            return;
+
+        Game.raycaster.setFromCamera(Game.pointer, scene.camera);
+        const hits = Game.raycaster.intersectObjects(scene.scene.children);
+
+        const item = hits[0];
+
+        if (item !== undefined) {
+            Game.events.emit(new RayCastEvent({
+                type: type,
+                raycast: item,
+                mesh: item.object,
+                body: item.object.userData.physicsBody
+            }));
+        }
     }
 }
