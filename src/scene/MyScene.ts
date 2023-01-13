@@ -54,7 +54,7 @@ export class MyScene extends BaseScene {
 
         // Hinge
         b0 = Box(2, 1, 0.08).setPos(0, 1.5, 1);
-        b1 = Box(2, 0.08, 1).setPos(0, 2, 0.5).setStatic();
+        b1 = Box(2, 0.08, 1).setPos(0, 2, 0.5)
         this.addBody(b0);
         this.addBody(b1);
 
