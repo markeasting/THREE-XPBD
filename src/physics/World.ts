@@ -18,7 +18,7 @@ export class World {
     #constraints: Array<Constraint> = [];
     #constraintsFast: Array<BaseConstraint> = []; // All constraints in a single array
 
-    #grabConstraint: BaseConstraint | undefined;
+    #grabConstraint: Attachment | undefined;
     #grabDistance: number = 0;
 
     public get bodies() {
@@ -92,6 +92,7 @@ export class World {
     }
 
     public update(dt: number): void {
+        // console.log(this.#grabConstraint?.getForce(XPBDSolver.h).length().toFixed(2));
         this.solver.update(this.#bodies, this.#constraintsFast, dt, this.gravity);
     }
 
