@@ -22,7 +22,7 @@ export class Pose {
         // newPose.q = this.q.clone();
         // return newPose;
 
-        return new Pose(new Vec3().copy(this.p), new Quat().copy(this.q))
+        return new Pose(this.p, this.q);
     }
 
     translate(v: Vec3): void {
