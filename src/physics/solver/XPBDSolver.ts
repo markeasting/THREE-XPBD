@@ -14,6 +14,8 @@ export class XPBDSolver extends BaseSolver {
 
     private numSubsteps = 20;
 
+    static h = 0;
+
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
 
         if (dt === 0)
@@ -22,6 +24,8 @@ export class XPBDSolver extends BaseSolver {
         // const h = dt / this.numSubsteps;
         const h = (1 / 60) / this.numSubsteps;
         // const h = (1 / 120) / this.numSubsteps;
+        
+        XPBDSolver.h = h;
 
         const collisions = this.collectCollisionPairs(bodies, dt);
 
