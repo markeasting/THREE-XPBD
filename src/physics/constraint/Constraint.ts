@@ -1,7 +1,4 @@
-import { Pose } from "../Pose";
-import { Quat } from "../Quaternion";
 import { RigidBody } from "../RigidBody";
-import { XPBDSolver } from "../solver/XPBDSolver";
 import { Vec3 } from "../Vec3";
 import { BaseConstraint } from "./BaseConstraint";
 
@@ -35,16 +32,16 @@ export class Constraint {
         return this;
     }
 
-    public solvePos(h: number) {
-        for (const c of this.constraints) {
-            c.solvePos(h);
-        }
-    }
+    // public solvePos(h: number) {
+    //     for (const c of this.constraints) {
+    //         c.solvePos(h);
+    //     }
+    // }
 
-    public solveVel(h: number) {
-        for (const c of this.constraints) {
-            c.solveVel(h);
-        }
-    }
+    // public solveVel(h: number) {
+    //     for (const c of this.constraints) {
+    //         c.solveVel(h);
+    //     }
+    // }
 
 }
