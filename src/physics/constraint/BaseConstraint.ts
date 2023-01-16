@@ -28,8 +28,8 @@ export abstract class BaseConstraint {
     // @TODO move helpers to World
     protected helperColor = new Color().setHex(Math.random() * 0xffffff);
     protected helpers: Record<string, Object3D> = {
-        c1: new ArrowHelper(),
-        c2: new ArrowHelper(),
+        // c1: new ArrowHelper(),
+        // c2: new ArrowHelper(),
         line: new Line(new BufferGeometry().setFromPoints([new Vec3(0, 0, 0), new Vec3(0, 1, 0)]), new LineBasicMaterial({ color: 0x00ffff })),
         p1: new Box3Helper(new Box3(), this.helperColor),
         p2: new Box3Helper(new Box3(), this.helperColor),
@@ -217,9 +217,9 @@ export abstract class BaseConstraint {
 
     // @TODO move to World
     private _render() {
-        const F = this.getForce(XPBDSolver.h);
-        this._setDebugVector('c1', F, this.globalPose0.p);
-        this._setDebugVector('c1', F, this.globalPose1.p);
+        const F = this.getForce(XPBDSolver.h); 
+        // this._setDebugVector('c1', F.multiplyScalar(0.01), this.globalPose1.p);
+        // this._setDebugVector('c2', F, this.globalPose1.p);
         this._setDebugPoint('p1', this.globalPose0.p);
         this._setDebugPoint('p2', this.globalPose1.p);
         this._setDebugLine('line', this.globalPose0.p, this.globalPose1.p)
