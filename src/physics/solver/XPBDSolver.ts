@@ -42,7 +42,6 @@ export class XPBDSolver extends BaseSolver {
             for (let j = 0; j < bodies.length; j++)
                 bodies[j].integrate(h, gravity);
 
-            // (Constraints)
             for (let j = 0; j < constraints.length; j++)
                 constraints[j].solvePos(h);
 
@@ -51,7 +50,6 @@ export class XPBDSolver extends BaseSolver {
             for (let j = 0; j < bodies.length; j++)
                 bodies[j].update(h);
 
-            // (Constraints)
             for (let j = 0; j < constraints.length; j++)
                 constraints[j].solveVel(h);
 
@@ -61,6 +59,7 @@ export class XPBDSolver extends BaseSolver {
         for (const body of bodies) {
             body.force.set(0, 0, 0);
             body.torque.set(0, 0, 0);
+            body.updateGeometry();
         }
     }
 

@@ -278,7 +278,7 @@ export class RigidBody {
 
         // @TODO maybe only update collider,
         // leave mesh to update only once per frame (after substeps)
-        this.updateGeometry();
+        // this.updateGeometry();
         this.updateCollider();
     }
 
@@ -289,14 +289,14 @@ export class RigidBody {
         this.torque.add(F.cross(this.pose.p.clone().sub(worldPos)))
     }
 
-    private updateGeometry() {
+    public updateGeometry() {
         if (this.mesh) {
             this.mesh.position.copy(this.pose.p);
             this.mesh.quaternion.copy(this.pose.q);
         }
     }
 
-    private updateCollider() {
+    public updateCollider() {
         this.collider.updateRotation(this.pose.q);
     }
 
