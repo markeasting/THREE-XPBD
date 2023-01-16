@@ -27,7 +27,7 @@ export class Game {
 
     private scene: BaseScene|undefined = undefined;
 
-    private debugPhysics = false;
+    private debugPhysics = true;
     private stepPhysics = false;
     
     public dt = 0;
@@ -39,7 +39,7 @@ export class Game {
 
         Game.renderer = new THREE.WebGLRenderer({
             canvas: Game.canvas,
-            antialias: false,
+            antialias: true,
         });
         Game.composer = new EffectComposer( Game.renderer );
         
@@ -72,6 +72,7 @@ export class Game {
     }
 
     private setupRenderPass() {
+        return;
 
         const renderPass = new RenderPass( this.scene?.scene!, this.scene?.camera! );
         const smaaPass = new SMAAPass( window.innerWidth, window.innerHeight );
@@ -116,7 +117,8 @@ export class Game {
             this.scene.updatePhysics(this.dt, !this.stepPhysics);
             this.scene.update(time, this.dt, Game.keys);
             // this.scene.draw(Game.composer);
-            Game.composer.render()
+            // Game.composer.render();
+            Game.renderer.render(this.scene.scene, this.scene.camera);
 
             if (this.debugPhysics)
                 this.scene.world.draw(Game.renderer, this.scene.camera);
