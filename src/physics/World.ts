@@ -28,12 +28,12 @@ export class World {
     /**
      * Debug scene
      */
-    public scene = new THREE.Scene();
+    static scene = new THREE.Scene();
 
     private solver: XPBDSolver;
 
     constructor() {
-        this.solver = new XPBDSolver(this.scene);
+        this.solver = new XPBDSolver();
 
         Game.events.on('RayCastEvent', e => {
 
@@ -76,6 +76,7 @@ export class World {
 
         window.addEventListener('mouseup', () => {
             if (this.#grabConstraint) {
+                this.#grabConstraint.destroy();
                 this.#grabConstraint = undefined;
                 this.#constraintsFast.pop();
             }
@@ -99,7 +100,7 @@ export class World {
     public draw(renderer: THREE.WebGLRenderer, camera: THREE.Camera) {
         renderer.autoClear = false;
         renderer.render(
-            this.scene,
+            World.scene,
             camera
         );
         renderer.autoClear = true;
