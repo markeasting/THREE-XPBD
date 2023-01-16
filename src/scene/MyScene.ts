@@ -62,6 +62,7 @@ export class MyScene extends BaseScene {
             new Constraint(b0, b1)
             .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.5, 0)))
             .add(new AlignAxes)
+            // .add(new AlignOrientation)
         );
 
 

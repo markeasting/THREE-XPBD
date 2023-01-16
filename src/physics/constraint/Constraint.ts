@@ -22,16 +22,9 @@ export class Constraint {
 
     public add(constraint: BaseConstraint) {
         this.constraints.push(constraint);
-        // constraint.setBodies(this.body0, this.body1, this.body1!.pose, this.body0!.pose);
 
-        // Seems to work for hinge!
-        // const p1 = this.body1?.pose.p.clone(); //new Vec3(0, 0, 0);
-        // const p2 = this.body0?.pose.p.clone(); //new Vec3(0, 0, 0);
-        // this.body0?.pose.invTransform(p1);
-        // this.body1?.pose.invTransform(p2);
-
-        const p1 = constraint.localPose0;
-        const p2 = constraint.localPose1;
+        const p1 = constraint.localPose0 ?? new Vec3(0, 0, 0);
+        const p2 = constraint.localPose1 ?? new Vec3(0, 0, 0);
 
         constraint.setBodies(
             this.body0, 

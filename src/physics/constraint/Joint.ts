@@ -25,10 +25,12 @@ export class Joint extends BaseConstraint {
     // public compliance = 0.0;
     public rotDamping = 0.0;
     public posDamping = 0.0;
+
     public hasSwingLimits = false;
     public minSwingAngle = -2.0 * Math.PI;
     public maxSwingAngle = 2.0 * Math.PI;
     public swingLimitsCompliance = 0.0;
+    
     public hasTwistLimits = false;
     public minTwistAngle = -2.0 * Math.PI;
     public maxTwistAngle = 2.0 * Math.PI;

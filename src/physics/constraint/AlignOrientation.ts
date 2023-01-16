@@ -17,9 +17,9 @@ export class AlignOrientation extends BaseConstraint {
 
         // if (omega.w < 0.0)
         //     omega.multiplyScalar(-1.0);
-        // Should it be this one?
-        // if (q.w < 0.0)
-        //     omega.set(-omega.x, -omega.y, -omega.z);
+        // Shouldn't it be this one?
+        if (q.w < 0.0)
+            omega.set(-omega.x, -omega.y, -omega.z);
         
         this.lambda = XPBDSolver.applyBodyPairCorrection(this.body0, this.body1, omega, this.compliance, h);	
     }
