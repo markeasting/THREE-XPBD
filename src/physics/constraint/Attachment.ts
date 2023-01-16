@@ -11,15 +11,8 @@ export class Attachment extends BaseConstraint {
         // @TODO shouldn't set localPose here 
         // since setBodies is called again from BaseConstraint!
 
-        // Works but gives a huge judder in the beginning
         const p1 = localPosition0.clone();
         const p2 = localPosition1.clone();
-
-        // Stable but incorrect local positions
-        // const p1 = this.body1?.pose.p.clone();
-        // const p2 = this.body0?.pose.p.clone();
-        // this.body0?.pose.invTransform(p1);
-        // this.body1?.pose.invTransform(p2);
 
         this.localPose0 = new Pose(p1);
         this.localPose1 = new Pose(p2);
