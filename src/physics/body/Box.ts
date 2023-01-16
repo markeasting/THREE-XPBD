@@ -9,15 +9,15 @@ export function Box(width: number = 1.0, height?: number, depth?: number): Rigid
 
     const boxMesh = new THREE.Mesh(
         new THREE.BoxGeometry(width, height, depth),
-        new THREE.MeshPhongMaterial({
-            // color: 0xffffff,
-            // color: 0x00ffcc,
-            color: new THREE.Color().setHSL(0.5, 1, 0.5),
-        }),
-        // new THREE.MeshBasicMaterial({
-        //     color: 0xffffff, // 0x00ffcc,
-        //     // wireframe: true,
-        // })
+        // new THREE.MeshPhongMaterial({
+        //     // color: 0xffffff,
+        //     // color: 0x00ffcc,
+        //     color: new THREE.Color().setHSL(0.5, 1, 0.5),
+        // }),
+        new THREE.MeshBasicMaterial({
+            color: 0xffffff, // 0x00ffcc,
+            wireframe: true,
+        })
     );
     
     const box = new RigidBody(
