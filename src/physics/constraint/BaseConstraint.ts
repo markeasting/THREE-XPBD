@@ -1,8 +1,10 @@
+import { ArrowHelper, Box3, Box3Helper, BufferAttribute, BufferGeometry, Color, Line, LineBasicMaterial, Object3D } from "three";
 import { Pose } from "../Pose";
 import { Quat } from "../Quaternion";
 import { RigidBody } from "../RigidBody";
 import { XPBDSolver } from "../solver/XPBDSolver";
 import { Vec3 } from "../Vec3";
+import { World } from "../World";
 
 export abstract class BaseConstraint {
 
@@ -20,8 +22,37 @@ export abstract class BaseConstraint {
     public localPose1 = new Pose();
     public globalPose0 = new Pose();
     public globalPose1 = new Pose();
+
+    public debug = true
+
+    // @TODO move helpers to World
+    protected helperColor = new Color().setHex(Math.random() * 0xffffff);
+    protected helpers: Record<string, Object3D> = {
+        c1: new ArrowHelper(),
+        c2: new ArrowHelper(),
+        line: new Line(new BufferGeometry().setFromPoints([new Vec3(0, 0, 0), new Vec3(0, 1, 0)]), new LineBasicMaterial({ color: 0x00ffff })),
+        p1: new Box3Helper(new Box3(), this.helperColor),
+        p2: new Box3Helper(new Box3(), this.helperColor),
+    }
     
-    constructor() {}
+    constructor() {
+        if (this.debug) {
+            for (const h in this.helpers) {
+                World.scene.add(this.helpers[h]);
+            }
+        }
+    }
+    
+    // @TODO move helpers to World
+    public destroy() {
+        for (const h in this.helpers) {
+            const helper = this.helpers.h;
+            World.scene.remove(helper);
+
+            if (helper instanceof ArrowHelper)
+                helper.dispose();
+        }
+    }
 
     /**
      * @param body0 
@@ -73,6 +104,10 @@ export abstract class BaseConstraint {
     public abstract solvePos(h: number): void;
 
     public solveVel(h: number) {
+
+        // @TODO move helpers to World
+        this._render();
+        
         if (this.rotDamping > 0.0) {
             let omega = new Vec3(0.0, 0.0, 0.0);
             if (this.body0)
@@ -175,5 +210,66 @@ export abstract class BaseConstraint {
         let w2 = q.w * 2.0;
         return new Vec3((q.y * w2) + q.x * z2, (-q.x * w2) + q.y * z2, (q.w * w2) - 1.0 + q.z * z2);
     } 
+
+
+
+
+
+    // @TODO move to World
+    private _render() {
+        const F = this.getForce(XPBDSolver.h);
+        this._setDebugVector('c1', F, this.globalPose0.p);
+        this._setDebugVector('c1', F, this.globalPose1.p);
+        this._setDebugPoint('p1', this.globalPose0.p);
+        this._setDebugPoint('p2', this.globalPose1.p);
+        this._setDebugLine('line', this.globalPose0.p, this.globalPose1.p)
+    }
+    
+    // @TODO move to World
+    private _setDebugVector(key: string, vec: Vec3, pos?: Vec3) {
+        if (!this.debug)
+            return;
+
+        const arrow = this.helpers[key] as ArrowHelper;
+        if (pos)
+            arrow.position.copy(pos);
+        arrow.setDirection(vec.clone().normalize());
+        arrow.setLength(vec.length());
+    }
+
+    // @TODO move to World
+    protected _setDebugPoint(key: string, pos: Vec3, size = 0.2) {
+        if (!this.debug)
+            return;
+
+        const box = this.helpers[key] as Box3Helper;
+        box.box = new Box3().setFromCenterAndSize(pos, new Vec3(size, size, size))
+    }
+
+    protected _setDebugLine(key: string, p1: Vec3, p2: Vec3) {
+        const l = this.helpers[key] as Line;
+
+        // const positions = l.geometry.attributes.position?.array;
+
+        // if (!positions)
+        //     return;
+
+        // l.geometry.setAttribute('position', new BufferAttribute(new Float32Array([
+        //     p1.x,
+        //     p1.y,
+        //     p1.z,
+    
+        //     p2.x,
+        //     p2.y,
+        //     p2.z,
+        // ]), 3))
+
+        // l.geometry.attributes.position.needsUpdate = true;
+
+        // this.helpers[key] = new Line(new BufferGeometry().setFromPoints([p1, p2]), new LineBasicMaterial({ color: 0xffff00 }));
+        l.geometry.setFromPoints([p1, p2]);
+
+
+    }
 
 }
