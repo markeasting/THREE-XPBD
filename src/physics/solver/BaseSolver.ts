@@ -7,33 +7,34 @@ import { Vec3 } from "../Vec3";
 import { CoordinateSystem } from "../CoordinateSystem";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { Constraint } from '../constraint/Constraint';
+import { World } from '../World';
 
 export class BaseSolver {
 
-    protected scene?: Scene;
+    public debug = false
 
+    // @TODO move helpers to World
     protected helpers: Record<string, Object3D>  = {
         _debug: new ArrowHelper(),
         n: new ArrowHelper(),
         d: new ArrowHelper(),
         r1: new ArrowHelper(),
         r2: new ArrowHelper(),
-        A: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xcccccc)),
-        B: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xcccccc)),
-        p1: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xffff00)),
-        p2: new Box3Helper(new Box3().setFromCenterAndSize(new Vec3(0, 0, 0), new Vec3(0)), new Color(0xff00ff)),
+        A: new Box3Helper(new Box3(), new Color(0xcccccc)),
+        B: new Box3Helper(new Box3(), new Color(0xcccccc)),
+        p1: new Box3Helper(new Box3(), new Color(0xffff00)),
+        p2: new Box3Helper(new Box3(), new Color(0xff00ff)),
     }
 
-    constructor(scene?: Scene) {
-        if (scene) {
-
-            this.scene = scene;
-            this.scene.add(new AxesHelper(1));
+    constructor() {
+        if (this.debug) {
+            World.scene.add(new AxesHelper(1));
             // this.scene.add(new GridHelper(100));
 
-            for (const d in this.helpers) {
-                this.scene.add(this.helpers[d]);
+            for (const h in this.helpers) {
+                World.scene.add(this.helpers[h]);
             }
+            
             (this.helpers._debug as ArrowHelper).setColor(0x00ff00);
             (this.helpers.n as ArrowHelper).setColor(0x00ffff);
             (this.helpers.d as ArrowHelper).setColor(0xff0000);
@@ -46,6 +47,9 @@ export class BaseSolver {
     }
 
     protected setDebugVector(key: string, vec: Vec3, pos?: Vec3) {
+        if (!this.debug)
+            return;
+
         const arrow = this.helpers[key] as ArrowHelper;
         if (pos)
             arrow.position.copy(pos);
@@ -54,11 +58,17 @@ export class BaseSolver {
     }
 
     protected setDebugPoint(key: string, pos: Vec3, size = 0.1) {
+        if (!this.debug)
+            return;
+
         const box = this.helpers[key] as Box3Helper;
         box.box = new Box3().setFromCenterAndSize(pos, new Vec3(size, size, size))
     }
 
     protected debugContact(contact: ContactSet) {
+        if (!this.debug)
+            return;
+            
         for (const key in contact) {
             this.setDebugPoint('A', contact.A.pose.p, 0.02);
             this.setDebugPoint('B', contact.B.pose.p, 0.02);
