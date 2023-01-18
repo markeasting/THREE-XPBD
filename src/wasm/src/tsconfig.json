@@ -1,0 +1,11 @@
+{
+  "extends": "assemblyscript/std/assembly.json",
+  "compilerOptions": {
+    "isolatedModules": false,
+    // "types": ["@types/jest"],
+    "allowJs": true
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+}

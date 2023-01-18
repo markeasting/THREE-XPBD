@@ -15,7 +15,9 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
+    // "types": ["vite/client", "@types/jest"],
   },
+  "exclude": ["src/wasm"],
   "include": ["src"]
 }
