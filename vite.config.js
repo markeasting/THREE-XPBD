@@ -9,7 +9,7 @@ export default defineConfig({
     plugins: [
         assemblyScriptPlugin({ 
             projectRoot: 'src',
-            srcEntryFile: 'wasm/src/index.ts',
+            srcEntryFile: 'wasm/assembly/index.ts',
             targetWasmFile: 'wasm/build/debug.wasm',
         })
     ]
