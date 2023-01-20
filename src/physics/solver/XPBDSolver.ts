@@ -158,9 +158,8 @@ export class XPBDSolver extends BaseSolver {
         // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
         for(let i = 0; i < MC.uniqueIndices.length; i++) {
             const v = MC.vertices[MC.uniqueIndices[i]];
-            // const point = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
 
-            /* (26) - p1 -- note: p1 === point (localToWorld(v)) */
+            /* (26) - p1 */
             const r1 = v;
             const p1 = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
 
