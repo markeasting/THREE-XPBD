@@ -146,7 +146,7 @@ export class Game {
         if (e.type == 'mousemove' && Game.mouseDown) {
             Game.mouseDrag = true;
 
-            if (Game.keys.ControlLeft)
+            if (Game.keys.ControlLeft || Game.keys.MetaLeft)
                 this.performRaycast('drag');
         }
     }
