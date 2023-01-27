@@ -3,7 +3,6 @@ import { BaseScene } from '../scene/BaseScene';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { Raycaster } from 'three';
 import { Vec2 } from '../physics/Vec2';
