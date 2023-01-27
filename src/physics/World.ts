@@ -8,6 +8,7 @@ import { Game } from '../core/Game';
 import { Attachment } from './constraint/Attachment';
 import { CoordinateSystem } from './CoordinateSystem';
 import { Pose } from './Pose';
+import { RayCastEvent } from '../event/RayCastEvent';
 
 export class World {
 
@@ -35,7 +36,7 @@ export class World {
     constructor() {
         this.solver = new XPBDSolver();
 
-        Game.events.on('RayCastEvent', e => {
+        Game.events.on(RayCastEvent, e => {
 
             this.#grabDistance = this.#grabConstraint
                 ? this.#grabDistance 

@@ -2,6 +2,7 @@ import * as THREE from 'three'
 // import { OrbitControls } from '@three-ts/orbit-controls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Game } from '../core/Game';
+import { RayCastEvent } from '../event/RayCastEvent';
 import { RigidBody } from '../physics/RigidBody';
 import { Vec3 } from '../physics/Vec3';
 import { World } from '../physics/World';
@@ -44,7 +45,7 @@ export class BaseScene implements SceneInterface {
         // THREE.Object3D.DefaultUp.set( 0, 0, 1 );
         // this.camera.up.set( 0, 0, 1 );
 
-        Game.events.on('RayCastEvent', e => {
+        Game.events.on(RayCastEvent, e => {
             this.orbitControls.enabled = false;
         })
 
