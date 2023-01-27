@@ -150,7 +150,7 @@ export class RigidBody {
 
         // if (pos !== null)
         //     w += this.invMass;
-        if (this.pose.p.length() > 0.0001) // from CPP
+        if (pos !== null && pos.length() > 0.00001)
             w += this.invMass;
 
         return w;
