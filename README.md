@@ -4,6 +4,8 @@ Based on Extended Position Based Dynamics by [Matthias Müller](https://github.c
 Demo: https://eastingandnorthing.github.io/three/ 
 
 ## Development
-Run Vite.js dev server: `npm run dev`
+`npm install` - Install dependencies
 
-Build: `npm run build`
+`npm run dev` - Runs the Vite.js dev server
+
+`npm run build` - Build the project
