@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import assemblyScriptPlugin from "vite-plugin-assemblyscript-asc"
+// import assemblyScriptPlugin from "vite-plugin-assemblyscript-asc"
 
 export default defineConfig({
     resolve: {
@@ -10,10 +10,10 @@ export default defineConfig({
         target: 'esnext' // es2015 -> https://github.com/Menci/vite-plugin-top-level-await
     },
     plugins: [
-        assemblyScriptPlugin({ 
-            projectRoot: 'src',
-            srcEntryFile: 'wasm/assembly/index.ts',
-            targetWasmFile: 'wasm/build/debug.wasm',
-        })
+        // assemblyScriptPlugin({ 
+        //     projectRoot: 'src',
+        //     srcEntryFile: 'wasm/assembly/index.ts',
+        //     targetWasmFile: 'wasm/build/debug.wasm',
+        // })
     ]
 });
