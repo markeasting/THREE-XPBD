@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import assemblyScriptPlugin from "vite-plugin-assemblyscript-asc"
 
 export default defineConfig({
+    resolve: {
+        preserveSymlinks: true
+    },
     build: {
         minify: false,
         target: 'esnext' // es2015 -> https://github.com/Menci/vite-plugin-top-level-await
