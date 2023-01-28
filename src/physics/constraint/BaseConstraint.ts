@@ -23,7 +23,7 @@ export abstract class BaseConstraint {
     public globalPose0 = new Pose();
     public globalPose1 = new Pose();
 
-    public debug = true
+    public debug = false;
 
     // @TODO move helpers to World
     protected helperColor = new Color().setHex(Math.random() * 0xffffff);
