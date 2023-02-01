@@ -15,5 +15,8 @@ export default defineConfig({
         //     srcEntryFile: 'wasm/assembly/index.ts',
         //     targetWasmFile: 'wasm/build/debug.wasm',
         // })
-    ]
+    ],
+    optimizeDeps: {
+        exclude: ['xpbd-wasm']
+    }
 });

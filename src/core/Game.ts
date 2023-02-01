@@ -43,7 +43,7 @@ export class Game {
         Game.composer = new EffectComposer( Game.renderer );
         
         // Screen
-        Game.renderer.setPixelRatio(window.devicePixelRatio);
+        Game.renderer.setPixelRatio(1.0);
         this.fitContent();
 
         // Shadows
