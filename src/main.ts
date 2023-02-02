@@ -1,21 +1,45 @@
 import { Game } from './core/Game';
-import { XPBD } from 'xpbd-wasm';
+import * as XPBD from 'xpbd-wasm';
 import { MyScene } from './scene/MyScene';
 import './style.css'
 
 declare global {
     interface Window {
         game: Game,
-        xpbd: XPBD
+        world: XPBD.World
     }
 }
 
 const game = new Game('canvas');
-game.add(new MyScene());
-game.update(0);
 window.game = game;
 
-XPBD.init().then((xpbd) => {
-    window.xpbd = xpbd
-    console.log(xpbd);
-})
+let world: XPBD.World;
+
+async function init() {
+
+    const scene = new MyScene();
+
+    game.add(scene);
+
+    world = await XPBD.init();
+    window.world = world;
+
+    world.addBody(scene.unitCube);
+
+    update(0);
+}
+
+let prevTime, dt;
+function update(time: DOMHighResTimeStamp): void {
+    prevTime = time;
+    dt = (time - prevTime) / 1000;
+
+    game.update(time);
+    // world.update(dt);
+
+    requestAnimationFrame(time => {
+        update(time);
+    });
+}
+
+init();

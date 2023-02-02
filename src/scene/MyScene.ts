@@ -17,9 +17,11 @@ import { Constraint } from '../physics/constraint/Constraint';
 import { Attachment } from '../physics/constraint/Attachment';
 import { AlignOrientation } from '../physics/constraint/AlignOrientation';
 import { AlignAxes } from '../physics/constraint/AlignAxes';
-import { Euler } from 'three';
+import { Euler, Mesh } from 'three';
 
 export class MyScene extends BaseScene {
+
+    unitCube: Mesh;
 
     constructor() {
         super();
@@ -37,6 +39,17 @@ export class MyScene extends BaseScene {
     }
 
     private addGeometry() {
+
+        this.unitCube = new THREE.Mesh(
+            new THREE.BoxGeometry(1.0),
+            new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(0.5, 1, 0.5),
+            }),
+        );
+
+        this.unitCube.position.set(1, 2, 3);
+
+        this.scene.add(this.unitCube);
         
         // for (let index = 0; index < 2; index++) {
         //     const b = Box(1, 2, 1);

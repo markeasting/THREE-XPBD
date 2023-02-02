@@ -123,10 +123,6 @@ export class Game {
                 this.scene.world.draw(Game.renderer, this.scene.camera);
 
         }
-
-        requestAnimationFrame(time => {
-            this.update(time);
-        });
     }
 
     private onMouse(e: MouseEvent) {
