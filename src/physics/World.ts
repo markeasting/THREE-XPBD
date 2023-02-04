@@ -12,7 +12,7 @@ import { RayCastEvent } from '../event/RayCastEvent';
 
 export class World {
 
-    public gravity = new Vec3(0, -9.81, 0);
+    public gravity = new Vec3(0, -10, 0);
 
     #bodies: Array<RigidBody> = [];
     
@@ -95,7 +95,10 @@ export class World {
 
     public update(dt: number): void {
         // console.log(this.#grabConstraint?.getForce(XPBDSolver.h).length().toFixed(2));
-        this.solver.update(this.#bodies, this.#constraintsFast, dt, this.gravity);
+        console.time('js');
+        // this.solver.update(this.#bodies, this.#constraintsFast, dt, this.gravity);
+        this.solver.update(this.#bodies, [], dt, this.gravity);
+        console.timeEnd('js');
     }
 
     public draw(renderer: THREE.WebGLRenderer, camera: THREE.Camera) {
