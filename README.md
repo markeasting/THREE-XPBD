@@ -9,3 +9,27 @@ Demo: https://eastingandnorthing.github.io/three/
 `npm run dev` - Runs the Vite.js dev server
 
 `npm run build` - Build the project
+
+## Features
+
+### Core
+- [x] XPBD update loop 
+- [x] XPBD World / body manager
+- [x] Rigid bodies
+- [x] `applyForce()`
+- [ ] `applyTorque()`
+
+### Collision solver
+- [x] Penetration (single body and plane)
+- [x] Restitution
+- [x] Friction
+- [ ] (Convex) hull generation
+- [ ] Broad phase (OBB / AABB / SAP)
+- [ ] Narrow phase (GJK / EPA)
+
+### Constraints
+- [x] Basic constraint
+- [x] Mouse picking/dragging
+- [x] Calculate constraint force
+- [x] Damping
+- [ ] Swing / twist limits
