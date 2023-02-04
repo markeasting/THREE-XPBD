@@ -101,8 +101,8 @@ export class XPBDSolver extends BaseSolver {
                                     const v = MC.vertices[MC.uniqueIndices[i]];
 
                                     const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-                                    // const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
-                                    const signedDistance = PC.plane.distanceToPoint(contactPointW);
+                                    const signedDistance = contactPointW.clone().sub(B.pose.p).dot(PC.normal);
+                                    // const signedDistance = PC.plane.distanceToPoint(contactPointW);
 
                                     deepestPenetration = Math.min(deepestPenetration, signedDistance);
                                 }
@@ -152,7 +152,7 @@ export class XPBDSolver extends BaseSolver {
         const MC = A.collider as MeshCollider;
         const PC = B.collider as PlaneCollider;
 
-        const N = new Vec3().copy(PC.plane.normal);
+        const N = new Vec3().copy(PC.normal);
 
         // @TODO check if vertex is actually inside plane size :)
         // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
@@ -177,8 +177,7 @@ export class XPBDSolver extends BaseSolver {
             if (d <= 0.0)
                 continue;
 
-            const contact = new ContactSet(A, B, PC.plane);
-            contact.n = N.clone();
+            const contact = new ContactSet(A, B, N);
             contact.d = signedDistance;
 
             contact.r1 = r1;
@@ -306,7 +305,7 @@ export class XPBDSolver extends BaseSolver {
             /* (30) Friction */
             const Fn = -contact.lambda_n / (h * h);
             const friction = Math.min(h * contact.friction * Fn, vt.length());
-            dv.sub(Vec3.normalize(vt).mul(friction));
+            dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
 
             /* (31, 32) @TODO dampening */
 

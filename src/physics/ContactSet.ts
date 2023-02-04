@@ -7,7 +7,7 @@ export class ContactSet {
     A: RigidBody;
     B: RigidBody;
 
-    plane: Plane;
+    // plane: Plane;
 
     lambda: number = 0;     //  λ   - lambda
     lambda_n: number = 0;   //  λn  - lambda N (normal)
@@ -60,14 +60,14 @@ export class ContactSet {
     F: Vec3 = new Vec3(0, 0, 0); // Current constraint force
     Fn: number = 0; // Current constraint force (normal direction) == -contact.lambda_n / (h * h);
 
-    constructor(A: RigidBody, B: RigidBody, contactPlane: Plane) {
+    constructor(A: RigidBody, B: RigidBody, normal: Vec3) {
         if (A === B || A.id == B.id)
             throw new Error('Cannot create a ContactSet with the same body');
 
         this.A = A;
         this.B = B;
 
-        this.plane = contactPlane;
+        this.n = normal.clone();
     }
 
     public update(): void {
