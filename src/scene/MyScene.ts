@@ -21,7 +21,7 @@ import { Euler, Mesh } from 'three';
 
 export class MyScene extends BaseScene {
 
-    unitCube: Mesh;
+    myCube: Mesh;
 
     constructor() {
         super();
@@ -40,16 +40,20 @@ export class MyScene extends BaseScene {
 
     private addGeometry() {
 
-        this.unitCube = new THREE.Mesh(
-            new THREE.BoxGeometry(1.0),
+        const sizeX = 1;
+        const sizeY = 3;
+        const sizeZ = 1;
+        this.myCube = new THREE.Mesh(
+            new THREE.BoxGeometry(sizeX, sizeY, sizeZ),
             new THREE.MeshPhongMaterial({
-                color: new THREE.Color().setHSL(0.5, 1, 0.5),
+                color: new THREE.Color().setHSL(0.0, 1, 0.5),
             }),
         );
+        this.myCube.position.set(0, 5, 0);
+        this.scene.add(this.myCube);
 
-        this.unitCube.position.set(1, 2, 3);
-
-        this.scene.add(this.unitCube);
+        const bUnit = Box(1, 3, 1).setPos(0, 5, 0);
+        this.addBody(bUnit);
         
         // for (let index = 0; index < 2; index++) {
         //     const b = Box(1, 2, 1);
@@ -65,38 +69,38 @@ export class MyScene extends BaseScene {
         // }
         let b0, b1;
 
-        // Hinge
-        b0 = Box(2, 1, 0.08).setPos(0, 1.5, 1);
-        b1 = Box(2, 0.08, 1).setPos(0, 2, 0.5)
-        this.addBody(b0);
-        this.addBody(b1);
+        // // Hinge
+        // b0 = Box(2, 1, 0.08).setPos(0, 1.5, 1);
+        // b1 = Box(2, 0.08, 1).setPos(0, 2, 0.5)
+        // this.addBody(b0);
+        // this.addBody(b1);
 
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.5, 0)))
-            .add(new AlignAxes)
-            // .add(new AlignOrientation)
-        );
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.5, 0)))
+        //     .add(new AlignAxes)
+        //     // .add(new AlignOrientation)
+        // );
 
 
 
-        // Hammer
-        b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
-        b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
-        this.addBody(b0);
-        this.addBody(b1);
+        // // Hammer
+        // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
+        // b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
+        // this.addBody(b0);
+        // this.addBody(b1);
 
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0.1, 0, 0.5), new Vec3(0, 0, -2)))
-            .add(new AlignOrientation)
-        );
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0.1, 0, 0.5), new Vec3(0, 0, -2)))
+        //     .add(new AlignOrientation)
+        // );
         
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0.1, 0, -0.5), new Vec3(0, 0, -3)))
-            // .add(new AlignOrientation)
-        );
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0.1, 0, -0.5), new Vec3(0, 0, -3)))
+        //     // .add(new AlignOrientation)
+        // );
 
 
 
