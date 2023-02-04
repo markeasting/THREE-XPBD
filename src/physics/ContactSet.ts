@@ -55,7 +55,8 @@ export class ContactSet {
 
     e: number = 0; // Coefficient of restitution
 
-    friction: number = 0;
+    staticFriction: number = 0;
+    dynamicFriction: number = 0;
 
     F: Vec3 = new Vec3(0, 0, 0); // Current constraint force
     Fn: number = 0; // Current constraint force (normal direction) == -contact.lambda_n / (h * h);
