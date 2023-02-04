@@ -270,7 +270,7 @@ export class XPBDSolver extends BaseSolver {
          *
          * Note: with 1 position iteration, lambdaT is always zero!
          */
-        if (contact.lambda_t > contact.staticFriction * contact.lambda_n) {
+        if (contact.lambda_t < contact.staticFriction * contact.lambda_n) {
             XPBDSolver.applyBodyPairCorrection(
                 contact.A,
                 contact.B,
