@@ -93,6 +93,7 @@ export class XPBDSolver extends BaseSolver {
 
                                 const MC = A.collider as MeshCollider;
                                 const PC = B.collider as PlaneCollider;
+                                const N = PC.normal;
 
                                 let deepestPenetration = 0.0;
 
@@ -101,7 +102,7 @@ export class XPBDSolver extends BaseSolver {
                                     const v = MC.vertices[MC.uniqueIndices[i]];
 
                                     const contactPointW = CoordinateSystem.localToWorld(v, A.pose.q, A.pose.p);
-                                    const signedDistance = contactPointW.clone().sub(B.pose.p).dot(PC.normal);
+                                    const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
                                     // const signedDistance = PC.plane.distanceToPoint(contactPointW);
 
                                     deepestPenetration = Math.min(deepestPenetration, signedDistance);
@@ -193,7 +194,8 @@ export class XPBDSolver extends BaseSolver {
             contact.vn = contact.vrel.dot(contact.n);
 
             contact.e = 0.5 * (A.bounciness + B.bounciness);
-            contact.friction = 0.5 * (A.staticFriction + B.staticFriction);
+            contact.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
+            contact.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
 
             this.debugContact(contact);
             
@@ -246,19 +248,19 @@ export class XPBDSolver extends BaseSolver {
          */
 
         /* (26) Positions in current state and before the substep integration */
-        const p1prev = contact.p1 // A.prevPose.p.clone().add(contact.r1.clone().applyQuaternion(A.prevPose.q));
-        const p2prev = contact.p1 // B.prevPose.p.clone().add(contact.r2.clone().applyQuaternion(B.prevPose.q));
+        const p1prev = contact.p1.clone(); // A.prevPose.p.clone().add(contact.r1.clone().applyQuaternion(A.prevPose.q));
+        const p2prev = contact.p2.clone(); // B.prevPose.p.clone().add(contact.r2.clone().applyQuaternion(B.prevPose.q));
         contact.update();
 
-        /* (27) (28) Relative motion and tangential component */
+        /* (27) Relative motion and tangential component */
         const dp = Vec3.sub(
             Vec3.sub(contact.p1, p1prev),
-            Vec3.sub(contact.p1, p2prev)
+            Vec3.sub(contact.p2, p2prev)
         );
-        /* Note: the sign of dp_t was flipped! (Eq. 28) */
+        /* (28) */
         const dp_t = Vec3.sub(
-            Vec3.mul(contact.n, contact.n.dot(dp)),
-            dp
+            dp,
+            Vec3.mul(contact.n, dp.dot(contact.n))
         );
 
         /* (3.5)
@@ -268,7 +270,7 @@ export class XPBDSolver extends BaseSolver {
          *
          * Note: with 1 position iteration, lambdaT is always zero!
          */
-        if (contact.lambda_t > contact.friction * contact.lambda_n) {
+        if (contact.lambda_t > contact.staticFriction * contact.lambda_n) {
             XPBDSolver.applyBodyPairCorrection(
                 contact.A,
                 contact.B,
@@ -288,6 +290,9 @@ export class XPBDSolver extends BaseSolver {
         /* (3.6) Velocity level */
 
         for (const contact of contacts) {
+            
+            contact.update();
+            
             const dv = new Vec3();
 
             /* (29) Relative normal and tangential velocities
@@ -304,7 +309,7 @@ export class XPBDSolver extends BaseSolver {
 
             /* (30) Friction */
             const Fn = -contact.lambda_n / (h * h);
-            const friction = Math.min(h * contact.friction * Fn, vt.length());
+            const friction = Math.min(h * contact.dynamicFriction * Fn, vt.length());
             dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
 
             /* (31, 32) @TODO dampening */
