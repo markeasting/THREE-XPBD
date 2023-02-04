@@ -86,7 +86,7 @@ export class World {
 
     public add(body: RigidBody) {
         const len = this.bodies.push(body);
-        body.id = len;
+        body.id = len - 1;
     }
 
     public addConstraint(constraint: Constraint) {
