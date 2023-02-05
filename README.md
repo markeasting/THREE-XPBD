@@ -1,5 +1,7 @@
 # THREE.js feat. XPBD physics 🌈
-Based on Extended Position Based Dynamics by [Matthias Müller](https://github.com/matthias-research).
+Based on Extended Position Based Dynamics by [Matthias Müller](https://github.com/matthias-research). 
+
+Refer to the [docs directory](./docs/) to view the papers and source code used in this project. 
 
 Demo: https://eastingandnorthing.github.io/three/ 
 
