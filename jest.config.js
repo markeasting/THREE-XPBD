@@ -4,13 +4,9 @@ module.exports = {
         'ts',
         'json',
     ],
-    extensionsToTreatAsEsm: ['.ts', '.tsx'],
-    transformIgnorePatterns: [
-        "<rootDir>/node_modules/(?!@assemblyscript/.*)"
-    ],
+    extensionsToTreatAsEsm: ['.ts'],
+    transformIgnorePatterns: [],
     transform: {
-        // '^.+\\.ts$': 'ts-jest',
-        // '^.+\\.(ts|js)$': 'ts-jest',
         "^.+\\.(t|j)sx?$": "@swc/jest"
     }
 }
