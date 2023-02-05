@@ -38,7 +38,7 @@ export class BaseScene implements SceneInterface {
             this.orbitControls.target.copy(state.target);
             this.orbitControls.update();
         } else {
-            this.camera.position.set(2, 5, 1);
+            this.camera.position.set(5, 5, 5);
         }
 
         // y-up -> z up

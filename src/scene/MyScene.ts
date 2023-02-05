@@ -28,7 +28,7 @@ export class MyScene extends BaseScene {
     }
 
     override init() {
-        const lookAt = new Vec3(0, 1, 0);
+        const lookAt = new Vec3(0, 0.5, 0);
         this.camera.lookAt(lookAt);
         this.orbitControls.target.copy(lookAt);
         this.orbitControls.update();
@@ -40,16 +40,19 @@ export class MyScene extends BaseScene {
 
     private addGeometry() {
 
-        this.unitCube = new THREE.Mesh(
-            new THREE.BoxGeometry(1.0),
-            new THREE.MeshPhongMaterial({
-                color: new THREE.Color().setHSL(0.5, 1, 0.5),
-            }),
-        );
+        let b0, b1;
 
-        this.unitCube.position.set(1, 2, 3);
+        // this.unitCube = new THREE.Mesh(
+        //     new THREE.BoxGeometry(1.0),
+        //     new THREE.MeshPhongMaterial({
+        //         color: new THREE.Color().setHSL(0.5, 1, 0.5),
+        //     }),
+        // );
+        // this.unitCube.position.set(1, 2, 3);
+        // this.scene.add(this.unitCube);
 
-        this.scene.add(this.unitCube);
+        b0 = Box(1).setPos(3, 3, 3);
+        this.addBody(b0);
         
         // for (let index = 0; index < 2; index++) {
         //     const b = Box(1, 2, 1);
@@ -63,11 +66,10 @@ export class MyScene extends BaseScene {
         //     b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
         //     this.addBody(b);
         // }
-        let b0, b1;
 
         // Hinge
-        b0 = Box(2, 1, 0.08).setPos(0, 1.5, 1);
-        b1 = Box(2, 0.08, 1).setPos(0, 2, 0.5)
+        b0 = Box(2, 1, 0.05).setPos(3, 1.5, 1);
+        b1 = Box(2, 0.05, 1).setPos(3, 2, 0.5)
         this.addBody(b0);
         this.addBody(b1);
 
