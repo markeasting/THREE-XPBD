@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 // import assemblyScriptPlugin from "vite-plugin-assemblyscript-asc"
 
 export default defineConfig({
+    base: './',
     resolve: {
         preserveSymlinks: true
     },
