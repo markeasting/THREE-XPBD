@@ -80,6 +80,7 @@ export class World {
                 this.#grabConstraint.destroy();
                 this.#grabConstraint = undefined;
                 this.#constraintsFast.pop();
+                document.getElementById('constraint-force')!.innerText = '';
             }
         });
     }
@@ -94,8 +95,12 @@ export class World {
     }
 
     public update(dt: number): void {
-        // console.log(this.#grabConstraint?.getForce(XPBDSolver.h).length().toFixed(2));
         this.solver.update(this.#bodies, this.#constraintsFast, dt, this.gravity);
+
+        if (this.#grabConstraint) {
+            const F = this.#grabConstraint?.getForce(XPBDSolver.h).length().toFixed(2)
+            document.getElementById('constraint-force')!.innerText = `Grab force: ${F} N`;
+        }
     }
 
     public draw(renderer: THREE.WebGLRenderer, camera: THREE.Camera) {
