@@ -5,6 +5,8 @@ Refer to the [docs directory](./docs/) to view the papers and source code used i
 
 Demo: https://eastingandnorthing.github.io/three/ 
 
+![](videos/ezgif-5-2ca49911fb.gif)
+
 ## Development
 `npm install` - Install dependencies
 
