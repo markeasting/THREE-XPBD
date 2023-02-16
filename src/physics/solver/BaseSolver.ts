@@ -79,10 +79,10 @@ export class BaseSolver {
                 this.setDebugVector(key, contact.n.clone().multiplyScalar(contact.d), contact.p1);
             if (key == 'r1')
                 // this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose.q, contact.A.pose.p));
-                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose.q, contact.A.pose.p).sub(contact.A.pose.p), contact.A.pose.p);
+                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose).sub(contact.A.pose.p), contact.A.pose.p);
             if (key == 'r2')
                 // this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose.q, contact.B.pose.p));
-                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose.q, contact.B.pose.p).sub(contact.B.pose.p), contact.B.pose.p);
+                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose).sub(contact.B.pose.p), contact.B.pose.p);
             if (key == 'p1')
                 this.setDebugPoint(key, contact.p1)
             if (key == 'p2')

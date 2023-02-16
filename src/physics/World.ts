@@ -58,7 +58,7 @@ export class World {
                 // const screenPos = Vec3.mul(e.ray.origin as Vec3, e.intersection.distance);
                 this.#grabDistance = e.intersection.distance;
                 
-                const localPos = CoordinateSystem.worldToLocal(e.intersection.point as Vec3, e.body.pose.q, e.body.pose.p);
+                const localPos = CoordinateSystem.worldToLocal(e.intersection.point as Vec3, e.body.pose);
 
                 this.#grabConstraint = new Attachment(localPos, screenPos)
                     .setBodies(e.body, null)    

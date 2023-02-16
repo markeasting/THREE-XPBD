@@ -112,7 +112,7 @@ export class MyScene extends BaseScene {
         if (keys.KeyQ) {
             const body = this.world.bodies[1];
             const tetraPointL = new Vec3(0, 0, 0.5);
-            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose.q, body.pose.p);
+            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose);
 
             // @TODO add applyForceLocal()
             const strength = 3;
@@ -125,7 +125,7 @@ export class MyScene extends BaseScene {
         if (keys.KeyA) {
             const body = this.world.bodies[0];
             const tetraPointL = new Vec3(0, 0, 0);
-            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose.q, body.pose.p);
+            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose);
 
             const strength = 3;
             body.applyForceW(
