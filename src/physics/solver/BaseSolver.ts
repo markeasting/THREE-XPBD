@@ -1,12 +1,6 @@
 import { ArrowHelper, AxesHelper, Box3, Box3Helper, Color, Object3D, Scene } from 'three';
-import { RigidBody } from "../RigidBody";
-import { CollisionPair } from "../CollisionPair";
 import { ContactSet } from "../ContactSet";
-import { Quat } from "../Quaternion";
 import { Vec3 } from "../Vec3";
-import { CoordinateSystem } from "../CoordinateSystem";
-import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
-import { Constraint } from '../constraint/Constraint';
 import { World } from '../World';
 
 export class BaseSolver {
@@ -79,10 +73,10 @@ export class BaseSolver {
                 this.setDebugVector(key, contact.n.clone().multiplyScalar(contact.d), contact.p1);
             if (key == 'r1')
                 // this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose.q, contact.A.pose.p));
-                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r1, contact.A.pose).sub(contact.A.pose.p), contact.A.pose.p);
+                this.setDebugVector(key, contact.A.localToWorld(contact.r1).sub(contact.A.pose.p), contact.A.pose.p);
             if (key == 'r2')
                 // this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose.q, contact.B.pose.p));
-                this.setDebugVector(key, CoordinateSystem.localToWorld(contact.r2, contact.B.pose).sub(contact.B.pose.p), contact.B.pose.p);
+                this.setDebugVector(key, contact.B.localToWorld(contact.r2).sub(contact.B.pose.p), contact.B.pose.p);
             if (key == 'p1')
                 this.setDebugPoint(key, contact.p1)
             if (key == 'p2')

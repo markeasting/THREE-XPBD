@@ -4,7 +4,6 @@ import { CollisionPair } from "../CollisionPair";
 import { ContactSet } from "../ContactSet";
 import { Vec3 } from "../Vec3";
 import { Quat } from "../Quaternion";
-import { CoordinateSystem } from "../CoordinateSystem";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
 import { Constraint } from '../constraint/Constraint';
@@ -101,7 +100,7 @@ export class XPBDSolver extends BaseSolver {
                                 for(let i = 0; i < MC.uniqueIndices.length; i++) {
                                     const v = MC.vertices[MC.uniqueIndices[i]];
 
-                                    const contactPointW = CoordinateSystem.localToWorld(v, A.pose);
+                                    const contactPointW = A.localToWorld(v);
                                     const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
                                     // const signedDistance = PC.plane.distanceToPoint(contactPointW);
 
@@ -162,13 +161,13 @@ export class XPBDSolver extends BaseSolver {
 
             /* (26) - p1 */
             const r1 = v;
-            const p1 = CoordinateSystem.localToWorld(v, A.pose);
+            const p1 = A.localToWorld(v);
 
             /* (26) - p2 */
             // const signedDistance = PC.plane.distanceToPoint(contactPointW);
             const signedDistance = Vec3.dot(N, Vec3.sub(p1, B.pose.p));
             const p2 = Vec3.sub(p1, Vec3.mul(N, signedDistance));
-            const r2 = CoordinateSystem.worldToLocal(p2, B.pose);
+            const r2 = B.worldToLocal(p2);
 
             /* (3.5) Penetration depth -- Note: sign was flipped! */
             // const d = - N.dot(Vec3.sub(p1, p2));

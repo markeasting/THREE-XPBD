@@ -1,11 +1,9 @@
 import * as THREE from 'three'
-import { PointLight } from '../light/PointLight';
 import { BaseScene } from './BaseScene';
 import { BaseLightingScene } from './BaseLightingScene';
 import { RigidBody } from '../physics/RigidBody';
 import { BoxCollider, MeshCollider, PlaneCollider } from '../physics/Collider';
 import { Vec3 } from '../physics/Vec3';
-import { CoordinateSystem } from '../physics/CoordinateSystem';
 import { Vec2 } from '../physics/Vec2';
 import { AthmosphereScene } from './AthmosphereScene';
 import { Box } from '../physics/body/Box';
@@ -112,7 +110,7 @@ export class MyScene extends BaseScene {
         if (keys.KeyQ) {
             const body = this.world.bodies[1];
             const tetraPointL = new Vec3(0, 0, 0.5);
-            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose);
+            const tetraPointW = body.localToWorld(tetraPointL);
 
             // @TODO add applyForceLocal()
             const strength = 3;
@@ -125,7 +123,7 @@ export class MyScene extends BaseScene {
         if (keys.KeyA) {
             const body = this.world.bodies[0];
             const tetraPointL = new Vec3(0, 0, 0);
-            const tetraPointW = CoordinateSystem.localToWorld(tetraPointL, body.pose);
+            const tetraPointW = body.localToWorld(tetraPointL);
 
             const strength = 3;
             body.applyForceW(

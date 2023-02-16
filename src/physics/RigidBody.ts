@@ -4,8 +4,6 @@ import { Vec3 } from './Vec3';
 import { Collider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
 import { Quat } from './Quaternion';
-import { XPBDSolver } from './solver/XPBDSolver';
-import { CoordinateSystem } from './CoordinateSystem';
 
 export class RigidBody {
 
@@ -298,6 +296,20 @@ export class RigidBody {
 
     public updateCollider() {
         this.collider.updateRotation(this.pose.q);
+    }
+
+    public localToWorld(v: Vec3) {
+        return new Vec3()
+            .copy(v)
+            .applyQuaternion(this.pose.q)
+            .add(this.pose.p);
+    }
+
+    public worldToLocal(v: Vec3) {
+        return new Vec3()
+            .copy(v)
+            .sub(this.pose.p)
+            .applyQuaternion(this.pose.q.clone().conjugate())
     }
 
 }

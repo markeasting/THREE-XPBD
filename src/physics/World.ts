@@ -6,8 +6,6 @@ import { Constraint } from './constraint/Constraint';
 import { BaseConstraint } from './constraint/BaseConstraint';
 import { Game } from '../core/Game';
 import { Attachment } from './constraint/Attachment';
-import { CoordinateSystem } from './CoordinateSystem';
-import { Pose } from './Pose';
 import { RayCastEvent } from '../event/RayCastEvent';
 
 export class World {
@@ -58,7 +56,7 @@ export class World {
                 // const screenPos = Vec3.mul(e.ray.origin as Vec3, e.intersection.distance);
                 this.#grabDistance = e.intersection.distance;
                 
-                const localPos = CoordinateSystem.worldToLocal(e.intersection.point as Vec3, e.body.pose);
+                const localPos = e.body.worldToLocal(e.intersection.point as Vec3);
 
                 this.#grabConstraint = new Attachment(localPos, screenPos)
                     .setBodies(e.body, null)    
