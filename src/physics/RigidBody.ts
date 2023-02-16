@@ -295,7 +295,7 @@ export class RigidBody {
     }
 
     public updateCollider() {
-        this.collider.updateRotation(this.pose.q);
+        this.collider.updateGlobalPose(this.pose);
     }
 
     public localToWorld(v: Vec3) {

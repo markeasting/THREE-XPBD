@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { Quat } from "./Quaternion";
 import { Vec3 } from "./Vec3";
 import { Vec2 } from "./Vec2";
+import { Pose } from './Pose';
 
 export enum ColliderType {
     Box, Plane, Sphere, ConvexMesh
@@ -10,18 +11,20 @@ export enum ColliderType {
 export class Collider {
 
     colliderType: ColliderType = ColliderType.Sphere;
-
-    // polygons: Array<any> = []; // Array<Polygon>;
-    vertices: Array<Vec3> = []; // Array<Vertex>;
-    // indices: Uint16Array = new Uint16Array();
-    // uniqueIndices: Uint16Array = new Uint16Array();
+    
+    vertices: Array<Vec3> = [];
+    verticesWorldSpace: Array<Vec3> = [];
     indices: Array<number> = [];
     uniqueIndices: Array<number> = [];
+    // relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
 
-    relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
-
-    public updateRotation(q: Quat): void {
+    public updateGlobalPose(pose: Pose): void {
         // console.log('updateRotation not implemented')
+    }
+
+    /* GJK */
+    public findFurthestPoint(dir: Vec3): Vec3 {
+        return new Vec3();
     }
 
 };
@@ -59,8 +62,8 @@ export class PlaneCollider extends Collider {
         // this.normalRef = this.normalRef.copy(this.normal); // idk?
     }
 
-    override updateRotation(q: Quat) {
-        this.normalRef.applyQuaternion(q);
+    override updateGlobalPose(pose: Pose) {
+        // this.normalRef.applyQuaternion(pose.q);
     }
 };
 
@@ -163,6 +166,39 @@ export class MeshCollider extends Collider {
             ];
         }
 
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.verticesWorldSpace[i] = this.vertices[i].clone();
+        }
+
         return this;
+    }
+
+    public override updateGlobalPose(pose: Pose) {
+        for (let i = 0; i < this.vertices.length; i++) {
+            const v = this.vertices[i];
+
+            this.verticesWorldSpace[i]
+                .copy(v)
+                .applyQuaternion(pose.q)
+                .add(pose.p);
+        }
+    }
+
+    /* GJK */
+    public override findFurthestPoint(dir: Vec3): Vec3 {
+        
+        const maxPoint = new Vec3();
+        let maxDist = -Infinity;
+    
+        for (const vertex of this.verticesWorldSpace) {
+            const distance = vertex.dot(dir);
+
+            if (distance > maxDist) {
+                maxDist = distance;
+                maxPoint.copy(vertex);
+            }
+        }
+    
+        return maxPoint;
     }
 };
