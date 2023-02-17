@@ -49,7 +49,10 @@ export class MyScene extends BaseScene {
         // this.unitCube.position.set(1, 2, 3);
         // this.scene.add(this.unitCube);
 
-        b0 = Box(1).setPos(3, 3, 3);
+        b0 = Box(1).setPos(0, 1, 0);
+        this.addBody(b0);
+
+        b0 = Box(1).setPos(2, 1, 0);
         this.addBody(b0);
         
         // for (let index = 0; index < 2; index++) {
@@ -65,38 +68,38 @@ export class MyScene extends BaseScene {
         //     this.addBody(b);
         // }
 
-        // Hinge
-        b0 = Box(2, 1, 0.05).setPos(3, 1.5, 1);
-        b1 = Box(2, 0.05, 1).setPos(3, 2, 0.5)
-        this.addBody(b0);
-        this.addBody(b1);
+        // // Hinge
+        // b0 = Box(2, 1, 0.05).setPos(3, 1.5, 1);
+        // b1 = Box(2, 0.05, 1).setPos(3, 2, 0.5)
+        // this.addBody(b0);
+        // this.addBody(b1);
 
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.5, 0)))
-            .add(new AlignAxes)
-            // .add(new AlignOrientation)
-        );
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.5, 0)))
+        //     .add(new AlignAxes)
+        //     // .add(new AlignOrientation)
+        // );
 
 
 
-        // Hammer
-        b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
-        b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
-        this.addBody(b0);
-        this.addBody(b1);
+        // // Hammer
+        // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
+        // b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
+        // this.addBody(b0);
+        // this.addBody(b1);
 
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0.1, 0, 0.5), new Vec3(0, 0, -2)))
-            .add(new AlignOrientation)
-        );
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0.1, 0, 0.5), new Vec3(0, 0, -2)))
+        //     .add(new AlignOrientation)
+        // );
         
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0.1, 0, -0.5), new Vec3(0, 0, -3)))
-            // .add(new AlignOrientation)
-        );
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0.1, 0, -0.5), new Vec3(0, 0, -3)))
+        //     // .add(new AlignOrientation)
+        // );
 
 
 
