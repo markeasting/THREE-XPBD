@@ -129,17 +129,32 @@ export class MeshCollider extends Collider {
         // HACKED cube
         if (whichOne == 'box') {
             this.vertices = [
-                new Vec3(-width/2, height/2, depth/2 ),
-                new Vec3(-width/2, -height/2, depth/2 ),
-                new Vec3(width/2, height/2, depth/2 ),
-                new Vec3(width/2, -height/2, depth/2 ),
-                new Vec3(width/2, height/2, -depth/2 ),
-                new Vec3(width/2, -height/2, -depth/2 ),
-                new Vec3(-width/2, height/2, -depth/2 ),
-                new Vec3(-width/2, -height/2, -depth/2 ),
+                new Vec3(-width/2, -height/2, -depth/2), // bottom left back corner
+                new Vec3( width/2, -height/2, -depth/2), // bottom right back corner
+                new Vec3( width/2,  height/2, -depth/2), // top right back corner
+                new Vec3(-width/2,  height/2, -depth/2), // top left back corner
+                new Vec3(-width/2, -height/2,  depth/2), // bottom left front corner
+                new Vec3( width/2, -height/2,  depth/2), // bottom right front corner
+                new Vec3( width/2,  height/2,  depth/2), // top right front corner
+                new Vec3(-width/2,  height/2,  depth/2), // top left front corner
             ];
 
-            this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+            // this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+            this.indices = [
+                0, 1, 2, // back face
+                2, 3, 0,
+                1, 5, 6, // right face
+                6, 2, 1,
+                5, 4, 7, // front face
+                7, 6, 5,
+                4, 0, 3, // left face
+                3, 7, 4,
+                3, 2, 6, // top face
+                6, 7, 3,
+                0, 4, 5, // bottom face
+                5, 1, 0
+            ];
+
             this.uniqueIndices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
         }
 
@@ -174,6 +189,7 @@ export class MeshCollider extends Collider {
     }
 
     public override updateGlobalPose(pose: Pose) {
+
         for (let i = 0; i < this.vertices.length; i++) {
             const v = this.vertices[i];
 
