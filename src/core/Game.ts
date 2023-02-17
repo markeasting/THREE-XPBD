@@ -24,7 +24,7 @@ export class Game {
 
     static keys: Record<string, boolean> = {}
 
-    private scene: BaseScene|undefined = undefined;
+    static scene: BaseScene|undefined = undefined;
 
     private debugPhysics = true;
     private stepPhysics = false;
@@ -58,7 +58,7 @@ export class Game {
             
             if (e.code == 'Space') {
                 this.stepPhysics = true;
-                this.scene?.updatePhysics(this.dt);
+                Game.scene?.updatePhysics(this.dt);
             }
         })
         window.addEventListener('keyup', (e) => {
@@ -73,7 +73,7 @@ export class Game {
     private setupRenderPass() {
         return;
 
-        const renderPass = new RenderPass( this.scene?.scene!, this.scene?.camera! );
+        const renderPass = new RenderPass( Game.scene?.scene!, Game.scene?.camera! );
         const smaaPass = new SMAAPass( window.innerWidth, window.innerHeight );
         
         const unrealBloomPass = new UnrealBloomPass(
@@ -96,13 +96,13 @@ export class Game {
         Game.renderer.setSize(width, height, false);
         Game.composer.setSize(width, height);
 
-        if (this.scene)
-            this.scene.onResize(width, height)
+        if (Game.scene)
+            Game.scene.onResize(width, height)
     }
 
     public add(scene: BaseScene) {
-        this.scene = scene;
-        this.scene.init();
+        Game.scene = scene;
+        Game.scene.init();
         this.fitContent();
         this.setupRenderPass();
     }
@@ -112,15 +112,15 @@ export class Game {
         this.time = time;
         this.dt = (this.time - this.prevTime) / 1000;
 
-        if (this.scene) {
-            this.scene.updatePhysics(this.dt, !this.stepPhysics);
-            this.scene.update(time, this.dt, Game.keys);
-            // this.scene.draw(Game.composer);
+        if (Game.scene) {
+            Game.scene.updatePhysics(this.dt, !this.stepPhysics);
+            Game.scene.update(time, this.dt, Game.keys);
+            // Game.scene.draw(Game.composer);
             // Game.composer.render();
-            Game.renderer.render(this.scene.scene, this.scene.camera);
+            Game.renderer.render(Game.scene.scene, Game.scene.camera);
 
             if (this.debugPhysics)
-                this.scene.world.draw(Game.renderer, this.scene.camera);
+                Game.scene.world.draw(Game.renderer, Game.scene.camera);
 
         }
     }
@@ -148,7 +148,7 @@ export class Game {
     }
 
     private performRaycast(type: 'drag'|'click') {
-        const scene = this.scene;
+        const scene = Game.scene;
         
         if (!scene)
             return;
