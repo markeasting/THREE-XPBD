@@ -8,12 +8,15 @@ import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
 import { Constraint } from '../constraint/Constraint';
 import { BaseConstraint } from '../constraint/BaseConstraint';
+import { GJK } from '../gjk-epa/GJK';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 20;
+    private numSubsteps = 10;
 
     static h = 0;
+
+    private narrowPhase = new GJK();
 
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
 
@@ -82,12 +85,22 @@ export class XPBDSolver extends BaseSolver {
                 if (combinations.includes(guid))
                     continue;
 
+                combinations.push(guid);
+
                 /* (3.5) k * dt * vbody */
                 const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
 
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
                         switch(B.collider.colliderType) {
+                            
+                            // Very naive for now
+                            case ColliderType.ConvexMesh : {
+                                collisions.push(new CollisionPair( A, B ));
+
+                                break;
+                            }
+
                             case ColliderType.Plane : {
 
                                 const MC = A.collider as MeshCollider;
@@ -135,6 +148,10 @@ export class XPBDSolver extends BaseSolver {
             switch(A.collider.colliderType) {
                 case ColliderType.ConvexMesh :
                     switch(B.collider.colliderType) {
+                        case ColliderType.ConvexMesh : {
+                            this._meshMeshContact(contacts, A, B);
+                            break;
+                        }
                         case ColliderType.Plane : {
                             this._meshPlaneContact(contacts, A, B);
                             break;
@@ -146,6 +163,59 @@ export class XPBDSolver extends BaseSolver {
         }
 
         return contacts;
+    }
+
+    public _meshMeshContact(contacts: Array<ContactSet>, A: RigidBody, B: RigidBody) {
+        
+        // for (let i = 0; i < A.collider.indices.length - 3; i += 3) {
+
+        //     const a = A.collider.verticesWorldSpace[i + 0];
+        //     const b = A.collider.verticesWorldSpace[i + 1];
+        //     const c = A.collider.verticesWorldSpace[i + 2];
+    
+        //     // const normal = new Vec3()
+        //     //     .subVectors(b, a)
+        //     //     .cross(c.clone().sub(a))
+        //     //     .normalize();
+    
+        //     this.dd(a);
+        //     this.dd(b);
+        //     this.dd(c);
+
+        // }
+
+        const simplex = this.narrowPhase.GJK(A.collider, B.collider);
+
+        if (simplex) {
+            const EPA = this.narrowPhase.EPA(simplex, A.collider, B.collider);
+
+            if (EPA) {
+                const { normal, d } = EPA;
+                // this.dd(normal);
+
+                const contact = new ContactSet(A, B, normal.multiplyScalar(-1.0));
+                contact.d = d;
+
+                // @TODO find actual contact point
+                contact.r1 = new Vec3(); //r1;
+                contact.r2 = new Vec3(); //r2;
+                contact.p1 = A.pose.p; // p1;
+                contact.p2 = A.pose.p; // p2;
+    
+                /* (29) Set initial relative velocity */
+                contact.vrel = Vec3.sub(
+                    contact.A.getVelocityAt(contact.p1),
+                    contact.B.getVelocityAt(contact.p2)
+                );
+                contact.vn = contact.vrel.dot(contact.n);
+    
+                contact.e = 0.5 * (A.bounciness + B.bounciness);
+                contact.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
+                contact.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
+
+                contacts.push(contact);
+            }
+        }
     }
 
     public _meshPlaneContact(contacts: Array<ContactSet>, A: RigidBody, B: RigidBody) {
@@ -196,7 +266,7 @@ export class XPBDSolver extends BaseSolver {
             contact.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
             contact.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
 
-            this.debugContact(contact);
+            // this.debugContact(contact);
             
             contacts.push(contact);
         }
