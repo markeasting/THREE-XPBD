@@ -5,7 +5,7 @@ import { World } from '../World';
 
 export class BaseSolver {
 
-    public debug = false
+    public debug = true
 
     // @TODO move helpers to World
     protected helpers: Record<string, Object3D>  = {
@@ -14,15 +14,17 @@ export class BaseSolver {
         d: new ArrowHelper(),
         r1: new ArrowHelper(),
         r2: new ArrowHelper(),
-        A: new Box3Helper(new Box3(), new Color(0xcccccc)),
-        B: new Box3Helper(new Box3(), new Color(0xcccccc)),
-        p1: new Box3Helper(new Box3(), new Color(0xffff00)),
-        p2: new Box3Helper(new Box3(), new Color(0xff00ff)),
+        A: new Box3Helper(new Box3(new Vec3(0), new Vec3(0)), new Color(0xcccccc)),
+        B: new Box3Helper(new Box3(new Vec3(0), new Vec3(0)), new Color(0xcccccc)),
+        p1: new Box3Helper(new Box3(new Vec3(0), new Vec3(0)), new Color(0xffff00)),
+        p2: new Box3Helper(new Box3(new Vec3(0), new Vec3(0)), new Color(0xff00ff)),
     }
+
+    static ddIdx = 0;
 
     constructor() {
         if (this.debug) {
-            World.scene.add(new AxesHelper(1));
+            // World.scene.add(new AxesHelper(1));
             // this.scene.add(new GridHelper(100));
 
             for (const h in this.helpers) {
@@ -37,12 +39,19 @@ export class BaseSolver {
     }
 
     protected dd(vec: Vec3, pos?: Vec3) {
-        this.setDebugVector('_debug', vec, pos);
+        this.setDebugVector('_debug'+BaseSolver.ddIdx, vec, pos);
+        // console.log(vec);
+        BaseSolver.ddIdx++;
     }
 
-    protected setDebugVector(key: string, vec: Vec3, pos?: Vec3) {
+    protected setDebugVector(key: string, vec: Vec3, pos: Vec3 = new Vec3(0,0,0)) {
         if (!this.debug)
             return;
+
+        if (!this.helpers[key]) {
+            this.helpers[key] = new ArrowHelper();
+            World.scene.add(this.helpers[key]);
+        }
 
         const arrow = this.helpers[key] as ArrowHelper;
         if (pos)

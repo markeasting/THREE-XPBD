@@ -7,6 +7,7 @@ import { BaseConstraint } from './constraint/BaseConstraint';
 import { Game } from '../core/Game';
 import { Attachment } from './constraint/Attachment';
 import { RayCastEvent } from '../event/RayCastEvent';
+import { BaseSolver } from './solver/BaseSolver';
 
 export class World {
 
@@ -93,6 +94,8 @@ export class World {
     }
 
     public update(dt: number): void {
+        BaseSolver.ddIdx = 0;
+        
         this.solver.update(this.#bodies, this.#constraintsFast, dt, this.gravity);
 
         if (this.#grabConstraint) {
