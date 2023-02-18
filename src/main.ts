@@ -30,6 +30,12 @@ function update(time: DOMHighResTimeStamp): void {
     requestAnimationFrame(time => {
         update(time);
     });
+
+    // setTimeout(() => {
+    //     requestAnimationFrame(time => {
+    //         update(time);
+    //     });
+    // }, Game.mouseDown ? 1000 / 20 : 1000 / 5);
 }
 
 init();
