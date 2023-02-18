@@ -67,8 +67,8 @@ export class ContactSet {
         normal: Vec3,
         p1: Vec3,
         p2: Vec3,
-        // r1: Vec3,
-        // r2: Vec3,
+        r1?: Vec3,
+        r2?: Vec3,
     ) {
         if (A === B || A.id == B.id)
             throw new Error('Cannot create a ContactSet with the same body');
@@ -78,8 +78,8 @@ export class ContactSet {
         
         this.p1 = p1;
         this.p2 = p2;
-        this.r1 = this.A.worldToLocal(p1);
-        this.r2 = this.B.worldToLocal(p2);
+        this.r1 = r1 ?? this.A.worldToLocal(p1);
+        this.r2 = r2 ?? this.B.worldToLocal(p2);
 
         this.n = normal.clone();
 
