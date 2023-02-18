@@ -3,16 +3,14 @@ import { RigidBody } from "../RigidBody";
 import { CollisionPair } from "../CollisionPair";
 import { ContactSet } from "../ContactSet";
 import { Vec3 } from "../Vec3";
-import { Quat } from "../Quaternion";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
-import { Constraint } from '../constraint/Constraint';
 import { BaseConstraint } from '../constraint/BaseConstraint';
 import { GJK } from '../gjk-epa/GJK';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 10;
+    private numSubsteps = 15;
 
     static h = 0;
 
@@ -166,55 +164,31 @@ export class XPBDSolver extends BaseSolver {
     }
 
     public _meshMeshContact(contacts: Array<ContactSet>, A: RigidBody, B: RigidBody) {
-        
-        // for (let i = 0; i < A.collider.indices.length - 3; i += 3) {
-
-        //     const a = A.collider.verticesWorldSpace[i + 0];
-        //     const b = A.collider.verticesWorldSpace[i + 1];
-        //     const c = A.collider.verticesWorldSpace[i + 2];
-    
-        //     // const normal = new Vec3()
-        //     //     .subVectors(b, a)
-        //     //     .cross(c.clone().sub(a))
-        //     //     .normalize();
-    
-        //     this.dd(a);
-        //     this.dd(b);
-        //     this.dd(c);
-
-        // }
 
         const simplex = this.narrowPhase.GJK(A.collider, B.collider);
 
         if (simplex) {
             const EPA = this.narrowPhase.EPA(simplex, A.collider, B.collider);
 
-            if (EPA) {
-                const { normal, d } = EPA;
-                // this.dd(normal);
+            if (!EPA)
+                return;
 
-                const contact = new ContactSet(A, B, normal.multiplyScalar(-1.0));
-                contact.d = d;
+            const { normal, p1, p2, d } = EPA;
+            
+            if (d <= 0.0)
+                return;
 
-                // @TODO find actual contact point
-                contact.r1 = new Vec3(); //r1;
-                contact.r2 = new Vec3(); //r2;
-                contact.p1 = A.pose.p; // p1;
-                contact.p2 = A.pose.p; // p2;
-    
-                /* (29) Set initial relative velocity */
-                contact.vrel = Vec3.sub(
-                    contact.A.getVelocityAt(contact.p1),
-                    contact.B.getVelocityAt(contact.p2)
-                );
-                contact.vn = contact.vrel.dot(contact.n);
-    
-                contact.e = 0.5 * (A.bounciness + B.bounciness);
-                contact.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
-                contact.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
+            const contact = new ContactSet(
+                A, 
+                B, 
+                normal.multiplyScalar(-1.0),
+                p1,
+                p2
+            );
 
-                contacts.push(contact);
-            }
+            contacts.push(contact);
+        
+            this.debugContact(contact);
         }
     }
 
@@ -247,26 +221,7 @@ export class XPBDSolver extends BaseSolver {
             if (d <= 0.0)
                 continue;
 
-            const contact = new ContactSet(A, B, N);
-            contact.d = signedDistance;
-
-            contact.r1 = r1;
-            contact.r2 = r2;
-            contact.p1 = p1;
-            contact.p2 = p2;
-
-            /* (29) Set initial relative velocity */
-            contact.vrel = Vec3.sub(
-                contact.A.getVelocityAt(contact.p1),
-                contact.B.getVelocityAt(contact.p2)
-            );
-            contact.vn = contact.vrel.dot(contact.n);
-
-            contact.e = 0.5 * (A.bounciness + B.bounciness);
-            contact.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
-            contact.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
-
-            // this.debugContact(contact);
+            const contact = new ContactSet(A, B, N, p1, p2, r1, r2);
             
             contacts.push(contact);
         }
@@ -290,7 +245,7 @@ export class XPBDSolver extends BaseSolver {
         /* (3.5) if d ≤ 0 we skip the contact */
         if(contact.d <= 0.0)
             return;
-
+                
         /* (3.5) Resolve penetration (Δx = dn using a = 0 and λn) */
         const dx = Vec3.mul(contact.n, contact.d);
 
