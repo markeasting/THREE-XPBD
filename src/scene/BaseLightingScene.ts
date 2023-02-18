@@ -7,9 +7,10 @@ export class BaseLightingScene extends THREE.Scene {
         super();
 
         const ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(100, 100),
+            new THREE.PlaneGeometry(50, 50, 5, 5),
             new THREE.MeshPhongMaterial({
                 color: 0x444444,
+                wireframe: true,
             })
         );
         ground.receiveShadow = true;

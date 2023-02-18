@@ -15,7 +15,7 @@ import { Constraint } from '../physics/constraint/Constraint';
 import { Attachment } from '../physics/constraint/Attachment';
 import { AlignOrientation } from '../physics/constraint/AlignOrientation';
 import { AlignAxes } from '../physics/constraint/AlignAxes';
-import { Euler, Mesh } from 'three';
+import { Color, Euler, Mesh } from 'three';
 
 export class MyScene extends BaseScene {
 
@@ -32,6 +32,7 @@ export class MyScene extends BaseScene {
         this.orbitControls.update();
 
         this.insert(new BaseLightingScene);
+        // this.scene.background = new Color(0xffffff);
 
         this.addGeometry();
     }
@@ -49,22 +50,26 @@ export class MyScene extends BaseScene {
         // this.unitCube.position.set(1, 2, 3);
         // this.scene.add(this.unitCube);
 
-        b0 = Box(1).setPos(0, 1, 0);
+        b0 = Box(3, 1, 3).setPos(0, 0.5, 0).setStatic();
         this.addBody(b0);
 
-        b0 = Box(1).setPos(2, 1, 0);
+        b0 = Box(1, 1, 2).setPos(0.1, 1.7, 0.1);
         this.addBody(b0);
         
-        // for (let index = 0; index < 2; index++) {
-        //     const b = Box(1, 2, 1);
+        // for (let i = 0; i < 4; i++) {
+        //     const b = Box(
+        //         Math.random() + 0.5, 
+        //         Math.random() + 0.5, 
+        //         Math.random() + 0.5
+        //     );
         //     b.pose.p.set(
         //         Math.random() * 8 - 4,
-        //         Math.random() * 2 + 3,
+        //         Math.random() * 2 + 8,
         //         Math.random() * 8 - 4
         //     );
         //     // b.pose.p.set(-1.5, 5.5, 1);
         //     // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
-        //     b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
+        //     // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
         //     this.addBody(b);
         // }
 
