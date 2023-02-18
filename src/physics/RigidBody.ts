@@ -79,6 +79,7 @@ export class RigidBody {
     public setPos(x: number, y: number, z: number) {
         this.pose.p.set(x, y, z);
         this.updateGeometry();
+        this.updateCollider();
 
         return this;
     }
