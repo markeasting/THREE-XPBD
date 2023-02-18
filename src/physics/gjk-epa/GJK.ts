@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Vector4 } from "three";
+import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { Game } from "../../core/Game";
 import { Collider } from "../Collider"
 import { Vec3 } from "../Vec3"
@@ -13,7 +14,9 @@ import { Simplex } from "./Simplex";
  */
 export class GJK {
 
-    private debugMesh: Mesh;
+    private debugMinkowski: Mesh;
+    private debugSimplex: Mesh;
+    private debugPolytope: Mesh;
 
     public GJK(
         colliderA: Collider,
@@ -66,7 +69,7 @@ export class GJK {
     /**
      * Returns the vertex on the Minkowski difference
      */
-    private support(
+    public support(
         colliderA: Collider,
         colliderB: Collider,
         direction: Vec3
@@ -233,8 +236,8 @@ export class GJK {
 
         const polytope: Vec3[] = [];
 
-        // Not sure whether to use size or points.length here
-        for (let i = 0; i < simplex.size; i++)
+        // Not sure whether to use simplex.size here instead
+        for (let i = 0; i < simplex.points.length; i++)
             polytope.push(simplex.points[i].clone());
 
         const faces = [
@@ -244,7 +247,6 @@ export class GJK {
             1, 3, 2
         ];
 
-        // list: vector4(normal, distance), index: min distance
         let { normals, minTriangle: minFace } = this.getFaceNormals(polytope, faces);
 
         const minNormal = new Vec3();
@@ -256,18 +258,17 @@ export class GJK {
             minNormal.set(normals[minFace].x, normals[minFace].y, normals[minFace].z);
             minDistance = normals[minFace].w;
 
-            if (iterations++ > 100) {
-                console.error('Too many EPA iterations')
+            if (iterations++ > 50) {
+                // console.error('Too many EPA iterations')
                 break;
             }
 
             const support = this.support(colliderA, colliderB, minNormal);
-            let sDistance = minNormal.dot(support);
+            const sDistance = minNormal.dot(support);
 
             if (Math.abs(sDistance - minDistance) > 0.001) {
                 minDistance = Infinity;
 
-                // std::vector<std::pair<size_t, size_t>> uniqueEdges;
                 const uniqueEdges: Array<[number, number]> = [];
 
                 for (let i = 0; i < normals.length; i++) {
@@ -280,15 +281,10 @@ export class GJK {
                         this.addIfUniqueEdge(uniqueEdges, faces, f + 1, f + 2);
                         this.addIfUniqueEdge(uniqueEdges, faces, f + 2, f + 0);
 
-                        // faces[f + 2] = faces.back(); faces.pop_back();
-                        // faces[f + 1] = faces.back(); faces.pop_back();
-                        // faces[f    ] = faces.back(); faces.pop_back();
                         faces[f + 2] = faces[faces.length - 1]; faces.pop();
                         faces[f + 1] = faces[faces.length - 1]; faces.pop();
                         faces[f + 0] = faces[faces.length - 1]; faces.pop();
 
-                        // normals[i] = normals.back(); normals.pop_back();
-                        // normals[i] = normals[normals.length - 1]; normals.pop();
                         normals[i].copy(normals[normals.length - 1]); normals.pop();
 
                         i--;
@@ -326,8 +322,6 @@ export class GJK {
                     minFace = newMinFace + normals.length;
                 }
 
-                // faces  .insert(faces  .end(), newFaces  .begin(), newFaces  .end());
-                // normals.insert(normals.end(), newNormals.begin(), newNormals.end());
                 faces.push(...newFaces);
                 normals.push(...newNormals);
             }
@@ -337,28 +331,86 @@ export class GJK {
             return;
 
         /* Debugging */
-        const points = polytope;
-        const bufferGeometry = new BufferGeometry();
 
-        const indices = new Uint32Array(faces);
-        const positions = new Float32Array(points.length * 3);
-        points.forEach((point, i) => {
-          positions[i * 3] = point.x;
-          positions[i * 3 + 1] = point.y;
-          positions[i * 3 + 2] = point.z;
-        });
-        
-        bufferGeometry.setAttribute('position', new BufferAttribute(positions, 3));
-        bufferGeometry.setIndex(new BufferAttribute(indices, 1));
+        // /* Minkowski difference */
+        // {
 
-        if (this.debugMesh) 
-            Game.scene?.scene.remove(this.debugMesh);
-        this.debugMesh = new Mesh(bufferGeometry, new MeshBasicMaterial({ color: 0xff0000, wireframe: true }));
-        Game.scene?.scene.add(this.debugMesh);
+        //     const newVertices: Vec3[] = [];
+
+        //     colliderA.verticesWorldSpace.forEach((v1) => {
+        //         colliderB.verticesWorldSpace.forEach((v2) => {
+        //             const newVertex = new Vec3(
+        //                 v1.x - v2.x,
+        //                 v1.y - v2.y,
+        //                 v1.z - v2.z
+        //             );
+        //             newVertices.push(newVertex);
+        //         });
+        //     });
+
+        //     // create a new convex mesh using the new vertices
+        //     if (this.debugMinkowski)
+        //         Game.scene?.scene.remove(this.debugMinkowski);
+        //     this.debugMinkowski = new Mesh(
+        //         new ConvexGeometry(newVertices),
+        //         new MeshBasicMaterial({ color: 0x444444, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 })
+        //     )
+        //     Game.scene?.scene.add(this.debugMinkowski);
+        // }
+
+        // /* Debug simplex */
+        // {
+        //     const points = simplex.points;
+        //     const bufferGeometry = new BufferGeometry();
+
+        //     const indices = new Uint32Array(faces);
+        //     const positions = new Float32Array(points.length * 3);
+        //     points.forEach((point, i) => {
+        //         positions[i * 3] = point.x;
+        //         positions[i * 3 + 1] = point.y;
+        //         positions[i * 3 + 2] = point.z;
+        //     });
+
+        //     bufferGeometry.setAttribute('position', new BufferAttribute(positions, 3));
+        //     bufferGeometry.setIndex(new BufferAttribute(indices, 1));
+
+        //     if (this.debugSimplex)
+        //         Game.scene?.scene.remove(this.debugSimplex);
+        //     this.debugSimplex = new Mesh(bufferGeometry, new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 }));
+        //     Game.scene?.scene.add(this.debugSimplex);
+        // }
+
+        /* Debug polytope */
+        // {
+        //     const points = polytope;
+        //     const bufferGeometry = new BufferGeometry();
+
+        //     const indices = new Uint32Array(faces);
+        //     const positions = new Float32Array(points.length * 3);
+        //     points.forEach((point, i) => {
+        //         positions[i * 3] = point.x;
+        //         positions[i * 3 + 1] = point.y;
+        //         positions[i * 3 + 2] = point.z;
+        //     });
+
+        //     bufferGeometry.setAttribute('position', new BufferAttribute(positions, 3));
+        //     bufferGeometry.setIndex(new BufferAttribute(indices, 1));
+
+        //     if (this.debugPolytope)
+        //         Game.scene?.scene.remove(this.debugPolytope);
+        //     this.debugPolytope = new Mesh(bufferGeometry, new MeshBasicMaterial({ color: 0xff0000, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 }));
+        //     Game.scene?.scene.add(this.debugPolytope);
+        // }
+
+        const p1 = colliderA.findFurthestPoint(minNormal);
+        const p2 = colliderB.findFurthestPoint(minNormal.clone().multiplyScalar(-1.0));
 
         return {
             normal: minNormal,
-            d: minDistance + 0.001
+            // contactpoint: 
+            p1: p1,
+            p2: p2,
+            d: minDistance
         };
 
     }
@@ -426,14 +478,6 @@ export class GJK {
         } else {
             edges.push([faces[a], faces[b]]);
         }
-
-        // const reverse = edges.find(([a, b]) => a === faces[b] && b === faces[a]);
-
-        // if (reverse !== undefined) {
-        //     edges.splice(edges.indexOf(reverse), 1);
-        // } else {
-        //     edges.push([faces[a], faces[b]]);
-        // }
     }
 
 }
