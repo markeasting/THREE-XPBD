@@ -5,11 +5,10 @@ import { World } from '../World';
 
 export class BaseSolver {
 
-    public debug = true
+    public debug = false;
 
     // @TODO move helpers to World
     protected helpers: Record<string, Object3D>  = {
-        _debug: new ArrowHelper(),
         n: new ArrowHelper(),
         d: new ArrowHelper(),
         r1: new ArrowHelper(),
@@ -31,7 +30,6 @@ export class BaseSolver {
                 World.scene.add(this.helpers[h]);
             }
             
-            (this.helpers._debug as ArrowHelper).setColor(0x00ff00);
             (this.helpers.n as ArrowHelper).setColor(0x00ffff);
             (this.helpers.d as ArrowHelper).setColor(0xff0000);
             (this.helpers.r2 as ArrowHelper).setColor(0xff00ff);
@@ -49,8 +47,11 @@ export class BaseSolver {
             return;
 
         if (!this.helpers[key]) {
-            this.helpers[key] = new ArrowHelper();
-            World.scene.add(this.helpers[key]);
+            const arrow = new ArrowHelper();
+            arrow.setColor(new Color().setHex(Math.random() * 0xffffff));
+            
+            this.helpers[key] = arrow;
+            World.scene.add(arrow);
         }
 
         const arrow = this.helpers[key] as ArrowHelper;
