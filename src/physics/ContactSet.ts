@@ -61,14 +61,38 @@ export class ContactSet {
     F: Vec3 = new Vec3(0, 0, 0); // Current constraint force
     Fn: number = 0; // Current constraint force (normal direction) == -contact.lambda_n / (h * h);
 
-    constructor(A: RigidBody, B: RigidBody, normal: Vec3) {
+    constructor(
+        A: RigidBody, 
+        B: RigidBody, 
+        normal: Vec3,
+        p1: Vec3,
+        p2: Vec3,
+        // r1: Vec3,
+        // r2: Vec3,
+    ) {
         if (A === B || A.id == B.id)
             throw new Error('Cannot create a ContactSet with the same body');
 
         this.A = A;
         this.B = B;
+        
+        this.p1 = p1;
+        this.p2 = p2;
+        this.r1 = this.A.worldToLocal(p1);
+        this.r2 = this.B.worldToLocal(p2);
 
         this.n = normal.clone();
+
+        /* (29) Set initial relative velocity */
+        this.vrel = Vec3.sub(
+            this.A.getVelocityAt(this.p1),
+            this.B.getVelocityAt(this.p2)
+        );
+        this.vn = this.vrel.dot(this.n);
+
+        this.e = 0.5 * (A.bounciness + B.bounciness);
+        this.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
+        this.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
     }
 
     public update(): void {
