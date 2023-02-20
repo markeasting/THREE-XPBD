@@ -78,8 +78,8 @@ export class Game {
         window.addEventListener( 'mousemove', this.onMouse.bind(this) );
         window.addEventListener( 'mouseup', this.onMouse.bind(this) );
 
+        Game.gui.physics.add(Game, 'stepPhysics').name('Step physics');
         Game.gui.debug.add(Game, 'debugOverlay').name('Enable overlay');
-        Game.gui.debug.add(Game, 'stepPhysics').name('Step physics');
         
     }
 
