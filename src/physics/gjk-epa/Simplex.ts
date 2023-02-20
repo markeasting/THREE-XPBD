@@ -1,16 +1,17 @@
 import { Vec3 } from "../Vec3";
+import { Support } from "./Support";
 
 export class Simplex {
 
-	points: Array<Vec3> = [];
+	points: Array<Support> = [];
 	size: number = 0;
 
 	constructor() {
-		this.points = [new Vec3(), new Vec3(), new Vec3(), new Vec3()]
+		this.points = [];
 		this.size = 0;
 	}
 
-	public assign(points: Vec3[]): this {
+	public assign(points: Support[]): this {
 		for (const i in points) {
 			const v = points[i];
 			this.points[i] = v;
@@ -21,7 +22,7 @@ export class Simplex {
 		return this;
 	}
 
-	public push_front(point: Vec3): void {
+	public push_front(point: Support): void {
 		this.points = [point, this.points[0], this.points[1], this.points[2]];
 		this.size = Math.min(this.size + 1, this.points.length);
 	}

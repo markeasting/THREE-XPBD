@@ -6,15 +6,15 @@ import { Vec3 } from "../Vec3";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
 import { BaseConstraint } from '../constraint/BaseConstraint';
-import { GJK } from '../gjk-epa/GJK';
+import { GjkEpa } from '../gjk-epa/GjkEpa';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 15;
+    private numSubsteps = 20;
 
+    private narrowPhase = new GjkEpa();
+    
     static h = 0;
-
-    private narrowPhase = new GJK();
 
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
 
@@ -23,7 +23,6 @@ export class XPBDSolver extends BaseSolver {
 
         // const h = dt / this.numSubsteps;
         const h = (1 / 60) / this.numSubsteps;
-        // const h = (1 / 120) / this.numSubsteps;
         
         XPBDSolver.h = h;
 
@@ -36,8 +35,6 @@ export class XPBDSolver extends BaseSolver {
              * checking for actual collisions.
              */
             const contacts = this.getContacts(collisions);
-            // if (contacts.length > 0)
-            //     return;
 
             for (let j = 0; j < bodies.length; j++)
                 bodies[j].integrate(h, gravity);
@@ -92,7 +89,7 @@ export class XPBDSolver extends BaseSolver {
                     case ColliderType.ConvexMesh :
                         switch(B.collider.colliderType) {
                             
-                            // Very naive for now
+                            /* Very naive solution for now */
                             case ColliderType.ConvexMesh : {
                                 collisions.push(new CollisionPair( A, B ));
 
@@ -181,14 +178,13 @@ export class XPBDSolver extends BaseSolver {
             const contact = new ContactSet(
                 A, 
                 B, 
-                normal.multiplyScalar(-1.0),
+                normal.clone().multiplyScalar(-1.0),
                 p1,
                 p2
             );
 
             contacts.push(contact);
-        
-            this.debugContact(contact);
+            // this.debugContact(contact);
         }
     }
 
