@@ -42,35 +42,33 @@ export class MyScene extends BaseScene {
         b0 = Box(3, 1, 3).setPos(0, 0.5, 0);
         this.addBody(b0);
 
-        b0 = Box(1, 1, 2).setPos(0.1, 1.6, 1.0);
+        b0 = Box(1, 1, 2).setPos(0.1, 2.0, 0.0);
         this.addBody(b0);
         
         /* Stacked boxes */
-        // for (let i = 0; i < 3; i++) {
-        //     const b = Box();
-        //     b.pose.p.set(0, 0 + 0.52 + i, 0);
-        //     // b.pose.p.set(-1.5, 5.5, 1);
-        //     // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
-        //     // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
-        //     this.addBody(b);
-        // }
+        for (let i = 0; i < 6; i++) {
+            const h = 2;
+            const b = Box(h);
+            b.pose.p.set(-3, (h - h/2 + 0.05) + h * i, 0);
+            // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
+            // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
+            this.addBody(b);
+        }
 
-        // // Hinge
-        // b0 = Box(2, 1, 0.05).setPos(3, 1.5, 1);
-        // b1 = Box(2, 0.05, 1).setPos(3, 2, 0.5)
-        // this.addBody(b0);
-        // this.addBody(b1);
+        /* Hinge */
+        b0 = Box(2, 1, 0.2).setPos(3, 1.5, 1);
+        b1 = Box(2, 0.2, 1).setPos(3, 2, 0.4);
+        this.addBody(b0);
+        this.addBody(b1);
 
-        // this.world.addConstraint(
-        //     new Constraint(b0, b1)
-        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.5, 0)))
-        //     .add(new AlignAxes)
-        //     // .add(new AlignOrientation)
-        // );
+        this.world.addConstraint(
+            new Constraint(b0, b1)
+            .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.6, 0)))
+            .add(new AlignAxes)
+            // .add(new AlignOrientation)
+        );
 
-
-
-        // // Hammer
+        /* Hammer */
         // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
         // b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
         // this.addBody(b0);
