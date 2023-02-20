@@ -39,21 +39,21 @@ export class MyScene extends BaseScene {
 
         let b0, b1;
 
-        // b0 = Box(3, 1, 3).setPos(0, 0.5, 0);
-        // this.addBody(b0);
+        b0 = Box(3, 1, 3).setPos(0, 0.5, 0);
+        this.addBody(b0);
 
-        // b0 = Box(1, 1, 2).setPos(0.1, 1.6, 2);
-        // this.addBody(b0);
+        b0 = Box(1, 1, 2).setPos(0.1, 1.6, 1.0);
+        this.addBody(b0);
         
         /* Stacked boxes */
-        for (let i = 0; i < 3; i++) {
-            const b = Box();
-            b.pose.p.set(0, 0 + 0.52 + i, 0);
-            // b.pose.p.set(-1.5, 5.5, 1);
-            // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
-            // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
-            this.addBody(b);
-        }
+        // for (let i = 0; i < 3; i++) {
+        //     const b = Box();
+        //     b.pose.p.set(0, 0 + 0.52 + i, 0);
+        //     // b.pose.p.set(-1.5, 5.5, 1);
+        //     // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
+        //     // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
+        //     this.addBody(b);
+        // }
 
         // // Hinge
         // b0 = Box(2, 1, 0.05).setPos(3, 1.5, 1);

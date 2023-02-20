@@ -35,7 +35,14 @@ export class World {
     constructor() {
         this.solver = new XPBDSolver();
 
+        Game.gui.physics.add(this.gravity, 'x', -10, 10).step(0.1).name('Gravity x');
+        Game.gui.physics.add(this.gravity, 'y', -10, 10).step(0.1).name('Gravity y');
+        Game.gui.physics.add(this.gravity, 'z', -10, 10).step(0.1).name('Gravity z');
+
         Game.events.on(RayCastEvent, e => {
+
+            if (!this.#grabConstraint && !e.intersection)
+                return;
 
             this.#grabDistance = this.#grabConstraint
                 ? this.#grabDistance 

@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Vector4 } from "three";
+import { ArrowHelper, BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Vector4 } from "three";
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { Game } from "../../core/Game";
 import { Collider } from "../Collider"
@@ -20,6 +20,13 @@ export class GjkEpa {
     private debugMinkowski: Mesh;
     private debugSimplex: Mesh;
     private debugPolytope: Mesh;
+    private debugNormal = new ArrowHelper();
+
+    private debug = false;
+
+    constructor() {
+        Game.gui.debug.add(this, 'debug').name('Debug GJK / EPA');
+    }
 
     public GJK(
         colliderA: Collider,
@@ -323,76 +330,61 @@ export class GjkEpa {
             return;
 
         /* Debugging */
+        if (this.debugMinkowski) Game.scene?.scene.remove(this.debugMinkowski);
+        if (this.debugPolytope)  Game.scene?.scene.remove(this.debugPolytope);
+        if (this.debugNormal)  Game.scene?.scene.remove(this.debugNormal);
+            
+        /* Debug normal */
+        if (Game.debugOverlay && this.debug) {
+            this.debugNormal = new ArrowHelper(minNormal);
+            this.debugNormal.setColor(0x00ffff);
 
+            Game.scene?.scene.add(this.debugNormal);
+        }
+        
         /* Minkowski difference */
-        // {
+        if (Game.debugOverlay && this.debug) {
 
-        //     const newVertices: Vec3[] = [];
+            const newVertices: Vec3[] = [];
 
-        //     colliderA.verticesWorldSpace.forEach((v1) => {
-        //         colliderB.verticesWorldSpace.forEach((v2) => {
-        //             const newVertex = new Vec3(
-        //                 v1.x - v2.x,
-        //                 v1.y - v2.y,
-        //                 v1.z - v2.z
-        //             );
-        //             newVertices.push(newVertex);
-        //         });
-        //     });
+            colliderA.verticesWorldSpace.forEach((v1) => {
+                colliderB.verticesWorldSpace.forEach((v2) => {
+                    const newVertex = new Vec3(
+                        v1.x - v2.x,
+                        v1.y - v2.y,
+                        v1.z - v2.z
+                    );
+                    newVertices.push(newVertex);
+                });
+            });
 
-        //     // create a new convex mesh using the new vertices
-        //     if (this.debugMinkowski)
-        //         Game.scene?.scene.remove(this.debugMinkowski);
-        //     this.debugMinkowski = new Mesh(
-        //         new ConvexGeometry(newVertices),
-        //         new MeshBasicMaterial({ color: 0x444444, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 })
-        //     )
-        //     Game.scene?.scene.add(this.debugMinkowski);
-        // }
-
-        // /* Debug simplex */
-        // {
-        //     const points = simplex.points;
-        //     const bufferGeometry = new BufferGeometry();
-
-        //     const indices = new Uint32Array(faces);
-        //     const positions = new Float32Array(points.length * 3);
-        //     points.forEach((point, i) => {
-        //         positions[i * 3] = point.x;
-        //         positions[i * 3 + 1] = point.y;
-        //         positions[i * 3 + 2] = point.z;
-        //     });
-
-        //     bufferGeometry.setAttribute('position', new BufferAttribute(positions, 3));
-        //     bufferGeometry.setIndex(new BufferAttribute(indices, 1));
-
-        //     if (this.debugSimplex)
-        //         Game.scene?.scene.remove(this.debugSimplex);
-        //     this.debugSimplex = new Mesh(bufferGeometry, new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 }));
-        //     Game.scene?.scene.add(this.debugSimplex);
-        // }
+            // create a new convex mesh using the new vertices
+            this.debugMinkowski = new Mesh(
+                new ConvexGeometry(newVertices),
+                new MeshBasicMaterial({ color: 0x444444, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 })
+            )
+            Game.scene?.scene.add(this.debugMinkowski);
+        }
 
         /* Debug polytope */
-        // {
-        //     const points = polytope;
-        //     const bufferGeometry = new BufferGeometry();
+        if (Game.debugOverlay && this.debug) {
+            const points = polytope;
+            const bufferGeometry = new BufferGeometry();
 
-        //     const indices = new Uint32Array(faces);
-        //     const positions = new Float32Array(points.length * 3);
-        //     points.forEach((support, i) => {
-        //         positions[i * 3] = support.point.x;
-        //         positions[i * 3 + 1] = support.point.y;
-        //         positions[i * 3 + 2] = support.point.z;
-        //     });
+            const indices = new Uint32Array(faces);
+            const positions = new Float32Array(points.length * 3);
+            points.forEach((support, i) => {
+                positions[i * 3] = support.point.x;
+                positions[i * 3 + 1] = support.point.y;
+                positions[i * 3 + 2] = support.point.z;
+            });
 
-        //     bufferGeometry.setAttribute('position', new BufferAttribute(positions, 3));
-        //     bufferGeometry.setIndex(new BufferAttribute(indices, 1));
+            bufferGeometry.setAttribute('position', new BufferAttribute(positions, 3));
+            bufferGeometry.setIndex(new BufferAttribute(indices, 1));
 
-        //     if (this.debugPolytope)
-        //         Game.scene?.scene.remove(this.debugPolytope);
-        //     this.debugPolytope = new Mesh(bufferGeometry, new MeshBasicMaterial({ color: 0xff0000, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 }));
-        //     Game.scene?.scene.add(this.debugPolytope);
-        // }
+            this.debugPolytope = new Mesh(bufferGeometry, new MeshBasicMaterial({ color: 0xff0000, wireframe: true, wireframeLinewidth: 3, transparent: true, opacity: 0.5 }));
+            Game.scene?.scene.add(this.debugPolytope);
+        }
         
         /* Contact point (v) */
         const contactPoint = Vec3.mul(minNormal, minDistance);

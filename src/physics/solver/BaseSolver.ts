@@ -1,11 +1,12 @@
 import { ArrowHelper, AxesHelper, Box3, Box3Helper, Color, Object3D, Scene } from 'three';
+import { Game } from '../../core/Game';
 import { ContactSet } from "../ContactSet";
 import { Vec3 } from "../Vec3";
 import { World } from '../World';
 
 export class BaseSolver {
 
-    public debug = false;
+    debugContacts = false;
 
     // @TODO move helpers to World
     protected helpers: Record<string, Object3D>  = {
@@ -22,18 +23,19 @@ export class BaseSolver {
     static ddIdx = 0;
 
     constructor() {
-        if (this.debug) {
-            // World.scene.add(new AxesHelper(1));
-            // this.scene.add(new GridHelper(100));
 
-            for (const h in this.helpers) {
-                World.scene.add(this.helpers[h]);
-            }
-            
-            (this.helpers.n as ArrowHelper).setColor(0x00ffff);
-            (this.helpers.d as ArrowHelper).setColor(0xff0000);
-            (this.helpers.r2 as ArrowHelper).setColor(0xff00ff);
+        Game.gui.debug.add(this, 'debugContacts').name('Debug contacts');
+
+        // World.scene.add(new AxesHelper(1));
+        // this.scene.add(new GridHelper(100));
+
+        for (const h in this.helpers) {
+            World.scene.add(this.helpers[h]);
         }
+        
+        (this.helpers.n as ArrowHelper).setColor(0x00ffff);
+        (this.helpers.d as ArrowHelper).setColor(0xff0000);
+        (this.helpers.r2 as ArrowHelper).setColor(0xff00ff);
     }
 
     protected dd(vec: Vec3, pos?: Vec3) {
@@ -43,7 +45,7 @@ export class BaseSolver {
     }
 
     protected setDebugVector(key: string, vec: Vec3, pos: Vec3 = new Vec3(0,0,0)) {
-        if (!this.debug)
+        if (!Game.debugOverlay)
             return;
 
         if (!this.helpers[key]) {
@@ -62,7 +64,7 @@ export class BaseSolver {
     }
 
     protected setDebugPoint(key: string, pos: Vec3, size = 0.1) {
-        if (!this.debug)
+        if (!Game.debugOverlay)
             return;
 
         const box = this.helpers[key] as Box3Helper;
@@ -70,7 +72,7 @@ export class BaseSolver {
     }
 
     protected debugContact(contact: ContactSet) {
-        if (!this.debug)
+        if (!Game.debugOverlay || !this.debugContacts)
             return;
             
         for (const key in contact) {

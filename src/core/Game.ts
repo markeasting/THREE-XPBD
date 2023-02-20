@@ -9,6 +9,8 @@ import { Vec2 } from '../physics/Vec2';
 import { EventEmitter } from '../event/EventEmitter';
 import { RayCastEvent } from '../event/RayCastEvent';
 
+import { GUI, GUIController } from 'dat.gui';
+
 export class Game {
 
     static canvas: HTMLCanvasElement;
@@ -26,12 +28,19 @@ export class Game {
 
     static scene: BaseScene|undefined = undefined;
 
-    private debugPhysics = true;
-    private stepPhysics = false;
+    static debugOverlay = true;
+    static stepPhysics = false;
     
     public dt = 0;
     public time = 0;
     public prevTime = 0;
+
+    static _gui = new GUI();
+    static gui = {
+        'physics': this._gui.addFolder('Physics'),
+        'solver': this._gui.addFolder('Solver'),
+        'debug': this._gui.addFolder('Debugging')
+    }
 
     constructor(canvasID: string) {
         Game.canvas = document.getElementById(canvasID) as HTMLCanvasElement;
@@ -57,7 +66,7 @@ export class Game {
             Game.keys[e.code] = true;
             
             if (e.code == 'Space') {
-                this.stepPhysics = true;
+                Game.stepPhysics = true;
                 Game.scene?.updatePhysics(this.dt);
             }
         })
@@ -68,6 +77,10 @@ export class Game {
         window.addEventListener( 'mousedown', this.onMouse.bind(this) );
         window.addEventListener( 'mousemove', this.onMouse.bind(this) );
         window.addEventListener( 'mouseup', this.onMouse.bind(this) );
+
+        Game.gui.debug.add(Game, 'debugOverlay').name('Enable overlay');
+        Game.gui.debug.add(Game, 'stepPhysics').name('Step physics');
+        
     }
 
     private setupRenderPass() {
@@ -113,13 +126,12 @@ export class Game {
         this.dt = (this.time - this.prevTime) / 1000;
 
         if (Game.scene) {
-            Game.scene.updatePhysics(this.dt, !this.stepPhysics);
+            Game.scene.updatePhysics(this.dt, !Game.stepPhysics);
             Game.scene.update(time, this.dt, Game.keys);
-            // Game.scene.draw(Game.composer);
             // Game.composer.render();
             Game.renderer.render(Game.scene.scene, Game.scene.camera);
 
-            if (this.debugPhysics)
+            if (Game.debugOverlay)
                 Game.scene.world.draw(Game.renderer, Game.scene.camera);
 
         }

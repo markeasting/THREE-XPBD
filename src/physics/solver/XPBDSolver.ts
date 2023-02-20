@@ -7,6 +7,7 @@ import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
 import { BaseConstraint } from '../constraint/BaseConstraint';
 import { GjkEpa } from '../gjk-epa/GjkEpa';
+import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
@@ -15,6 +16,12 @@ export class XPBDSolver extends BaseSolver {
     private narrowPhase = new GjkEpa();
     
     static h = 0;
+
+    constructor() {
+        super();
+
+        Game.gui.solver.add(this, 'numSubsteps', 1, 30);
+    }
 
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
 
@@ -189,7 +196,7 @@ export class XPBDSolver extends BaseSolver {
             );
 
             contacts.push(contact);
-            // this.debugContact(contact);
+            this.debugContact(contact);
         }
     }
 
