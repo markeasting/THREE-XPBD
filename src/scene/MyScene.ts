@@ -19,14 +19,12 @@ import { Color, Euler, Mesh } from 'three';
 
 export class MyScene extends BaseScene {
 
-    unitCube: Mesh;
-
     constructor() {
         super();
     }
 
     override init() {
-        const lookAt = new Vec3(0, 0.5, 0);
+        const lookAt = new Vec3(0, 0.0, 0);
         this.camera.lookAt(lookAt);
         this.orbitControls.target.copy(lookAt);
         this.orbitControls.update();
@@ -41,37 +39,21 @@ export class MyScene extends BaseScene {
 
         let b0, b1;
 
-        // this.unitCube = new THREE.Mesh(
-        //     new THREE.BoxGeometry(1.0),
-        //     new THREE.MeshPhongMaterial({
-        //         color: new THREE.Color().setHSL(0.5, 1, 0.5),
-        //     }),
-        // );
-        // this.unitCube.position.set(1, 2, 3);
-        // this.scene.add(this.unitCube);
+        // b0 = Box(3, 1, 3).setPos(0, 0.5, 0);
+        // this.addBody(b0);
 
-        b0 = Box(3, 1, 3).setPos(0, 0.5, 0).setStatic();
-        this.addBody(b0);
-
-        b0 = Box(1, 1, 2).setPos(0.1, 1.7, 0.1);
-        this.addBody(b0);
+        // b0 = Box(1, 1, 2).setPos(0.1, 1.6, 2);
+        // this.addBody(b0);
         
-        // for (let i = 0; i < 4; i++) {
-        //     const b = Box(
-        //         Math.random() + 0.5, 
-        //         Math.random() + 0.5, 
-        //         Math.random() + 0.5
-        //     );
-        //     b.pose.p.set(
-        //         Math.random() * 8 - 4,
-        //         Math.random() * 2 + 8,
-        //         Math.random() * 8 - 4
-        //     );
-        //     // b.pose.p.set(-1.5, 5.5, 1);
-        //     // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
-        //     // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
-        //     this.addBody(b);
-        // }
+        /* Stacked boxes */
+        for (let i = 0; i < 3; i++) {
+            const b = Box();
+            b.pose.p.set(0, 0 + 0.52 + i, 0);
+            // b.pose.p.set(-1.5, 5.5, 1);
+            // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
+            // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
+            this.addBody(b);
+        }
 
         // // Hinge
         // b0 = Box(2, 1, 0.05).setPos(3, 1.5, 1);
@@ -105,9 +87,6 @@ export class MyScene extends BaseScene {
         //     .add(new Attachment(new Vec3(0.1, 0, -0.5), new Vec3(0, 0, -3)))
         //     // .add(new AlignOrientation)
         // );
-
-
-
 
         this.addGround();
 
