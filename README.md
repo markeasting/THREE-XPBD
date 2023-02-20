@@ -24,12 +24,15 @@ Demo: https://eastingandnorthing.github.io/three/
 - [ ] `applyTorque()`
 
 ### Collision solver
-- [x] Penetration (single body and plane)
+- [x] Penetration
 - [x] Restitution
 - [x] Friction
-- [ ] (Convex) hull generation
-- [ ] Broad phase (OBB / AABB / SAP)
+- [x] Broad phase (OBB / AABB)
+- [ ] Broad phase (sorting algorithm)
+- [ ] Broad phase (spatial subdivision / quadtree)
 - [x] Narrow phase (GJK / EPA)
+- [ ] Narrow phase (optimized primitives: spheres, capsules)
+- [ ] Convex hull generation
 
 ### Constraints
 - [x] Basic constraint

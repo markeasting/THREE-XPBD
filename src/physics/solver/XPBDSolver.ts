@@ -89,9 +89,14 @@ export class XPBDSolver extends BaseSolver {
                     case ColliderType.ConvexMesh :
                         switch(B.collider.colliderType) {
                             
-                            /* Very naive solution for now */
                             case ColliderType.ConvexMesh : {
-                                collisions.push(new CollisionPair( A, B ));
+
+                                const aabb1 = A.collider.aabb.clone().expandByScalar(collisionMargin);
+                                const aabb2 = B.collider.aabb.clone().expandByScalar(collisionMargin);
+                                
+                                if (aabb1.intersectsBox(aabb2)) {
+                                    collisions.push(new CollisionPair( A, B ));
+                                }
 
                                 break;
                             }

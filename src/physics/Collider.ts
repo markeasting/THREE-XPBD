@@ -3,6 +3,7 @@ import { Quat } from "./Quaternion";
 import { Vec3 } from "./Vec3";
 import { Vec2 } from "./Vec2";
 import { Pose } from './Pose';
+import { Box3, Box3Helper } from 'three';
 
 export enum ColliderType {
     Box, Plane, Sphere, ConvexMesh
@@ -17,6 +18,9 @@ export class Collider {
     indices: Array<number> = [];
     uniqueIndices: Array<number> = [];
     // relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
+
+    aabb = new Box3();
+    aabbHelper = new Box3Helper(this.aabb);
 
     public updateGlobalPose(pose: Pose): void {
         // console.log('updateRotation not implemented')
@@ -190,6 +194,9 @@ export class MeshCollider extends Collider {
 
     public override updateGlobalPose(pose: Pose) {
 
+        const min = new Vec3(Infinity, Infinity, Infinity);
+        const max = new Vec3(-Infinity, -Infinity, -Infinity);
+
         for (let i = 0; i < this.vertices.length; i++) {
             const v = this.vertices[i];
 
@@ -197,7 +204,12 @@ export class MeshCollider extends Collider {
                 .copy(v)
                 .applyQuaternion(pose.q)
                 .add(pose.p);
+
+            min.min(this.verticesWorldSpace[i]);
+            max.max(this.verticesWorldSpace[i]);
         }
+
+        this.aabb.set(min, max);
     }
 
     /* GJK */

@@ -55,6 +55,7 @@ export class RigidBody {
         if (this.mesh)
             scene.scene.add(this.mesh);
 
+        // scene.scene.add(this.collider.aabbHelper);
         scene.world.add(this);
 
         return this;
