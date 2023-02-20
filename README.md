@@ -29,7 +29,7 @@ Demo: https://eastingandnorthing.github.io/three/
 - [x] Friction
 - [ ] (Convex) hull generation
 - [ ] Broad phase (OBB / AABB / SAP)
-- [ ] Narrow phase (GJK / EPA)
+- [x] Narrow phase (GJK / EPA)
 
 ### Constraints
 - [x] Basic constraint
