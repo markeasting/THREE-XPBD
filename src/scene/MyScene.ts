@@ -39,38 +39,31 @@ export class MyScene extends BaseScene {
 
         let b0, b1;
 
-        b0 = Box(3, 1, 3).setPos(0, 0.5, 0);
-        this.addBody(b0);
+        Box(3, 1, 3)
+            .setPos(0, 0.5, 0)
+            .addTo(this);
 
-        b0 = Box(1, 1, 2).setPos(0.1, 2.0, 0.0);
-        this.addBody(b0);
+        Box(1, 1, 2)
+            .setPos(0.1, 2.0, 0)
+            .addTo(this);
+
+        Tetra(1)
+            .setPos(6, 4, 0)
+            .setVel(-10, 3, 0)
+            .setOmega(1, 10, 1)
+            .addTo(this);
         
         /* Stacked boxes */
+        const h = 1;
         for (let i = 0; i < 6; i++) {
-            const h = 1;
-            const b = Box(h);
-            b.pose.p.set(-3, (h - h/2 + 0.05) + h * i, 0);
-            // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
-            // b.pose.q.setFromEuler(new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI))
-            this.addBody(b);
+            Box(h)
+                .setPos(-3, (h - h/2 + 0.05) + h * i, 0)
+                .addTo(this);
         }
-
-        // /* Hinge */
-        // b0 = Box(2, 1, 0.2).setPos(3, 1.5, 1);
-        // b1 = Box(2, 0.2, 1).setPos(3, 2, 0.4);
-        // this.addBody(b0);
-        // this.addBody(b1);
-
-        // this.world.addConstraint(
-        //     new Constraint(b0, b1)
-        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.6, 0)))
-        //     .add(new AlignAxes)
-        //     // .add(new AlignOrientation)
-        // );
 
         /* Custom geometry */
         const customMesh = new THREE.Mesh(
-            new THREE.TorusKnotGeometry(1, 0.2, 48, 6),
+            new THREE.TorusKnotGeometry(0.8, 0.15, 48, 6),
             new THREE.MeshPhongMaterial({
                 color: new THREE.Color().setHSL(0.5, 1, 0.5),
             }),
@@ -85,7 +78,7 @@ export class MyScene extends BaseScene {
                 new MeshCollider().setGeometry(customMesh.geometry)
             )
             .setMesh(customMesh)
-            .setPos(4, 3, 0)
+            .setPos(4, 2, 0)
             .setBox(new Vec3(1, 1, 1), 1)
             .addTo(this);
 
@@ -115,6 +108,22 @@ export class MyScene extends BaseScene {
             .setRestitution(0.85)
             .setCylinder(coinSize.x, coinSize.y, 300)
             .addTo(this);
+
+
+        /* Constraint examples */
+
+        // /* Hinge */
+        // b0 = Box(2, 1, 0.2).setPos(3, 1.5, 1);
+        // b1 = Box(2, 0.2, 1).setPos(3, 2, 0.4);
+        // this.addBody(b0);
+        // this.addBody(b1);
+
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.6, 0)))
+        //     .add(new AlignAxes)
+        //     // .add(new AlignOrientation)
+        // );
 
         /* Hammer */
         // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
