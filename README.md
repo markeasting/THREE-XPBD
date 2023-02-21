@@ -31,8 +31,8 @@ Demo: https://eastingandnorthing.github.io/three/
 - [ ] Broad phase (sorting algorithm)
 - [ ] Broad phase (spatial subdivision / quadtree)
 - [x] Narrow phase (GJK / EPA)
+- [x] Convex hull generation
 - [ ] Narrow phase (optimized primitives: spheres, capsules)
-- [ ] Convex hull generation
 
 ### Constraints
 - [x] Basic constraint

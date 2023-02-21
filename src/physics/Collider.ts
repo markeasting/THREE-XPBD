@@ -3,7 +3,9 @@ import { Quat } from "./Quaternion";
 import { Vec3 } from "./Vec3";
 import { Vec2 } from "./Vec2";
 import { Pose } from './Pose';
-import { Box3, Box3Helper } from 'three';
+import { Box3, Box3Helper, BufferGeometry, Mesh, MeshBasicMaterial } from 'three';
+import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export enum ColliderType {
     Box, Plane, Sphere, ConvexMesh
@@ -86,103 +88,44 @@ export class SphereCollider extends Collider {
 export class MeshCollider extends Collider {
     colliderType = ColliderType.ConvexMesh;
 
-    // override setGeometry(geometry: THREE.BufferGeometry): this {
-    setGeometry(whichOne: 'box'|'tetra'|'point', width = 1.0, height = 1.0, depth = 1.0): this {
+    convexHull: Mesh;
 
-        // const v = new Vec3();
-        // const vPositions = [...geometry.attributes.position.array as Float32Array] as Array<number>;
-        // const indices = geometry.index?.array as Uint16Array;
+    setGeometry(geometry: BufferGeometry): this {
+        
+        // if normal and uv attributes are not removed, mergeVertices() 
+        // can't consolidate indentical vertices with different normal/uv data
+        let strippedGeometry = geometry.clone()
+            .deleteAttribute( 'normal' )
+            .deleteAttribute( 'uv' );
+        strippedGeometry = BufferGeometryUtils.mergeVertices( strippedGeometry );
 
-        // // const epsilon = Number.EPSILON * 2;
-        // // const uniqueVertices = vPositions.sort().filter((item, index, self) => {
-        // //     // Check if the item is a number and if it is outside of the threshold
-        // //     if (Math.abs(item - Math.round(self[index - 1])) > epsilon) {
-        // //         // Check if the item is not already in the array
-        // //         return self.indexOf(item) === index;
-        // //     }
-        // //     return false;
-        // // });
+        const vertices = [];
+        const positionAttribute = geometry.getAttribute( 'position' );
 
-        // // console.log(uniqueVertices);
-
-        // for (let i = 0; i < vPositions.length / 3; i++) {
-        //     const vertex = new Vec3().fromArray(vPositions, i * 3);
-        //     this.vertices.push(vertex);
-        // }
-
-        // if(indices.length > 0) {
-        //     this.indices = indices; // not sure if correct
-        //     this.uniqueIndices = this.indices.filter((v, i, a) => a.indexOf(v) === i);
-        // }
-        // // } else if (geometry.vertices.size() > 0) {
-
-        // //     for (int i = 0; i < geometry.vertices.size(); i++) {
-        // //         std::cout << "Generating collider indices #INEFFICIENT" << std::endl;
-        // //         this->indices.push_back(i);
-        // //         this->uniqueIndices.push_back(i);
-        // //     }
-
-        // // }
-
-        if (whichOne == 'point') {
-            this.vertices = [new Vec3(0, 0, 0)];
-            this.indices = [ 0 ];
-            this.uniqueIndices = [ 0 ];
+        for ( let i = 0; i < positionAttribute.count; i ++ ) {
+            const vertex = new Vec3();
+            vertex.fromBufferAttribute( positionAttribute, i );
+            vertices.push( vertex );
         }
 
-        // HACKED cube
-        if (whichOne == 'box') {
-            this.vertices = [
-                new Vec3(-width/2, -height/2, -depth/2), // bottom left back corner
-                new Vec3( width/2, -height/2, -depth/2), // bottom right back corner
-                new Vec3( width/2,  height/2, -depth/2), // top right back corner
-                new Vec3(-width/2,  height/2, -depth/2), // top left back corner
-                new Vec3(-width/2, -height/2,  depth/2), // bottom left front corner
-                new Vec3( width/2, -height/2,  depth/2), // bottom right front corner
-                new Vec3( width/2,  height/2,  depth/2), // top right front corner
-                new Vec3(-width/2,  height/2,  depth/2), // top left front corner
-            ];
+        const convexHull = new ConvexGeometry( vertices );
+        const hullPositionAttribute = convexHull.getAttribute( 'position' );
 
-            // this.indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
-            this.indices = [
-                0, 1, 2, // back face
-                2, 3, 0,
-                1, 5, 6, // right face
-                6, 2, 1,
-                5, 4, 7, // front face
-                7, 6, 5,
-                4, 0, 3, // left face
-                3, 7, 4,
-                3, 2, 6, // top face
-                6, 7, 3,
-                0, 4, 5, // bottom face
-                5, 1, 0
-            ];
+        this.convexHull = new Mesh(
+            convexHull,
+            new MeshBasicMaterial({
+                color: 0x00aaaa,
+                wireframe: true,
+                wireframeLinewidth: 1
+            })
+        )
 
-            this.uniqueIndices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
-        }
-
-        // HACKED tetra
-        if (whichOne == 'tetra') {
-            const size = width;
-            const sqrt8over9 = 0.9428090415820633658 * size;
-            const sqrt2over9 = 0.4714045207910316829 * size;
-            const sqrt2over3 = 0.8164965809277260327 * size;
-            const oneThird = 0.333333333333333333 * size;
-
-            this.vertices = [
-                new Vec3(0, -oneThird, sqrt8over9),
-                new Vec3(sqrt2over3, -oneThird, -sqrt2over9), 
-                new Vec3(-sqrt2over3, -oneThird, -sqrt2over9),
-                new Vec3(0, size, 0),
-            ];
-
-            this.uniqueIndices = [
-                2, 1, 0,
-                1, 2, 3,
-                0, 3, 2,
-                1, 3, 0,
-            ];
+        for ( let i = 0; i < hullPositionAttribute.count; i ++ ) {
+            const vertex = new Vec3();
+            vertex.fromBufferAttribute( hullPositionAttribute, i );
+            this.vertices.push( vertex );
+            this.indices.push(i);
+            this.uniqueIndices.push(i);
         }
 
         for (let i = 0; i < this.vertices.length; i++) {
