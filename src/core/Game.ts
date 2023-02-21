@@ -168,9 +168,7 @@ export class Game {
         Game.raycaster.setFromCamera(Game.pointer, scene.camera);
         const hits = Game.raycaster.intersectObjects(scene.scene.children);
 
-        Game.raycaster
-
-        const item = hits[0];
+        const item = hits.filter(m => m.object.userData.physicsBody)[0];
 
         Game.events.emit(new RayCastEvent({
             type: type,
