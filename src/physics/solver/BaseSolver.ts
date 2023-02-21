@@ -30,7 +30,7 @@ export class BaseSolver {
         // this.scene.add(new GridHelper(100));
 
         for (const h in this.helpers) {
-            World.scene.add(this.helpers[h]);
+            World.debugOverlays.add(this.helpers[h]);
         }
         
         (this.helpers.n as ArrowHelper).setColor(0x00ffff);
@@ -53,7 +53,7 @@ export class BaseSolver {
             arrow.setColor(new Color().setHex(Math.random() * 0xffffff));
             
             this.helpers[key] = arrow;
-            World.scene.add(arrow);
+            World.debugOverlays.add(arrow);
         }
 
         const arrow = this.helpers[key] as ArrowHelper;

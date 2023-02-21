@@ -79,7 +79,6 @@ export class Game {
         window.addEventListener( 'mouseup', this.onMouse.bind(this) );
 
         Game.gui.physics.add(Game, 'stepPhysics').name('Step physics');
-        Game.gui.debug.add(Game, 'debugOverlay').name('Enable overlay');
         
     }
 
@@ -131,9 +130,7 @@ export class Game {
             // Game.composer.render();
             Game.renderer.render(Game.scene.scene, Game.scene.camera);
 
-            if (Game.debugOverlay)
-                Game.scene.world.draw(Game.renderer, Game.scene.camera);
-
+            Game.scene.world.draw(Game.renderer, Game.scene.camera);
         }
     }
 

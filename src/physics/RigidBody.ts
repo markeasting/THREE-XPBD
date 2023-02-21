@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 import { Pose } from './Pose';
 import { Vec3 } from './Vec3';
-import { Collider } from './Collider';
+import { Collider, MeshCollider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
 import { Quat } from './Quaternion';
+import { World } from './World';
 
 export class RigidBody {
 
@@ -18,22 +19,18 @@ export class RigidBody {
     public vel = new Vec3(0.0, 0.0, 0.0);
     public omega = new Vec3(0.0, 0.0, 0.0);
 
-    // Pre velocity solve velocities
     public velPrev = new Vec3(0.0, 0.0, 0.0);
     public omegaPrev = new Vec3(0.0, 0.0, 0.0);
 
-    // private mass = 1.0;
     private invMass = 1.0;
-    public get mass() { return 1 / this.invMass; }
-
-    // private mass = 1.0;
     private invInertia = new Vec3(1.0, 1.0, 1.0);
+    public get mass() { return 1 / this.invMass; }
 
     public force = new Vec3();
     public torque = new Vec3();
     public gravity = 1.0;
 
-    public bounciness = 0.5; // coefficient of restitution (e)
+    public bounciness = 0.7; // coefficient of restitution (e)
     public staticFriction = 0.5;
     public dynamicFriction = 0.3;
 
@@ -52,11 +49,15 @@ export class RigidBody {
     }
 
     public addTo(scene: BaseScene): this {
+        scene.world.add(this);
+
         if (this.mesh)
             scene.scene.add(this.mesh);
 
-        // scene.scene.add(this.collider.aabbHelper);
-        scene.world.add(this);
+        if (this.collider instanceof MeshCollider) {
+            World.debugAABBs.add(this.collider.aabbHelper);
+            World.debugConvexHulls.add(this.collider.convexHull);
+        }
 
         return this;
     }
@@ -293,6 +294,11 @@ export class RigidBody {
         if (this.mesh) {
             this.mesh.position.copy(this.pose.p);
             this.mesh.quaternion.copy(this.pose.q);
+        }
+
+        if (this.collider instanceof MeshCollider) {
+            this.collider.convexHull.position.copy(this.pose.p);
+            this.collider.convexHull.quaternion.copy(this.pose.q);
         }
     }
 

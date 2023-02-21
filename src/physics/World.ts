@@ -28,7 +28,13 @@ export class World {
     /**
      * Debug scene
      */
-    static scene = new THREE.Scene();
+    static debugOverlays = new THREE.Scene();
+    static debugAABBs = new THREE.Scene();
+    static debugConvexHulls = new THREE.Scene();
+    
+    static enableDebugOverlay = true;
+    static enableDebugAABBs = false;
+    static enableDebugConvexHulls = false;
 
     private solver: XPBDSolver;
 
@@ -38,6 +44,10 @@ export class World {
         Game.gui.physics.add(this.gravity, 'x', -10, 10).step(0.1).name('Gravity x');
         Game.gui.physics.add(this.gravity, 'y', -10, 10).step(0.1).name('Gravity y');
         Game.gui.physics.add(this.gravity, 'z', -10, 10).step(0.1).name('Gravity z');
+
+        Game.gui.debug.add(World, 'enableDebugAABBs').name('AABBs');
+        Game.gui.debug.add(World, 'enableDebugConvexHulls').name('Convex hulls');
+        Game.gui.debug.add(World, 'enableDebugOverlay').name('Enable overlays');
 
         Game.events.on(RayCastEvent, e => {
 
@@ -112,11 +122,29 @@ export class World {
     }
 
     public draw(renderer: THREE.WebGLRenderer, camera: THREE.Camera) {
+        if (!World.enableDebugOverlay)
+            return;
+        
         renderer.autoClear = false;
+        
         renderer.render(
-            World.scene,
+            World.debugOverlays,
             camera
         );
+
+        if (World.enableDebugAABBs)
+            renderer.render(
+                World.debugAABBs,
+                camera
+            );
+
+
+        if (World.enableDebugConvexHulls)
+            renderer.render(
+                World.debugConvexHulls,
+                camera
+            );
+
         renderer.autoClear = true;
     }
 

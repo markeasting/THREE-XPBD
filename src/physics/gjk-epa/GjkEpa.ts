@@ -25,7 +25,7 @@ export class GjkEpa {
     private debug = false;
 
     constructor() {
-        Game.gui.debug.add(this, 'debug').name('Debug GJK / EPA');
+        Game.gui.solver.add(this, 'debug').name('Debug GJK / EPA');
     }
 
     public GJK(
@@ -250,7 +250,7 @@ export class GjkEpa {
             minNormal.set(normals[minFace].x, normals[minFace].y, normals[minFace].z);
             minDistance = normals[minFace].w;
 
-            if (iterations++ > 50) {
+            if (iterations++ > 10) {
                 // console.error('Too many EPA iterations')
                 break;
             }

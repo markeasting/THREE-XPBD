@@ -38,7 +38,7 @@ export abstract class BaseConstraint {
     constructor() {
         if (this.debug) {
             for (const h in this.helpers) {
-                World.scene.add(this.helpers[h]);
+                World.debugOverlays.add(this.helpers[h]);
             }
         }
     }
@@ -47,7 +47,7 @@ export abstract class BaseConstraint {
     public destroy() {
         for (const h in this.helpers) {
             const helper = this.helpers.h;
-            World.scene.remove(helper);
+            World.debugOverlays.remove(helper);
 
             if (helper instanceof ArrowHelper)
                 helper.dispose();
