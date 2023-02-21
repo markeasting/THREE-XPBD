@@ -17,10 +17,13 @@ export class XPBDSolver extends BaseSolver {
     
     static h = 0;
 
+    private collisionCount = 0;
+
     constructor() {
         super();
 
         Game.gui.solver.add(this, 'numSubsteps', 1, 30);
+        Game.gui.solver.add(this, 'collisionCount').listen();
     }
 
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
@@ -34,6 +37,7 @@ export class XPBDSolver extends BaseSolver {
         XPBDSolver.h = h;
 
         const collisions = this.collectCollisionPairs(bodies, dt);
+        this.collisionCount = collisions.length;
 
         for (let i = 0; i < this.numSubsteps; i++) {
 
@@ -92,43 +96,26 @@ export class XPBDSolver extends BaseSolver {
                 /* (3.5) k * dt * vbody */
                 const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
 
-                const aabb1 = A.collider.aabb.clone().expandByScalar(collisionMargin);
-                const aabb2 = B.collider.aabb.clone().expandByScalar(collisionMargin);
+                const aabb1 = A.collider.aabb.clone().expandByScalar(collisionMargin + 0.2);
+                const aabb2 = B.collider.aabb.clone().expandByScalar(collisionMargin + 0.2);
 
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
                         switch(B.collider.colliderType) {
                             case ColliderType.ConvexMesh : {
                                 
-                                if (aabb1.intersectsBox(aabb2)) {
+                                if (aabb1.intersectsBox(aabb2))
                                     collisions.push(new CollisionPair( A, B ));
-                                }
 
                                 break;
                             }
 
                             case ColliderType.Plane : {
 
-                                const MC = A.collider as MeshCollider;
                                 const PC = B.collider as PlaneCollider;
-                                const N = PC.normal;
 
-                                let deepestPenetration = 0.0;
-
-                                // This should be a simple AABB check instead of actual loop over all vertices
-                                for(let i = 0; i < MC.uniqueIndices.length; i++) {
-                                    const v = MC.vertices[MC.uniqueIndices[i]];
-
-                                    const contactPointW = A.localToWorld(v);
-                                    const signedDistance = contactPointW.clone().sub(B.pose.p).dot(N);
-                                    // const signedDistance = PC.plane.distanceToPoint(contactPointW);
-
-                                    deepestPenetration = Math.min(deepestPenetration, signedDistance);
-                                }
-
-                                if(deepestPenetration < collisionMargin) {
+                                if (aabb1.intersectsPlane(PC.plane))
                                     collisions.push(new CollisionPair( A, B ));
-                                }
 
                                 break;
                             }
