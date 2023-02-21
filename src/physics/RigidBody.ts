@@ -30,7 +30,7 @@ export class RigidBody {
     public torque = new Vec3();
     public gravity = 1.0;
 
-    public bounciness = 0.7; // coefficient of restitution (e)
+    public bounciness = 0.5; // coefficient of restitution (e)
     public staticFriction = 0.5;
     public dynamicFriction = 0.3;
 
