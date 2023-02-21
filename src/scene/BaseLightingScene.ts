@@ -10,7 +10,7 @@ export class BaseLightingScene extends THREE.Scene {
             new THREE.PlaneGeometry(50, 50, 5, 5),
             new THREE.MeshPhongMaterial({
                 color: 0x444444,
-                wireframe: true,
+                // wireframe: true,
             })
         );
         ground.receiveShadow = true;
@@ -20,11 +20,11 @@ export class BaseLightingScene extends THREE.Scene {
 
         const p1 = new PointLight(this, 0xf2ddc5);
         p1.light.castShadow = true;
-        p1.light.position.set(7, 10, 3);
+        p1.light.position.set(-7, 10, 3);
 
         const p2 = new PointLight(this, 0xd6deed);
         p2.light.castShadow = true;
-        p2.light.position.set(-7, 10, -3);
+        p2.light.position.set(7, 10, -3);
 
         // const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
         // this.add( directionalLight );
