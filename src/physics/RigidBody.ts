@@ -5,6 +5,7 @@ import { Collider, MeshCollider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
 import { Quat } from './Quaternion';
 import { World } from './World';
+import { Euler } from 'three';
 
 export class RigidBody {
 
@@ -24,7 +25,12 @@ export class RigidBody {
 
     private invMass = 1.0;
     private invInertia = new Vec3(1.0, 1.0, 1.0);
-    public get mass() { return 1 / this.invMass; }
+    public get mass(): number { return 1 / this.invMass; }
+    public get inertia(): Vec3 { return new Vec3().set(
+        1.0  / this.invInertia.x, 
+        1.0  / this.invInertia.y, 
+        1.0  / this.invInertia.z
+    ); }
 
     public force = new Vec3();
     public torque = new Vec3();
@@ -78,10 +84,37 @@ export class RigidBody {
         return this;
     }
 
-    public setPos(x: number, y: number, z: number) {
+    public setPos(x: number, y: number, z: number): this {
         this.pose.p.set(x, y, z);
         this.updateGeometry();
         this.updateCollider();
+
+        return this;
+    }
+
+    public setRotation(x: number, y: number, z: number): this {
+        this.pose.q.setFromEuler(new Euler(x, y, z));
+        this.updateGeometry();
+        this.updateCollider();
+
+        return this;
+    }
+
+    public setOmega(x: number, y: number, z: number): this {
+        this.omega.set(x, y, z);
+
+        return this;
+    }
+
+    public setRestitution(restitution: number): this {
+        this.bounciness = restitution;
+
+        return this;
+    }
+
+    public setFriction(staticFriction: number, dynamicFriction: number): this {
+        this.staticFriction = staticFriction;
+        this.dynamicFriction = dynamicFriction;
 
         return this;
     }
@@ -106,6 +139,28 @@ export class RigidBody {
             1.0 / (size.y * size.y + size.z * size.z) / mass,
             1.0 / (size.z * size.z + size.x * size.x) / mass,
             1.0 / (size.x * size.x + size.y * size.y) / mass);
+
+        return this;
+    }
+
+    public setCylinder(radius: number, height: number, density = 1.0): this {
+
+        /* Note flipping radius and height here seems to give better results */
+        /* E.g. in the spinning coin example */
+        const r2 = Math.pow(height, 2);
+        const h2 = Math.pow(radius, 2);
+
+        let mass = Math.PI * r2 * height * density
+        this.invMass = 1.0 / mass;
+
+        const I_axial = 0.5 * mass * r2;
+        const I_radial = 1/12 * mass * ((3 * r2) + h2);
+
+        this.invInertia.set(
+            1.0 / I_radial,
+            1.0 / I_axial,
+            1.0 / I_radial,
+        )
 
         return this;
     }
