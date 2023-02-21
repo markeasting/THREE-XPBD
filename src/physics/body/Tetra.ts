@@ -9,15 +9,11 @@ export function Tetra(size: number = 1.0): RigidBody {
         new THREE.TetrahedronGeometry(size, 0),
         new THREE.MeshPhongMaterial({
             // color: 0xffffff,
-            color: 0x00ffcc,
+            color: new THREE.Color().setHSL(0.5, 1, 0.5),
         }),
     );
 
-    const vPositions = [...tetraMesh.geometry.attributes.position.array as Float32Array] as Array<number>;
-    const indices = tetraMesh.geometry.index?.array as Uint16Array;
-    console.log(vPositions, indices);
-
-    const tetra = new RigidBody(new MeshCollider().setGeometry('tetra'))
+    const tetra = new RigidBody(new MeshCollider().setGeometry(tetraMesh.geometry))
         .setMesh(tetraMesh)
         // .setBox(new Vec3(size, size, size), 1); // @TODO tetra inertia
 
