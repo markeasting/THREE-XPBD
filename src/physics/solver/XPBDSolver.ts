@@ -92,14 +92,13 @@ export class XPBDSolver extends BaseSolver {
                 /* (3.5) k * dt * vbody */
                 const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
 
+                const aabb1 = A.collider.aabb.clone().expandByScalar(collisionMargin);
+                const aabb2 = B.collider.aabb.clone().expandByScalar(collisionMargin);
+
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
                         switch(B.collider.colliderType) {
-                            
                             case ColliderType.ConvexMesh : {
-
-                                const aabb1 = A.collider.aabb.clone().expandByScalar(collisionMargin);
-                                const aabb2 = B.collider.aabb.clone().expandByScalar(collisionMargin);
                                 
                                 if (aabb1.intersectsBox(aabb2)) {
                                     collisions.push(new CollisionPair( A, B ));
@@ -209,11 +208,10 @@ export class XPBDSolver extends BaseSolver {
         // @TODO check if vertex is actually inside plane size :)
         // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
         for(let i = 0; i < MC.uniqueIndices.length; i++) {
-            const v = MC.vertices[MC.uniqueIndices[i]];
 
             /* (26) - p1 */
-            const r1 = v;
-            const p1 = A.localToWorld(v);
+            const r1 = MC.vertices[MC.uniqueIndices[i]];
+            const p1 = MC.verticesWorldSpace[MC.uniqueIndices[i]];
 
             /* (26) - p2 */
             // const signedDistance = PC.plane.distanceToPoint(contactPointW);
