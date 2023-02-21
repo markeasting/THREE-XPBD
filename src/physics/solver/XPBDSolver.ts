@@ -190,7 +190,7 @@ export class XPBDSolver extends BaseSolver {
             const contact = new ContactSet(
                 A, 
                 B, 
-                normal.clone().multiplyScalar(-1.0),
+                normal.clone().negate(),
                 p1,
                 p2
             );
@@ -403,7 +403,7 @@ export class XPBDSolver extends BaseSolver {
         n.multiplyScalar(-dlambda);
 
         if (body0) body0.applyCorrection(n, pos0, velocityLevel);
-        if (body1) body1.applyCorrection(n.multiplyScalar(-1.0), pos1, velocityLevel);
+        if (body1) body1.applyCorrection(n.negate(), pos1, velocityLevel);
 
         return dlambda;
     }

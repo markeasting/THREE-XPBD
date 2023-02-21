@@ -45,7 +45,7 @@ export class GjkEpa {
         simplex.push_front(support);
 
         /* New direction is towards the origin */
-        const direction = support.point.clone().multiplyScalar(-1.0);
+        const direction = support.point.clone().negate();
 
         while (true) {
 
@@ -86,7 +86,7 @@ export class GjkEpa {
     ): Support {
 
         const witnessA = colliderA.findFurthestPoint(direction);
-        const witnessB = colliderB.findFurthestPoint(direction.clone().multiplyScalar(-1.0));
+        const witnessB = colliderB.findFurthestPoint(direction.clone().negate());
 
         return new Support(witnessA, witnessB);
     }
@@ -118,7 +118,7 @@ export class GjkEpa {
         const b = simplex.points[1];
 
         const ab = new Vec3().subVectors(b.point, a.point);
-        const ao = a.point.clone().multiplyScalar(-1.0);
+        const ao = a.point.clone().negate();
 
         if (this.sameDirection(ab, ao)) {
             direction.copy(ab.clone().cross(ao).clone().cross(ab));
@@ -140,7 +140,7 @@ export class GjkEpa {
 
         const ab = new Vec3().subVectors(b.point, a.point);
         const ac = new Vec3().subVectors(c.point, a.point);
-        const ao = a.point.clone().multiplyScalar(-1.0);
+        const ao = a.point.clone().negate();
 
         const abc = ab.clone().cross(ac);
 
@@ -166,7 +166,7 @@ export class GjkEpa {
                     direction.copy(abc);
                 } else {
                     simplex.assign([a, c, b]);
-                    direction.copy(abc.multiplyScalar(-1.0));
+                    direction.copy(abc.negate());
                 }
             }
         }
@@ -186,7 +186,7 @@ export class GjkEpa {
         const ab = new Vec3().subVectors(b.point, a.point);
         const ac = new Vec3().subVectors(c.point, a.point);
         const ad = new Vec3().subVectors(d.point, a.point);
-        const ao = a.point.clone().multiplyScalar(-1.0);
+        const ao = a.point.clone().negate();
 
         const abc = ab.clone().cross(ac);
         const acd = ac.clone().cross(ad);
@@ -257,7 +257,7 @@ export class GjkEpa {
 
             // const support = this.support(colliderA, colliderB, minNormal);
             const witnessA = colliderA.findFurthestPoint(minNormal);
-            const witnessB = colliderB.findFurthestPoint(minNormal.clone().multiplyScalar(-1.0));
+            const witnessB = colliderB.findFurthestPoint(minNormal.clone().negate());
 
             const support = new Support(witnessA, witnessB);
 
@@ -459,7 +459,7 @@ export class GjkEpa {
             let distance = normal.dot(a.point);
 
             if (distance < 0) {
-                normal.multiplyScalar(-1.0);
+                normal.negate();
                 distance *= -1;
             }
 
