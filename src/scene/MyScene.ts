@@ -89,6 +89,33 @@ export class MyScene extends BaseScene {
             .setBox(new Vec3(1, 1, 1), 1)
             .addTo(this);
 
+
+        /* Coin */
+        const coinSize = new Vec2(1.5, 0.3);
+        const coinMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(coinSize.x, coinSize.x, coinSize.y, 40, 1),
+            new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(0.5, 1, 0.5),
+            }),
+            // new THREE.MeshBasicMaterial({
+            //     color: 0xffffff,
+            //     wireframe: true,
+            //     wireframeLinewidth: 2
+            // })
+        );
+        
+        new RigidBody(
+                new MeshCollider().setGeometry(coinMesh.geometry)
+            )
+            .setMesh(coinMesh)
+            .setPos(0, 1, 5)
+            .setRotation(0.4, 0, 0)
+            .setOmega(0, 22, 0)
+            .setFriction(1, 0.4)
+            .setRestitution(0.85)
+            .setCylinder(coinSize.x, coinSize.y, 300)
+            .addTo(this);
+
         /* Hammer */
         // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
         // b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
