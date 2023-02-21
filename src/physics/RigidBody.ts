@@ -106,6 +106,12 @@ export class RigidBody {
         return this;
     }
 
+    public setVel(x: number, y: number, z: number): this {
+        this.vel.set(x, y, z);
+
+        return this;
+    }
+
     public setRestitution(restitution: number): this {
         this.bounciness = restitution;
 
