@@ -93,7 +93,7 @@ export class MyScene extends BaseScene {
         /* Coin */
         const coinSize = new Vec2(1.5, 0.3);
         const coinMesh = new THREE.Mesh(
-            new THREE.CylinderGeometry(coinSize.x, coinSize.x, coinSize.y, 40, 1),
+            new THREE.CylinderGeometry(coinSize.x, coinSize.x, coinSize.y, 32, 1),
             new THREE.MeshPhongMaterial({
                 color: new THREE.Color().setHSL(0.5, 1, 0.5),
             }),
