@@ -47,7 +47,7 @@ export class MyScene extends BaseScene {
         
         /* Stacked boxes */
         for (let i = 0; i < 6; i++) {
-            const h = 2;
+            const h = 1;
             const b = Box(h);
             b.pose.p.set(-3, (h - h/2 + 0.05) + h * i, 0);
             // b.pose.q.setFromEuler(new THREE.Euler(0.5, Math.PI, 0.5));
@@ -55,18 +55,39 @@ export class MyScene extends BaseScene {
             this.addBody(b);
         }
 
-        /* Hinge */
-        b0 = Box(2, 1, 0.2).setPos(3, 1.5, 1);
-        b1 = Box(2, 0.2, 1).setPos(3, 2, 0.4);
-        this.addBody(b0);
-        this.addBody(b1);
+        // /* Hinge */
+        // b0 = Box(2, 1, 0.2).setPos(3, 1.5, 1);
+        // b1 = Box(2, 0.2, 1).setPos(3, 2, 0.4);
+        // this.addBody(b0);
+        // this.addBody(b1);
 
-        this.world.addConstraint(
-            new Constraint(b0, b1)
-            .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.6, 0)))
-            .add(new AlignAxes)
-            // .add(new AlignOrientation)
+        // this.world.addConstraint(
+        //     new Constraint(b0, b1)
+        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.6, 0)))
+        //     .add(new AlignAxes)
+        //     // .add(new AlignOrientation)
+        // );
+
+        /* Custom geometry */
+        const customMesh = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(1, 0.2, 48, 6),
+            new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(0.5, 1, 0.5),
+            }),
+            // new THREE.MeshBasicMaterial({
+            //     color: 0xffffff,
+            //     wireframe: true,
+            //     wireframeLinewidth: 2
+            // })
         );
+        
+        new RigidBody(
+                new MeshCollider().setGeometry(customMesh.geometry)
+            )
+            .setMesh(customMesh)
+            .setPos(4, 3, 0)
+            .setBox(new Vec3(1, 1, 1), 1)
+            .addTo(this);
 
         /* Hammer */
         // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
