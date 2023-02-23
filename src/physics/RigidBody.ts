@@ -171,24 +171,12 @@ export class RigidBody {
         return this;
     }
 
-    public getVelocityAt(pos: Vec3, usePrevVelocity = false): Vec3 {
+    public getVelocityAt(pos: Vec3): Vec3 {
 
         if (!this.isDynamic)
             return new Vec3(0, 0, 0);
 
-        // Original
-        // let vel = new Vec3(0.0, 0.0, 0.0);
-        // vel.subVectors(pos, this.pose.p);
-        // vel.cross(this.omega);
-        // vel.subVectors(this.vel, vel);
-        // return vel;
-
-        const v = usePrevVelocity ? this.velPrev.clone() : this.vel.clone();
-        const o = usePrevVelocity ? this.omegaPrev.clone() : this.omega.clone();
-        const p = usePrevVelocity ? this.prevPose.p.clone() : this.pose.p.clone();
-
-        // return v.clone().add(o.clone().cross(new Vec3().subVectors(pos, p)));
-        return Vec3.add(v, Vec3.cross(o, Vec3.sub(pos, p)));
+        return Vec3.add(this.vel, Vec3.cross(this.omega, Vec3.sub(pos, this.pose.p)));
     }
 
     public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
