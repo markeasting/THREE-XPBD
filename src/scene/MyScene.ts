@@ -17,6 +17,8 @@ import { AlignOrientation } from '../physics/constraint/AlignOrientation';
 import { AlignAxes } from '../physics/constraint/AlignAxes';
 import { Color, Euler, Mesh } from 'three';
 
+import { TeapotGeometry } from 'three/examples/jsm/geometries/TeapotGeometry';
+
 export class MyScene extends BaseScene {
 
     constructor() {
@@ -43,10 +45,6 @@ export class MyScene extends BaseScene {
             .setPos(0, 0.5, 0)
             .addTo(this);
 
-        Box(1, 1, 2)
-            .setPos(0.1, 2.0, 0)
-            .addTo(this);
-
         Tetra(1)
             .setPos(6, 4, 0)
             .setVel(-10, 3, 0)
@@ -63,22 +61,18 @@ export class MyScene extends BaseScene {
 
         /* Custom geometry */
         const customMesh = new THREE.Mesh(
-            new THREE.TorusKnotGeometry(0.8, 0.15, 48, 6),
-            new THREE.MeshPhongMaterial({
-                color: new THREE.Color().setHSL(0.5, 1, 0.5),
+            new TeapotGeometry(0.5, 4, true, true, true, false),
+            new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.1,
             }),
-            // new THREE.MeshBasicMaterial({
-            //     color: 0xffffff,
-            //     wireframe: true,
-            //     wireframeLinewidth: 2
-            // })
         );
         
         new RigidBody(
                 new MeshCollider().setGeometry(customMesh.geometry)
             )
             .setMesh(customMesh)
-            .setPos(4, 2, 0)
+            .setPos(0.5, 2, 0.5)
             .setBox(new Vec3(1, 1, 1), 1)
             .addTo(this);
 
@@ -101,12 +95,12 @@ export class MyScene extends BaseScene {
                 new MeshCollider().setGeometry(coinMesh.geometry)
             )
             .setMesh(coinMesh)
-            .setPos(0, 1, 5)
-            .setRotation(0.4, 0, 0)
-            .setOmega(0, 22, 0)
-            .setFriction(1, 0.4)
+            .setPos(0, 1.5, 5)
+            .setRotation(1.2, 0, 0)
+            .setOmega(0, 15, 0)
+            .setFriction(1, 1)
             .setRestitution(0.85)
-            .setCylinder(coinSize.x, coinSize.y, 300)
+            .setCylinder(coinSize.x, coinSize.y, 1)
             .addTo(this);
 
 
