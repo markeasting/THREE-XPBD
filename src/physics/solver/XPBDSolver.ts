@@ -11,7 +11,7 @@ import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 20;
+    private numSubsteps = 15;
 
     private narrowPhase = new GjkEpa();
     
