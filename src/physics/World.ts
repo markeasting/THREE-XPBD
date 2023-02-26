@@ -34,7 +34,7 @@ export class World {
     
     static enableDebugOverlay = true;
     static enableDebugAABBs = false;
-    static enableDebugConvexHulls = true;
+    static enableDebugConvexHulls = false;
 
     private solver: XPBDSolver;
 
