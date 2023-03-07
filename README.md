@@ -29,12 +29,13 @@ Demo: https://eastingandnorthing.github.io/three/
 - [x] Penetration
 - [x] Restitution
 - [x] Friction
-- [x] Broad phase (OBB / AABB)
-- [ ] Broad phase (sorting algorithm)
-- [ ] Broad phase (spatial subdivision / quadtree)
+- [x] Broad phase (AABB)
 - [x] Narrow phase (GJK / EPA)
 - [x] Convex hull generation
+- [ ] Broad phase (sorting algorithm)
+- [ ] Broad phase (spatial subdivision / octree)
 - [ ] Narrow phase (optimized primitives: spheres, capsules)
+- [ ] Object pool for Vec3 instances
 
 ### Constraints
 - [x] Basic constraint
