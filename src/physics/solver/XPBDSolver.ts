@@ -328,7 +328,7 @@ export class XPBDSolver extends BaseSolver {
             /* (30) Friction */
             if (vt_len > 0.001) {
                 const Fn = -contact.lambda_n / (h * h);
-                const friction = Math.min(h * contact.dynamicFriction * Fn, vt.length());
+                const friction = Math.min(h * contact.dynamicFriction * Fn, vt_len);
                 dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
             }
 
