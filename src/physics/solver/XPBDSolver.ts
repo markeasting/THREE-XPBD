@@ -323,11 +323,14 @@ export class XPBDSolver extends BaseSolver {
             );
             const vn = Vec3.dot(v, contact.n);
             const vt = Vec3.sub(v, Vec3.mul(contact.n, vn));
+            const vt_len = vt.length();
 
             /* (30) Friction */
-            const Fn = -contact.lambda_n / (h * h);
-            const friction = Math.min(h * contact.dynamicFriction * Fn, vt.length());
-            dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
+            if (vt_len > 0.001) {
+                const Fn = -contact.lambda_n / (h * h);
+                const friction = Math.min(h * contact.dynamicFriction * Fn, vt.length());
+                dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
+            }
 
             /* (31, 32) @TODO dampening */
 
