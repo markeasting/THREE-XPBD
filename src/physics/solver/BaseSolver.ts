@@ -67,6 +67,13 @@ export class BaseSolver {
         if (!Game.debugOverlay)
             return;
 
+        if (!this.helpers[key]) {
+            const box = new Box3Helper(new Box3().setFromCenterAndSize(pos, new Vec3(size)));
+            
+            this.helpers[key] = box;
+            World.debugOverlays.add(box);
+        }
+
         const box = this.helpers[key] as Box3Helper;
         box.box = new Box3().setFromCenterAndSize(pos, new Vec3(size, size, size))
     }
