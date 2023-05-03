@@ -90,13 +90,14 @@ export class ContactSet {
         );
         this.vn = this.vrel.dot(this.n);
 
-        this.e = 0.5 * (A.bounciness + B.bounciness);
+        this.e = 0.5 * (A.restitution + B.restitution);
         this.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
         this.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
+
+        // this.update(); // Not really required at this point
     }
 
     public update(): void {
-        // @TODO maybe recalculate N as well
         const A = this.A;
         const B = this.B;
 
@@ -105,5 +106,14 @@ export class ContactSet {
 
         this.p1 = p1;
         this.p2 = p2;
+
+        /* Recalculate N -- Not really required */
+        // if (this.p1.distanceTo(p2) > 0.0001)
+        //     this.n = Vec3.sub(p2, p1).normalize();
+        // else
+        //     this.d = 0.0;
+
+        /* (3.5) Penetration depth */
+        this.d = -Vec3.dot(Vec3.sub(this.p1, this.p2), this.n);
     }
 };
