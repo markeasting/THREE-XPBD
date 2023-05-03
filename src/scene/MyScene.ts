@@ -45,34 +45,52 @@ export class MyScene extends BaseScene {
             .setPos(0, 0.5, 0)
             .addTo(this);
 
+        Box(2, 1, 1)
+            .setPos(1.5, 10, 0)
+            .addTo(this);
+
         Tetra(1)
-            .setPos(6, 4, 0)
-            .setVel(-10, 3, 0)
+            .setPos(-3, 4, 5)
+            .setVel(0, 2.5, -5)
             .setOmega(1, 10, 1)
             .addTo(this);
         
         /* Stacked boxes */
-        const h = 1;
-        for (let i = 0; i < 6; i++) {
-            Box(h)
-                .setPos(-3, (h - h/2 + 0.05) + h * i, 0)
+        // const h = 1;
+        // for (let i = 0; i < 6; i++) {
+        //     Box(h)
+        //         .setPos(-3, (h - h/2 + 0.05) + h * i, 0)
+        //         .addTo(this);
+        // }
+
+        /* Dominos */
+        for (let i = 0; i < 20; i++) {
+            const size = 1; // + i * 0.5;
+            Box(1 * size, 2 * size, 0.4 * size/2)
+                .setPos(-3, 1.0 * size, -i * Math.pow(size, 0.5) * 1.0)
+                .setFriction(0.7, 0.7)
                 .addTo(this);
         }
 
         /* Custom geometry */
         const customMesh = new THREE.Mesh(
-            new TeapotGeometry(0.5, 4, true, true, true, false),
-            new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                roughness: 0.1,
-            }),
+            // new THREE.SphereGeometry(0.5, 22, 22),
+            new THREE.TorusKnotGeometry(0.8, 0.15, 48, 6),
+            new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(0.5, 1, 0.5),
+            })
+            // new TeapotGeometry(0.5, 4, true, true, true, false),
+            // new THREE.MeshStandardMaterial({
+            //     color: 0xffffff,
+            //     roughness: 0.1,
+            // }),
         );
         
         new RigidBody(
                 new MeshCollider().setGeometry(customMesh.geometry)
             )
             .setMesh(customMesh)
-            .setPos(0.5, 2, 0.5)
+            .setPos(4, 2, 0)
             .setBox(new Vec3(1, 1, 1), 1)
             .addTo(this);
 
@@ -96,9 +114,9 @@ export class MyScene extends BaseScene {
             )
             .setMesh(coinMesh)
             .setPos(0, 1.5, 5)
-            .setRotation(1.2, 0, 0)
+            .setRotation(1.8, 0, 0)
             .setOmega(0, 15, 0)
-            .setFriction(1, 1)
+            .setFriction(0.9, 0.5)
             .setRestitution(0.85)
             .setCylinder(coinSize.x, coinSize.y, 1)
             .addTo(this);
