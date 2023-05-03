@@ -35,6 +35,7 @@ Demo: https://eastingandnorthing.github.io/three/
 - [ ] Broad phase (sorting algorithm)
 - [ ] Broad phase (spatial subdivision / octree)
 - [ ] Narrow phase (optimized primitives: spheres, capsules)
+- [ ] Contact manifold generation / clipping
 - [ ] Object pool for Vec3 instances
 
 ### Constraints
