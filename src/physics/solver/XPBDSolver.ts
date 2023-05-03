@@ -28,14 +28,22 @@ export class XPBDSolver extends BaseSolver {
 
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
 
+        /* XPBD algorithm 2 */
+
         if (dt === 0)
             return;
 
         // const h = dt / this.numSubsteps;
         const h = (1 / 60) / this.numSubsteps;
         
-        XPBDSolver.h = h;
+        /* Used to calculate constraint forces */
+        XPBDSolver.h = h; 
 
+        /* (3.5)
+         * To save computational cost we collect potential
+         * collision pairs once per time step instead of once per
+         * sub-step using a tree of axis aligned bounding boxes.
+         */
         const collisions = this.collectCollisionPairs(bodies, dt);
         this.collisionCount = collisions.length;
 
@@ -75,10 +83,17 @@ export class XPBDSolver extends BaseSolver {
 
         const collisions: Array<CollisionPair> = [];
 
-        const combinations: Array<string> = [];
+        for (let i = 0; i < bodies.length; i++) {
+            const A = bodies[i];
 
-        for (const A of bodies) {
-            for (const B of bodies) {
+            // if (!A.canCollide)
+            //     continue;
+
+            for (let j = i + 1; j < bodies.length; j++) {
+                const B = bodies[j];
+
+                // if (!B.canCollide)
+                //     continue;
 
                 if (!A.isDynamic && !B.isDynamic)
                     continue;
@@ -86,18 +101,10 @@ export class XPBDSolver extends BaseSolver {
                 if (A.id == B.id)
                     continue;
 
-                const guid = [A.id, B.id].sort().toString();
-
-                if (combinations.includes(guid))
-                    continue;
-
-                combinations.push(guid);
-
                 /* (3.5) k * dt * vbody */
-                const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
-
-                const aabb1 = A.collider.aabb.clone().expandByScalar(collisionMargin + 0.2);
-                const aabb2 = B.collider.aabb.clone().expandByScalar(collisionMargin + 0.2);
+                // const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
+                const aabb1 = A.collider.aabb.clone().expandByScalar(2.0 * dt * A.vel.length());
+                const aabb2 = B.collider.aabb.clone().expandByScalar(2.0 * dt * B.vel.length());
 
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
@@ -221,6 +228,9 @@ export class XPBDSolver extends BaseSolver {
     }
 
     private solvePositions(contacts: Array<ContactSet>, h: number) {
+    
+        /* (3.5) Handling contacts and friction */
+
         for (const contact of contacts) {
             this._solvePenetration(contact, h);
             this._solveFriction(contact, h);
@@ -229,11 +239,8 @@ export class XPBDSolver extends BaseSolver {
 
     private _solvePenetration(contact: ContactSet, h: number) {
 
-        /* (26) - p1 & p2 */
+        /* (26) - p1, p2 and penetration depth (d) are calculated here. */
         contact.update();
-
-        /* (3.5) Penetration depth -- Note: sign was flipped! */
-        contact.d = - Vec3.dot(Vec3.sub(contact.p1, contact.p2), contact.n);
 
         /* (3.5) if d ≤ 0 we skip the contact */
         if(contact.d <= 0.0)
@@ -259,35 +266,55 @@ export class XPBDSolver extends BaseSolver {
 
     private _solveFriction(contact: ContactSet, h: number) {
 
-        /* (3.5)
-         * To handle static friction we compute the relative
-         * motion of the contact points and its tangential component
-         */
-
-        /* (26) Positions in current state and before the substep integration */
-        const p1prev = contact.p1.clone(); // A.prevPose.p.clone().add(contact.r1.clone().applyQuaternion(A.prevPose.q));
-        const p2prev = contact.p2.clone(); // B.prevPose.p.clone().add(contact.r2.clone().applyQuaternion(B.prevPose.q));
+        /* (3.5) Static friction */
         contact.update();
 
-        /* (27) Relative motion and tangential component */
+        /* (26) Positions in current state and before the substep integration */
+        const p1prev = contact.A.prevPose.p.clone().add(contact.r1.clone().applyQuaternion(contact.A.prevPose.q));
+        const p2prev = contact.B.prevPose.p.clone().add(contact.r2.clone().applyQuaternion(contact.B.prevPose.q));
+
+        /* (27) Relative motion */
         const dp = Vec3.sub(
             Vec3.sub(contact.p1, p1prev),
             Vec3.sub(contact.p2, p2prev)
         );
-        /* (28) */
+        
+        /* (28) Tangential component of relative motion */
         const dp_t = Vec3.sub(
             dp,
             Vec3.mul(contact.n, dp.dot(contact.n))
         );
+        
+        /* Note: Had to negate dp_t to get correct results */
+        dp_t.negate();
 
         /* (3.5)
          * To enforce static friction, we apply Δx = Δp_t
-         * at the contact points with a = 0 but only if
-         * λ_t < μ_s * λ_n.
-         *
-         * Note: with 1 position iteration, lambdaT is always zero!
+         * at the contact points with a = 0.
          */
-        if (contact.lambda_t < contact.staticFriction * contact.lambda_n) {
+        const d_lambda_t = XPBDSolver.applyBodyPairCorrection(
+            contact.A,
+            contact.B,
+            dp_t,
+            0.0,
+            h,
+            contact.p1,
+            contact.p2,
+            false,
+            true
+        );
+        
+        /**
+         * "...but only if λ_t < μ_s * λ_n"
+         * 
+         * Note: 
+         *      this inequation was flipped because 
+         *      the lambda values are always negative!
+         * 
+         * Note: 
+         *      with 1 position iteration (XPBD), lambda_t is always zero!
+         */ 
+        if (contact.lambda_t + d_lambda_t > contact.staticFriction * contact.lambda_n) {
             XPBDSolver.applyBodyPairCorrection(
                 contact.A,
                 contact.B,
@@ -314,8 +341,8 @@ export class XPBDSolver extends BaseSolver {
 
             /* (29) Relative normal and tangential velocities
              *
-             * Recalculate v and vn since the velocities are
-             * solved *after* the body update step.
+             * Note: v and vn are recalculated since the velocities were
+             * modified by RigidBody.update() in the meantime.
              */
             const v = Vec3.sub(
                 contact.A.getVelocityAt(contact.p1),
@@ -324,22 +351,21 @@ export class XPBDSolver extends BaseSolver {
             const vn = Vec3.dot(v, contact.n);
             const vt = Vec3.sub(v, Vec3.mul(contact.n, vn));
             const vt_len = vt.length();
-
+ 
             /* (30) Friction */
-            if (vt_len > 0.001) {
+            if (vt_len > 0.000001) {
                 const Fn = -contact.lambda_n / (h * h);
                 const friction = Math.min(h * contact.dynamicFriction * Fn, vt_len);
                 dv.sub(Vec3.normalize(vt).multiplyScalar(friction));
             }
 
-            /* (31, 32) @TODO dampening */
-
             /* (34) Restitution
              *
              * To avoid jittering we set e = 0 if vn is small (`threshold`).
+             * 
+             * Note: min() was replaced with max() due to the flipped sign convention.
              *
-             * Note:
-             * `vn_tilde` was already calculated before the position solve (Eq. 29)
+             * Note: `vn_tilde` is calculated in ContactSet before the position solve (Eq. 29)
              */
             const threshold = 2.0 * 9.81 * h;
             const e = Math.abs(vn) <= threshold ? 0.0 : contact.e;
@@ -369,7 +395,8 @@ export class XPBDSolver extends BaseSolver {
         dt: number,
         pos0: Vec3 | null = null,
         pos1: Vec3 | null = null,
-        velocityLevel: boolean = false
+        velocityLevel: boolean = false,
+        precalculateDeltaLambda: boolean = false
     ): number
     {
 
@@ -387,11 +414,19 @@ export class XPBDSolver extends BaseSolver {
         if (w == 0.0)
             return 0;
 
+        /* (3.3.1) Lagrange multiplier
+         *
+         * Equation (4) was simplified because a single
+         * constraint iteration is used (initial lambda = 0)
+         */
         const dlambda = -C / (w + compliance / dt / dt);
-        n.multiplyScalar(-dlambda);
 
-        if (body0) body0.applyCorrection(n, pos0, velocityLevel);
-        if (body1) body1.applyCorrection(n.negate(), pos1, velocityLevel);
+        if (!precalculateDeltaLambda) {
+            n.multiplyScalar(-dlambda);
+            
+            if (body0) body0.applyCorrection(n, pos0, velocityLevel);
+            if (body1) body1.applyCorrection(n.negate(), pos1, velocityLevel);
+        }
 
         return dlambda;
     }

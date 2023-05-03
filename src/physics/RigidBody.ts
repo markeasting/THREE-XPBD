@@ -36,9 +36,9 @@ export class RigidBody {
     public torque = new Vec3();
     public gravity = 1.0;
 
-    public bounciness = 0.5; // coefficient of restitution (e)
     public staticFriction = 0.5;
-    public dynamicFriction = 0.3;
+    public dynamicFriction = 0.4;
+    public restitution = 0.4; // coefficient of restitution (e)
 
     public isDynamic = true;
 
@@ -74,7 +74,7 @@ export class RigidBody {
 
         if (applyTransform) {
             this.pose = new Pose(new Vec3().copy(mesh.position), mesh.quaternion);
-            this.prevPose = this.pose.clone();
+            this.prevPose.copy(this.pose);
         }
         
         // @TODO move somewhere else
@@ -86,6 +86,8 @@ export class RigidBody {
 
     public setPos(x: number, y: number, z: number): this {
         this.pose.p.set(x, y, z);
+        this.prevPose.copy(this.pose);
+        
         this.updateGeometry();
         this.updateCollider();
 
@@ -94,6 +96,8 @@ export class RigidBody {
 
     public setRotation(x: number, y: number, z: number): this {
         this.pose.q.setFromEuler(new Euler(x, y, z));
+        this.prevPose.copy(this.pose);
+
         this.updateGeometry();
         this.updateCollider();
 
@@ -113,7 +117,7 @@ export class RigidBody {
     }
 
     public setRestitution(restitution: number): this {
-        this.bounciness = restitution;
+        this.restitution = restitution;
 
         return this;
     }
@@ -130,6 +134,8 @@ export class RigidBody {
         this.gravity = 0.0;
         this.invMass = 0.0;
         this.invInertia = new Vec3(0.0);
+
+        this.prevPose.copy(this.pose); // Just in case pose was changed directly
 
         this.updateGeometry();
         this.updateCollider();
