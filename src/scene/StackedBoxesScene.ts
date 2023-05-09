@@ -6,10 +6,6 @@ import { Box } from '../physics/body/Box';
 export class StackedBoxesScene extends BaseScene {
 
     override init() {
-        const lookAt = new Vec3(0, 0.0, 0);
-        this.camera.lookAt(lookAt);
-        this.orbitControls.target.copy(lookAt);
-        this.orbitControls.update();
 
         this.insert(new OmgScene);
 
@@ -18,7 +14,7 @@ export class StackedBoxesScene extends BaseScene {
         /* Stacked boxes */
         for (let i = 0; i < 5; i++) {
             Box(d)
-                .setPos(3, (d - d/2 + 0.05) + d * i, 0)
+                .setPos(0, (d - d/2 + 0.05) + d * i, 0)
                 .addTo(this);
         }
 

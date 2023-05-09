@@ -6,10 +6,6 @@ import { Box } from '../physics/body/Box';
 export class DebugScene extends BaseScene {
 
     override init() {
-        const lookAt = new Vec3(0, 0.0, 0);
-        this.camera.lookAt(lookAt);
-        this.orbitControls.target.copy(lookAt);
-        this.orbitControls.update();
 
         this.insert(new BaseDebugScene);
 

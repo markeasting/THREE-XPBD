@@ -19,7 +19,7 @@ import { Color, Euler, Mesh } from 'three';
 
 import { TeapotGeometry } from 'three/examples/jsm/geometries/TeapotGeometry';
 
-export class TestingScene extends BaseScene {
+export class PlayGroundScene extends BaseScene {
 
     override init() {
 
@@ -49,10 +49,9 @@ export class TestingScene extends BaseScene {
         // }
 
         /* Dominos */
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 7; i++) {
             Box(1, 2, 0.2)
                 .setPos(-3, 1.0, -i * 1.0)
-                // .setFriction(0.7, 0.7)
                 .setFriction(1, 1)
                 .addTo(this);
         }

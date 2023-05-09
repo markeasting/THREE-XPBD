@@ -2,10 +2,12 @@ import { Game } from './core/Game';
 import { ConstraintScene } from './scene/ConstraintScene';
 import { DebugScene } from './scene/DebugScene';
 import { DominosScene } from './scene/DominosScene';
+import { PendulumScene } from './scene/PendulumScene';
 import { RopeScene } from './scene/RopeScene';
 import { StackedBoxesScene } from './scene/StackedBoxesScene';
-import { TestingScene } from './scene/TestingScene';
+import { PlayGroundScene } from './scene/PlayGroundScene';
 import './style.css'
+import { DragonTailScene } from './scene/DragonTailScene';
 
 declare global {
     interface Window {
@@ -19,13 +21,15 @@ window.game = game;
 async function init() {
 
     Game.sceneSelector = {
-        current: 'Playground',
+        current: 'DragonTail',
         options: {
-            'Playground': TestingScene,
+            'Playground': PlayGroundScene,
             'Dominos': DominosScene,
             'StackedBoxes': StackedBoxesScene,
             'Constraints': ConstraintScene,
             'Rope': RopeScene,
+            'DragonTail': DragonTailScene,
+            'Pendulum': PendulumScene,
             'Debug': DebugScene,
         }
     };

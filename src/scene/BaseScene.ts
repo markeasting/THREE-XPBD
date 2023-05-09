@@ -42,7 +42,7 @@ export class BaseScene implements SceneInterface {
             this.orbitControls.target.copy(state.target);
             this.orbitControls.update();
         } else {
-            const lookAt = new Vec3(0, 0.0, 0);
+            const lookAt = new Vec3(0, 2, 0);
             
             this.camera.lookAt(lookAt);
             this.camera.position.set(5, 5, 5);

@@ -9,42 +9,40 @@ import { AlignOrientation } from '../physics/constraint/AlignOrientation';
 import { AlignAxes } from '../physics/constraint/AlignAxes';
 import { RigidBody } from '../physics/RigidBody';
 
-export class RopeScene extends BaseScene {
+export class PendulumScene extends BaseScene {
 
     override init() {
 
         this.insert(new BaseLightingScene);
 
+        /* Basic attachment */
         const bodies: RigidBody[] = [];
 
-        const l = 0.3;
-        const height = 5;
+        const l = 1.0;
+        const height = 3;
 
-        for (let i = 0; i < 30; i++) {
-            const b = Box(0.05, 0.05, l)
+        for (let i = 0; i < 3; i++) {
+            const b = Box(0.1, 0.1, l)
                 .setPos(0, height, i * l + l/2)
-                // .setStatic()
-                // .setWireframe()
-                // .setCanCollide(false)
+                .setOmega(70, 0, 0)
+                .setCanCollide(false)
                 .addTo(this);
 
             bodies.push(b)
         }
 
-        /* Attach all bodies */
-        for (let i = 1; i < bodies.length; i++) {
+        for (let i = 1; i < bodies.length; i += 1) {
             this.world.addConstraint(
                 new Constraint(bodies[i], bodies[i - 1])
                     .add(new Attachment(
-                            new Vec3(0, 0, l/2 * 1.2), 
+                            new Vec3(0, 0, l/2), 
                             new Vec3(0, 0, -l/2)
-                        ).setCompliance(0.0).setDamping(500)
+                        )
                     )
-                    // .add(new AlignOrientation().setCompliance(20))
+                    // .add(new AlignAxes())
             );
         }
 
-        /* Attach to world */
         this.world.addConstraint(
             new Constraint(bodies[0])
                 .add(new Attachment(
