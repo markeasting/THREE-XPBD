@@ -91,9 +91,9 @@ export abstract class BaseConstraint {
         return this;
     }
 
-    public setDamping(posDamping: number, rotDamping: number) {
+    public setDamping(posDamping: number, rotDamping?: number) {
         this.posDamping = posDamping;
-        this.rotDamping = rotDamping;
+        this.rotDamping = rotDamping ? rotDamping : posDamping;
         return this;
     }
 
