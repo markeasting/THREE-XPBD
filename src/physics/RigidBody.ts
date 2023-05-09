@@ -84,6 +84,13 @@ export class RigidBody {
         return this;
     }
 
+    public setWireframe(state = false): this {
+        if (this.mesh)
+            (this.mesh.material as THREE.MeshStandardMaterial).wireframe = true;
+
+        return this;
+    }
+
     public setPos(x: number, y: number, z: number): this {
         this.pose.p.set(x, y, z);
         this.prevPose.copy(this.pose);
