@@ -41,6 +41,7 @@ export class RigidBody {
     public restitution = 0.4; // coefficient of restitution (e)
 
     public isDynamic = true;
+    public canCollide = true;
 
     static maxRotationPerSubstep = 0.5;
 
@@ -132,6 +133,12 @@ export class RigidBody {
     public setFriction(staticFriction: number, dynamicFriction: number): this {
         this.staticFriction = staticFriction;
         this.dynamicFriction = dynamicFriction;
+
+        return this;
+    }
+
+    public setCanCollide(canCollide = true): this {
+        this.canCollide = canCollide;
 
         return this;
     }

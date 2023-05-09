@@ -22,7 +22,8 @@ export class Collider {
     // relativePos: Vec3 = new Vec3(0.0, 0.0, 0.0);
 
     aabb = new Box3();
-    aabbHelper = new Box3Helper(this.aabb);
+    expanded_aabb = new Box3();
+    aabbHelper = new Box3Helper(this.expanded_aabb);
 
     public updateGlobalPose(pose: Pose): void {
         // console.log('updateRotation not implemented')

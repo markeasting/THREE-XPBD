@@ -11,7 +11,7 @@ import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 15;
+    private numSubsteps = 20;
 
     private narrowPhase = new GjkEpa();
     
@@ -73,6 +73,12 @@ export class XPBDSolver extends BaseSolver {
         }
 
         for (const body of bodies) {
+
+            /* (3.5) k * dt * vbody */
+            body.collider.expanded_aabb
+                .copy(body.collider.aabb)
+                .expandByScalar(2.0 * dt * body.vel.length());
+
             body.force.set(0, 0, 0);
             body.torque.set(0, 0, 0);
             body.updateGeometry();
@@ -86,14 +92,14 @@ export class XPBDSolver extends BaseSolver {
         for (let i = 0; i < bodies.length; i++) {
             const A = bodies[i];
 
-            // if (!A.canCollide)
-            //     continue;
+            if (!A.canCollide)
+                continue;
 
             for (let j = i + 1; j < bodies.length; j++) {
                 const B = bodies[j];
 
-                // if (!B.canCollide)
-                //     continue;
+                if (!B.canCollide)
+                    continue;
 
                 if (!A.isDynamic && !B.isDynamic)
                     continue;
@@ -102,9 +108,8 @@ export class XPBDSolver extends BaseSolver {
                     continue;
 
                 /* (3.5) k * dt * vbody */
-                // const collisionMargin = 2.0 * dt * Vec3.sub(A.vel, B.vel).length();
-                const aabb1 = A.collider.aabb.clone().expandByScalar(2.0 * dt * A.vel.length());
-                const aabb2 = B.collider.aabb.clone().expandByScalar(2.0 * dt * B.vel.length());
+                const aabb1 = A.collider.expanded_aabb;
+                const aabb2 = B.collider.expanded_aabb;
 
                 switch(A.collider.colliderType) {
                     case ColliderType.ConvexMesh :
