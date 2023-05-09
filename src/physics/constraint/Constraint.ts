@@ -9,12 +9,12 @@ export class Constraint {
 
     public constraints: Array<BaseConstraint> = [];
 
-    constructor(body0: RigidBody, body1: RigidBody) {
-        if (body0.id == body1.id)
+    constructor(body0: RigidBody, body1?: RigidBody) {
+        if (body0.id == body1?.id)
             throw new Error('Cannot create a constraint for the same body');
 
         this.body0 = body0;
-        this.body1 = body1;
+        if (body1) this.body1 = body1;
     }
 
     public add(constraint: BaseConstraint) {
