@@ -1,14 +1,14 @@
 import * as THREE from 'three'
 import { BaseScene } from './BaseScene';
-import { BaseLightingScene } from './BaseLightingScene';
+import { BaseLightingScene } from './components/BaseLightingScene';
 import { RigidBody } from '../physics/RigidBody';
 import { BoxCollider, MeshCollider, PlaneCollider } from '../physics/Collider';
 import { Vec3 } from '../physics/Vec3';
 import { Vec2 } from '../physics/Vec2';
-import { AthmosphereScene } from './AthmosphereScene';
+import { AthmosphereScene } from './components/AthmosphereScene';
+import { OmgScene } from './components/OmgScene';
 import { Box } from '../physics/body/Box';
 import { Tetra } from '../physics/body/Tetra';
-import { OmgScene } from './OmgScene';
 import { Pose } from '../physics/Pose';
 import { Joint, JointType } from '../physics/constraint/Joint';
 import { Constraint } from '../physics/constraint/Constraint';
@@ -19,27 +19,12 @@ import { Color, Euler, Mesh } from 'three';
 
 import { TeapotGeometry } from 'three/examples/jsm/geometries/TeapotGeometry';
 
-export class MyScene extends BaseScene {
-
-    constructor() {
-        super();
-    }
+export class TestingScene extends BaseScene {
 
     override init() {
-        const lookAt = new Vec3(0, 0.0, 0);
-        this.camera.lookAt(lookAt);
-        this.orbitControls.target.copy(lookAt);
-        this.orbitControls.update();
 
         this.insert(new BaseLightingScene);
         // this.scene.background = new Color(0xffffff);
-
-        this.addGeometry();
-    }
-
-    private addGeometry() {
-
-        let b0, b1;
 
         Box(3, 1, 3)
             .setPos(0, 0.5, 0)
@@ -64,11 +49,11 @@ export class MyScene extends BaseScene {
         // }
 
         /* Dominos */
-        for (let i = 0; i < 20; i++) {
-            const size = 1; // + i * 0.5;
-            Box(1 * size, 2 * size, 0.4 * size/2)
-                .setPos(-3, 1.0 * size, -i * Math.pow(size, 0.5) * 1.0)
-                .setFriction(0.7, 0.7)
+        for (let i = 0; i < 14; i++) {
+            Box(1, 2, 0.2)
+                .setPos(-3, 1.0, -i * 1.0)
+                // .setFriction(0.7, 0.7)
+                .setFriction(1, 1)
                 .addTo(this);
         }
 
@@ -185,24 +170,6 @@ export class MyScene extends BaseScene {
                 tetraPointW
             );
         }
-    }
-
-    private addGround() {
-        const ground = new RigidBody(
-            new PlaneCollider(new Vec2(100, 100)),
-            new THREE.Mesh(
-                new THREE.PlaneGeometry(0.1, 0.1, 5, 5),
-                new THREE.MeshPhongMaterial({
-                    color: 0xffffff,
-                    // wireframe: true,
-                })
-            )
-        );
-        ground.pose.q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
-        ground.pose.p.copy(new Vec3(0, 0, 0));
-        ground.setStatic();
-
-        this.addBody(ground);
     }
 
 }

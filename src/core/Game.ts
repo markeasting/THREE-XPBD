@@ -15,7 +15,7 @@ export class Game {
 
     static canvas: HTMLCanvasElement;
     static renderer: THREE.WebGLRenderer;
-    static composer: EffectComposer;
+    static composer?: EffectComposer;
     
     static events = new EventEmitter();
 
@@ -27,6 +27,7 @@ export class Game {
     static keys: Record<string, boolean> = {}
 
     static scene: BaseScene|undefined = undefined;
+    static sceneSelector: any = {}
 
     static debugOverlay = true;
     static stepPhysics = false;
@@ -35,12 +36,8 @@ export class Game {
     public time = 0;
     public prevTime = 0;
 
-    static _gui = new GUI();
-    static gui = {
-        'physics': this._gui.addFolder('Physics'),
-        'solver': this._gui.addFolder('Solver'),
-        'debug': this._gui.addFolder('Debugging')
-    }
+    private static _gui = new GUI();
+    static gui: Record<string, GUI> = {}
 
     constructor(canvasID: string) {
         Game.canvas = document.getElementById(canvasID) as HTMLCanvasElement;
@@ -49,18 +46,17 @@ export class Game {
             canvas: Game.canvas,
             antialias: true,
         });
-        Game.composer = new EffectComposer( Game.renderer );
         
-        // Screen
+        /* Screen */
         Game.renderer.setPixelRatio(1.0);
-        this.fitContent();
+        Game.fitContent();
 
-        // Shadows
+        /* Shadows */
         Game.renderer.shadowMap.enabled = true;
         Game.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
 
-        // Events
-        window.addEventListener('resize', this.fitContent.bind(this));
+        /* Events */
+        window.addEventListener('resize', Game.fitContent.bind(this));
 
         window.addEventListener('keydown', (e) => {
             Game.keys[e.code] = true;
@@ -74,16 +70,19 @@ export class Game {
             Game.keys[e.code] = false;
         })
 
-        window.addEventListener( 'mousedown', this.onMouse.bind(this) );
-        window.addEventListener( 'mousemove', this.onMouse.bind(this) );
-        window.addEventListener( 'mouseup', this.onMouse.bind(this) );
-
-        Game.gui.physics.add(Game, 'stepPhysics').name('Step physics');
+        Game.renderer.domElement.addEventListener( 'mousedown', this.onMouse.bind(this) );
+        Game.renderer.domElement.addEventListener( 'mousemove', this.onMouse.bind(this) );
+        Game.renderer.domElement.addEventListener( 'mouseup', this.onMouse.bind(this) );
         
     }
 
-    private setupRenderPass() {
+    private static setupRenderPass() {
+
         return;
+
+        if (!Game.composer) {
+            Game.composer = new EffectComposer( Game.renderer );
+        }
 
         const renderPass = new RenderPass( Game.scene?.scene!, Game.scene?.camera! );
         const smaaPass = new SMAAPass( window.innerWidth, window.innerHeight );
@@ -94,29 +93,61 @@ export class Game {
             0.1, 
             0.8
         );
-
-        Game.composer.addPass( renderPass );
-        Game.composer.addPass( unrealBloomPass );
-        Game.composer.addPass( smaaPass );
+        
+        Game.composer?.addPass( renderPass );
+        Game.composer?.addPass( unrealBloomPass );
+        Game.composer?.addPass( smaaPass );
     }
 
-    private fitContent() {
+    private static fitContent() {
         const canvas = Game.canvas;
         const width  = canvas.clientWidth;
         const height = canvas.clientHeight;
 
         Game.renderer.setSize(width, height, false);
-        Game.composer.setSize(width, height);
+        Game.composer?.setSize(width, height);
 
         if (Game.scene)
             Game.scene.onResize(width, height)
     }
 
-    public add(scene: BaseScene) {
-        Game.scene = scene;
-        Game.scene.init();
-        this.fitContent();
-        this.setupRenderPass();
+    public static setSceneSelector(selector?: any) {
+        if (selector)
+            Game.sceneSelector = selector;
+    }
+
+    public static changeScene(scene: typeof BaseScene) {
+
+        Game._gui.destroy();
+        Game._gui = new GUI();
+
+        Game.gui = {
+            'scene': Game._gui.addFolder('Scene'),
+            'physics': Game._gui.addFolder('Physics'),
+            'solver': Game._gui.addFolder('Solver'),
+            'debug': Game._gui.addFolder('Debugging'),
+        }
+
+        Game.gui.physics.add(Game, 'stepPhysics').name('Step physics');
+        
+        Game.gui.scene.open();
+
+        Game.gui.scene.add(
+            Game.sceneSelector, 
+            'current', 
+            Object.keys(Game.sceneSelector.options)
+        ).name('Select demo').onChange((val: any) => {
+            Game.changeScene(Game.sceneSelector.options[val]);
+        });
+
+        Game.scene = new scene();
+        if (!Game.scene.initialized) {
+            Game.scene.init();
+            Game.scene.initialized = true;
+        }
+
+        Game.fitContent();
+        Game.setupRenderPass();
     }
 
     public update(time: DOMHighResTimeStamp): void {
@@ -127,8 +158,12 @@ export class Game {
         if (Game.scene) {
             Game.scene.updatePhysics(this.dt, !Game.stepPhysics);
             Game.scene.update(time, this.dt, Game.keys);
-            // Game.composer.render();
-            Game.renderer.render(Game.scene.scene, Game.scene.camera);
+            
+            if (Game.composer) {
+                Game.composer.render();
+            } else {
+                Game.renderer.render(Game.scene.scene, Game.scene.camera);
+            }
 
             Game.scene.world.draw(Game.renderer, Game.scene.camera);
         }

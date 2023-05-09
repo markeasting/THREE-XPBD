@@ -1,18 +1,16 @@
 import * as THREE from 'three'
-import { PointLight } from '../light/PointLight';
+import { PointLight } from '../../light/PointLight';
 
-export class OmgScene extends THREE.Scene {
+export class BaseLightingScene extends THREE.Scene {
 
     constructor() {
         super();
 
-        // 0.2f, 0.3f, 0.3f
-        this.background = new THREE.Color(0x334D4D);
-
         const ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(100, 100), 
+            new THREE.PlaneGeometry(50, 50, 5, 5),
             new THREE.MeshPhongMaterial({
-                color: 0x334D4D, 
+                color: 0x444444,
+                // wireframe: true,
             })
         );
         ground.receiveShadow = true;
@@ -22,16 +20,16 @@ export class OmgScene extends THREE.Scene {
 
         const p1 = new PointLight(this, 0xf2ddc5);
         p1.light.castShadow = true;
-        p1.light.position.set(7, 10, 3);
+        p1.light.position.set(-7, 10, 3);
 
         const p2 = new PointLight(this, 0xd6deed);
         p2.light.castShadow = true;
-        p2.light.position.set(-7, 10, -3);
+        p2.light.position.set(7, 10, -3);
 
         // const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
         // this.add( directionalLight );
 
-        const ambientLight = new THREE.AmbientLight( 0xcccccc);
+        const ambientLight = new THREE.AmbientLight( 0xffffff, 0.35 );
         this.add( ambientLight );
 
     }

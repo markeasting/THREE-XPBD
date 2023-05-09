@@ -1,5 +1,10 @@
 import { Game } from './core/Game';
-import { MyScene } from './scene/MyScene';
+import { ConstraintScene } from './scene/ConstraintScene';
+import { DebugScene } from './scene/DebugScene';
+import { DominosScene } from './scene/DominosScene';
+import { RopeScene } from './scene/RopeScene';
+import { StackedBoxesScene } from './scene/StackedBoxesScene';
+import { TestingScene } from './scene/TestingScene';
 import './style.css'
 
 declare global {
@@ -13,9 +18,19 @@ window.game = game;
 
 async function init() {
 
-    const scene = new MyScene();
+    Game.sceneSelector = {
+        current: 'Playground',
+        options: {
+            'Playground': TestingScene,
+            'Dominos': DominosScene,
+            'StackedBoxes': StackedBoxesScene,
+            'Constraints': ConstraintScene,
+            'Rope': RopeScene,
+            'Debug': DebugScene,
+        }
+    };
 
-    game.add(scene);
+    Game.changeScene(Game.sceneSelector.options[Game.sceneSelector.current]);
 
     update(0);
 }

@@ -1,6 +1,4 @@
 import * as THREE from 'three'
-import { PointLight } from '../light/PointLight';
-import { BaseScene } from './BaseScene';
 
 /**
  * https://threejs.org/examples/webgl_lights_hemisphere.html
