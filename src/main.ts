@@ -21,7 +21,7 @@ window.game = game;
 async function init() {
 
     Game.sceneSelector = {
-        current: 'DragonTail',
+        current: 'Playground',
         options: {
             'Playground': PlayGroundScene,
             'Dominos': DominosScene,
