@@ -68,7 +68,7 @@ export class Game {
 
         window.addEventListener('keydown', (e) => {
             Game.keys[e.code] = true;
-            
+
             if (e.code == 'Space') {
                 Game.stepPhysics = true;
                 Game.scene?.updatePhysics(this.dt);
@@ -136,8 +136,6 @@ export class Game {
             'solver': Game._gui.addFolder('Solver'),
             'debug': Game._gui.addFolder('Debugging'),
         }
-
-        Game.gui.physics.add(Game, 'stepPhysics').name('Step physics');
         
         Game.gui.scene.open();
 

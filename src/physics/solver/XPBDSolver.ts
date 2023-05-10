@@ -22,6 +22,7 @@ export class XPBDSolver extends BaseSolver {
     constructor() {
         super();
 
+        Game.gui.solver.add(Game, 'stepPhysics').name('Step (space)');
         Game.gui.solver.add(this, 'numSubsteps', 1, 30);
         Game.gui.solver.add(this, 'collisionCount').listen();
     }
