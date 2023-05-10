@@ -7,6 +7,7 @@ import { RopeScene } from './scene/RopeScene';
 import { StackedBoxesScene } from './scene/StackedBoxesScene';
 import { PlayGroundScene } from './scene/PlayGroundScene';
 import { DragonTailScene } from './scene/DragonTailScene';
+import { StressTestScene } from './scene/StressTestScene';
 
 import './style.css'
 
@@ -31,6 +32,7 @@ async function init() {
             'Rope': RopeScene,
             'DragonTail': DragonTailScene,
             'Pendulum': PendulumScene,
+            'StressTest': StressTestScene,
             'Debug': DebugScene,
         }
     });
