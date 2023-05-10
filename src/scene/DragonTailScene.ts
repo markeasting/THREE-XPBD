@@ -24,7 +24,7 @@ export class DragonTailScene extends BaseScene {
 
         for (let i = 0; i < 12; i++) {
             const a = l - i * s;
-            const b = Box(a)
+            const b = Box(a, a, a, 50)
                 .setPos(0, height, i * l + l/2)
                 // .setStatic()
                 // .setWireframe()

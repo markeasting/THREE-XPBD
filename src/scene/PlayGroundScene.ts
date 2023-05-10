@@ -35,26 +35,26 @@ export class PlayGroundScene extends BaseScene {
             .addTo(this);
 
         Tetra(1)
-            .setPos(-3, 4, 5)
-            .setVel(0, 2.5, -5)
+            .setPos(-3, 4, 8)
+            .setVel(0, 2.5, -10)
             .setOmega(1, 10, 1)
             .addTo(this);
         
         /* Stacked boxes */
-        // const h = 1;
-        // for (let i = 0; i < 6; i++) {
-        //     Box(h)
-        //         .setPos(-3, (h - h/2 + 0.05) + h * i, 0)
-        //         .addTo(this);
-        // }
-
-        /* Dominos */
-        for (let i = 0; i < 7; i++) {
-            Box(1, 2, 0.2)
-                .setPos(-3, 1.0, -i * 1.0)
-                .setFriction(1, 1)
+        const h = 1;
+        for (let i = 0; i < 6; i++) {
+            Box(h)
+                .setPos(-3, (h - h/2 + 0.05) + h * i, 0)
                 .addTo(this);
         }
+
+        /* Dominos */
+        // for (let i = 0; i < 7; i++) {
+        //     Box(1, 2, 0.2)
+        //         .setPos(-3, 1.0, -i * 1.0)
+        //         .setFriction(1, 1)
+        //         .addTo(this);
+        // }
 
         /* Custom geometry */
         const customMesh = new THREE.Mesh(
@@ -98,46 +98,12 @@ export class PlayGroundScene extends BaseScene {
             )
             .setMesh(coinMesh)
             .setPos(0, 1.5, 5)
-            .setRotation(1.8, 0, 0)
+            .setRotation(2.5, 0, 0)
             .setOmega(0, 15, 0)
-            .setFriction(0.9, 0.5)
-            .setRestitution(0.85)
+            .setFriction(0.8, 0.5)
+            .setRestitution(0.6)
             .setCylinder(coinSize.x, coinSize.y, 1)
             .addTo(this);
-
-
-        /* Constraint examples */
-
-        // /* Hinge */
-        // b0 = Box(2, 1, 0.2).setPos(3, 1.5, 1);
-        // b1 = Box(2, 0.2, 1).setPos(3, 2, 0.4);
-        // this.addBody(b0);
-        // this.addBody(b1);
-
-        // this.world.addConstraint(
-        //     new Constraint(b0, b1)
-        //     .add(new Attachment(new Vec3(0, 0, 0.5), new Vec3(0, 0.6, 0)))
-        //     .add(new AlignAxes)
-        //     // .add(new AlignOrientation)
-        // );
-
-        /* Hammer */
-        // b0 = Box(0.2, 0.2, 7).setPos(0, 2, 3)
-        // b1 = Box(2, 1, 1).setPos(0, 2, 0.5)
-        // this.addBody(b0);
-        // this.addBody(b1);
-
-        // this.world.addConstraint(
-        //     new Constraint(b0, b1)
-        //     .add(new Attachment(new Vec3(0.1, 0, 0.5), new Vec3(0, 0, -2)))
-        //     .add(new AlignOrientation)
-        // );
-        
-        // this.world.addConstraint(
-        //     new Constraint(b0, b1)
-        //     .add(new Attachment(new Vec3(0.1, 0, -0.5), new Vec3(0, 0, -3)))
-        //     // .add(new AlignOrientation)
-        // );
 
         this.addGround();
 

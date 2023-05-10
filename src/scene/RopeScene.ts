@@ -21,7 +21,7 @@ export class RopeScene extends BaseScene {
         const height = 5;
 
         for (let i = 0; i < 30; i++) {
-            const b = Box(0.05, 0.05, l)
+            const b = Box(0.05, 0.05, l, 50)
                 .setPos(0, height, i * l + l/2)
                 // .setStatic()
                 // .setWireframe()

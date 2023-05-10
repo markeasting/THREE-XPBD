@@ -1,6 +1,7 @@
 import { BaseScene } from './BaseScene';
 import { Box } from '../physics/body/Box';
 import { BaseLightingScene } from './components/BaseLightingScene';
+import { Tetra } from '../physics/body/Tetra';
 
 export class StressTestScene extends BaseScene {
 
@@ -8,12 +9,17 @@ export class StressTestScene extends BaseScene {
 
         this.insert(new BaseLightingScene);
 
-        const d = 1; // box size
+        let d = 1;
 
-        /* Stacked boxes */
         for (let i = 0; i < 128; i++) {
-            Box(d)
-                .setPos(0, d + d * i * 2, 0)
+            
+            // d = 1 + 0.7 * Math.random();
+            // const b = Math.random() < 0.5 ? Box(d) : Tetra(d);
+
+            const b = Box(d);
+            
+            b.setRandomColor()
+                .setPos(0, d + i * 2, 0)
                 .addTo(this);
         }
 
