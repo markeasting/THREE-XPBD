@@ -92,6 +92,15 @@ export class RigidBody {
         return this;
     }
 
+    public setRandomColor(): this {
+        if (this.mesh) {
+            const mat = (this.mesh.material as THREE.MeshStandardMaterial);
+            mat.color = new THREE.Color().setHSL(Math.random(), 1.0, 0.7);
+        }
+
+        return this;
+    }
+
     public setPos(x: number, y: number, z: number): this {
         this.pose.p.set(x, y, z);
         this.prevPose.copy(this.pose);
