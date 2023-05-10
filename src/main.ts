@@ -6,8 +6,9 @@ import { PendulumScene } from './scene/PendulumScene';
 import { RopeScene } from './scene/RopeScene';
 import { StackedBoxesScene } from './scene/StackedBoxesScene';
 import { PlayGroundScene } from './scene/PlayGroundScene';
-import './style.css'
 import { DragonTailScene } from './scene/DragonTailScene';
+
+import './style.css'
 
 declare global {
     interface Window {
@@ -20,7 +21,7 @@ window.game = game;
 
 async function init() {
 
-    Game.sceneSelector = {
+    Game.setSceneSelector({
         current: 'Playground',
         options: {
             'Playground': PlayGroundScene,
@@ -32,7 +33,12 @@ async function init() {
             'Pendulum': PendulumScene,
             'Debug': DebugScene,
         }
-    };
+    });
+
+    const url = window.location.hash.substring(1);
+
+    if (url in Game.sceneSelector.options)
+        Game.sceneSelector.current = url;
 
     Game.changeScene(Game.sceneSelector.options[Game.sceneSelector.current]);
 

@@ -9,7 +9,15 @@ import { Vec2 } from '../physics/Vec2';
 import { EventEmitter } from '../event/EventEmitter';
 import { RayCastEvent } from '../event/RayCastEvent';
 
-import { GUI, GUIController } from 'dat.gui';
+import { GUI } from 'dat.gui';
+
+type SceneOptions = Record<string, typeof BaseScene>;
+type SceneSelector<T = SceneOptions> = {
+    [K in keyof T]: {
+        current: Extract<keyof T, string>;
+        options: T;
+    };
+}[keyof T];
 
 export class Game {
 
@@ -27,7 +35,7 @@ export class Game {
     static keys: Record<string, boolean> = {}
 
     static scene: BaseScene|undefined = undefined;
-    static sceneSelector: any = {}
+    static sceneSelector: SceneSelector;
 
     static debugOverlay = true;
     static stepPhysics = false;
@@ -111,9 +119,10 @@ export class Game {
             Game.scene.onResize(width, height)
     }
 
-    public static setSceneSelector(selector?: any) {
-        if (selector)
-            Game.sceneSelector = selector;
+    public static setSceneSelector<T extends SceneOptions>(
+        obj: SceneSelector<T>
+    ): void {
+        Game.sceneSelector = obj;
     }
 
     public static changeScene(scene: typeof BaseScene) {
@@ -137,8 +146,12 @@ export class Game {
             'current', 
             Object.keys(Game.sceneSelector.options)
         ).name('Select demo').onChange((val: any) => {
+            Game.sceneSelector.current = val;
             Game.changeScene(Game.sceneSelector.options[val]);
         });
+
+        // window.history.pushState({}, '', Game.sceneSelector.current);
+        window.location.hash = Game.sceneSelector.current;
 
         Game.scene = new scene();
         if (!Game.scene.initialized) {
