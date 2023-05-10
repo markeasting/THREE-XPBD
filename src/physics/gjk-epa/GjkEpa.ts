@@ -17,7 +17,7 @@ import { Support } from "./Support";
  */
 export class GjkEpa {
 
-    static MAX_GJK_ITERS = 32;
+    static MAX_GJK_ITERS = 16;
     static MAX_EPA_ITERS = 16;
 
     private debugMinkowski: Mesh;
@@ -28,7 +28,7 @@ export class GjkEpa {
     private debug = false;
 
     constructor() {
-        Game.gui.solver.add(this, 'debug').name('Debug GJK / EPA');
+        Game.gui.debug.add(this, 'debug').name('Debug GJK / EPA');
     }
 
     public GJK(
@@ -50,7 +50,7 @@ export class GjkEpa {
         /* New direction is towards the origin */
         const direction = support.point.clone().negate();
 
-        while (GjkEpa.MAX_GJK_ITERS) {
+        for (let i = 0; i < GjkEpa.MAX_GJK_ITERS; i++) {
 
             /**
              * In a loop, we’ll add another point. 
@@ -77,6 +77,8 @@ export class GjkEpa {
                 return simplex;
             }
         }
+
+        return;
     }
 
     /**
@@ -254,7 +256,7 @@ export class GjkEpa {
             minDistance = normals[minFace].w;
 
             if (iterations++ > GjkEpa.MAX_EPA_ITERS) {
-                // console.error('Too many EPA iterations')
+                console.error('Too many EPA iterations')
                 break;
             }
 
