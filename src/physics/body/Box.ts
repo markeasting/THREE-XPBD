@@ -3,7 +3,7 @@ import { MeshCollider } from '../Collider';
 import { RigidBody } from '../RigidBody';
 import { Vec3 } from '../Vec3';
 
-export function Box(width: number = 1.0, height?: number, depth?: number): RigidBody {
+export function Box(width: number = 1.0, height?: number, depth?: number, density?: number): RigidBody {
     if (!height) height = width;
     if (!depth)  depth = width;
 
@@ -26,7 +26,7 @@ export function Box(width: number = 1.0, height?: number, depth?: number): Rigid
     
     const box = new RigidBody(new MeshCollider().setGeometry(boxMesh.geometry))
         .setMesh(boxMesh)
-        .setBox(new Vec3(width, height, depth), 1)
+        .setBox(new Vec3(width, height, depth), density)
 
     return box;
 
