@@ -1,10 +1,75 @@
-import { ArrowHelper, BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Vector4 } from "three";
+import { ArrowHelper, BufferAttribute, BufferGeometry, LineLoop, Matrix4, Mesh, MeshBasicMaterial, Plane, Vector4 } from "three";
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { Game } from "../../core/Game";
 import { Collider } from "../Collider"
 import { Vec3 } from "../Vec3"
 import { Simplex } from "./Simplex";
 import { Support } from "./Support";
+import { Vec2 } from "../Vec2";
+
+const inside = (cp1: Vec2, cp2: Vec2, p: Vec2): boolean => {
+    return (cp2.x - cp1.x) * (p.y - cp1.y) > (cp2.y - cp1.y) * (p.x - cp1.x);
+};
+
+const intersection = (cp1: Vec2, cp2: Vec2, s: Vec2, e: Vec2): Vec2 => {
+    const dc = {
+        x: cp1.x - cp2.x,
+        y: cp1.y - cp2.y
+    }
+    
+    const dp = {
+        x: s.x - e.x,
+        y: s.y - e.y
+    }
+
+    const n1 = cp1.x * cp2.y - cp1.y * cp2.x;
+    const n2 = s.x * e.y - s.y * e.x;
+    const n3 = 1.0 / (dc.x * dp.y - dc.y * dp.x);
+    
+    return new Vec2(
+        (n1 * dp.x - n2 * dc.x) * n3,
+        (n1 * dp.y - n2 * dc.y) * n3
+    );
+};
+
+export const sutherland_hodgman = (subjectPolygon: Array<Vec2>,
+    clipPolygon: Array<Vec2>): Array<Vec2> => {
+
+    let cp1: Vec2 = clipPolygon[clipPolygon.length - 1];
+    let cp2: Vec2;
+    let s: Vec2;
+    let e: Vec2;
+
+    let outputList: Array<Vec2> = subjectPolygon;
+
+    for (const j in clipPolygon) {
+        cp2 = clipPolygon[j];
+        let inputList = outputList;
+        outputList = [];
+        s = inputList[inputList.length - 1];
+
+        for (const i in inputList) {
+            e = inputList[i];
+
+            if (inside(cp1, cp2, e)) {
+                if (!inside(cp1, cp2, s)) {
+                    outputList.push(intersection(cp1, cp2, s, e));
+                }
+                outputList.push(e);
+            }
+
+            else if (inside(cp1, cp2, s)) {
+                outputList.push(intersection(cp1, cp2, s, e));
+            }
+            
+            s = e;
+        }
+
+        cp1 = cp2;
+    }
+    return outputList
+}
+
 
 /**
  * https://blog.winter.dev/2020/gjk-algorithm/
@@ -408,12 +473,75 @@ export class GjkEpa {
         c = new Vec3().addScaledVector( minPolygon[2].witnessB, barycentric.z );
         const p2 = Vec3.add( a, b ).add( c );
 
+
+        /* Clipping algorithm */
+        const planePoint = p1; // ?????????
+        const projectedPoints3D_A = [
+            minPolygon[0].witnessA,
+            minPolygon[1].witnessA,
+            minPolygon[2].witnessA,
+        ];
+        const projectedPoints3D_B = [
+            minPolygon[0].witnessB,
+            minPolygon[1].witnessB,
+            minPolygon[2].witnessB,
+        ];
+
+        // Create a matrix to transform the points
+        const transformMatrix = new Matrix4();
+        transformMatrix.lookAt(planePoint, planePoint.clone().add(minNormal), new Vec3(0, 1, 0));
+
+        // Transform the 3D points to the 2D plane (z-coordinate becomes zero)
+        const projectedPoints2D_A: Vec2[] = [];
+        const projectedPoints2D_B: Vec2[] = [];
+        for (let i = 0; i < 3; i++) {
+            const pointA = projectedPoints3D_A[i];
+            const pointB = projectedPoints3D_B[i];
+
+            let v: Vec3;
+
+            v = pointA.clone().applyMatrix4(transformMatrix);
+            projectedPoints2D_A.push(new Vec2(v.x, v.y));
+
+            v = pointB.clone().applyMatrix4(transformMatrix);
+            projectedPoints2D_B.push(new Vec2(v.x, v.y));
+        }
+
+        console.log(projectedPoints3D_B);
+        
+        const clippedPolygon = sutherland_hodgman(projectedPoints2D_A, projectedPoints2D_B);
+
+        /* Debug */
+        const clippedPolygon3D: Vec3[] = [];
+        const inverseTransformMatrix = transformMatrix.clone().invert();
+        for (const point2D of clippedPolygon) {
+            const point3DHomogeneous = new Vec3(point2D.x, point2D.y, 0).applyMatrix4(inverseTransformMatrix);
+            const point3D = new Vec3(point3DHomogeneous.x, point3DHomogeneous.y, point3DHomogeneous.z);
+            clippedPolygon3D.push(point3D);
+        }
+
+        Game.scene?.scene.add(new LineLoop( 
+            new BufferGeometry().setFromPoints( projectedPoints3D_A ), 
+            new MeshBasicMaterial({ color: 0xff0000 }) 
+        ));
+
+        Game.scene?.scene.add(new LineLoop( 
+            new BufferGeometry().setFromPoints( projectedPoints3D_B ), 
+            new MeshBasicMaterial({ color: 0x00ff00 }) 
+        ));
+
         return {
             normal: minNormal,
+            manifold: clippedPolygon3D,
             p1,
             p2,
             d: minDistance
         };
+    }
+
+    private sutherlandHodgmanClipping(triangle: Vec3[], edgeDir: Vec3) {
+        // const plane = new Plane(edgeDir);
+
     }
 
     private computeBarycentricCoordinates(P: Vec3, polygon: Support[]): Vec3 {

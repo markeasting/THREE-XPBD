@@ -18,7 +18,7 @@ export class DebugScene extends BaseScene {
 
         Box(2, 1, 1)
             .setWireframe(true)
-            .setPos(1.5, 5, 0)
+            .setPos(0, 5, 0)
             .addTo(this);
 
         this.addGround();
@@ -66,7 +66,6 @@ export class DebugScene extends BaseScene {
             const point3DHomogeneous = new Vec3(point2D.x, point2D.y, 0).applyMatrix4(inverseTransformMatrix);
             const point3D = new Vec3(point3DHomogeneous.x, point3DHomogeneous.y, point3DHomogeneous.z);
             projectedPoints3D_2.push(point3D);
-
         }
 
         const geometry = new BufferGeometry().setFromPoints( projectedPoints2D );

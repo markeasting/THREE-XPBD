@@ -11,7 +11,7 @@ import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 20;
+    private numSubsteps = 1;
 
     private narrowPhase = new GjkEpa();
     
@@ -181,8 +181,8 @@ export class XPBDSolver extends BaseSolver {
             if (!EPA)
                 return;
 
-            const { normal, p1, p2, d } = EPA;
-            
+            const { normal, manifold, p1, p2, d } = EPA;
+
             if (d <= 0.0)
                 return;
 
