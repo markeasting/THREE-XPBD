@@ -1,11 +1,12 @@
 import { ArrowHelper, BufferAttribute, BufferGeometry, LineLoop, Matrix4, Mesh, MeshBasicMaterial, Plane, Vector4 } from "three";
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
 import { Game } from "../../core/Game";
-import { Collider } from "../Collider"
+import { Collider, ColliderType, MeshCollider } from "../Collider"
 import { Vec3 } from "../Vec3"
 import { Simplex } from "./Simplex";
 import { Support } from "./Support";
 import { Vec2 } from "../Vec2";
+import { Face } from "../Face";
 
 const inside = (cp1: Vec2, cp2: Vec2, p: Vec2): boolean => {
     return (cp2.x - cp1.x) * (p.y - cp1.y) > (cp2.y - cp1.y) * (p.x - cp1.x);
@@ -473,19 +474,29 @@ export class GjkEpa {
         c = new Vec3().addScaledVector( minPolygon[2].witnessB, barycentric.z );
         const p2 = Vec3.add( a, b ).add( c );
 
+        const contact_facesA: {face: Face, dist: number}[] = [];
+        const contact_facesB: {face: Face, dist: number}[] = [];
+        if (colliderA instanceof MeshCollider) {
+            for (let i = 0; i < colliderA.faces.length; i++) {
+                const face = colliderA.faces[i];
+                const dist = Vec3.dot(face.normal, minNormal)
+                contact_facesA.push({ face, dist });
+            }
+        }
+        if (colliderB instanceof MeshCollider) {
+            for (let i = 0; i < colliderB.faces.length; i++) {
+                const face = colliderB.faces[i];
+                const dist = Vec3.dot(face.normal, minNormal)
+                contact_facesB.push({ face, dist });
+            }
+        }
+        contact_facesA.sort((a,b) => a.dist - b.dist);
+        contact_facesB.sort((a,b) => b.dist - a.dist);
 
         /* Clipping algorithm */
         const planePoint = p1; // ?????????
-        const projectedPoints3D_A = [
-            minPolygon[0].witnessA,
-            minPolygon[1].witnessA,
-            minPolygon[2].witnessA,
-        ];
-        const projectedPoints3D_B = [
-            minPolygon[0].witnessB,
-            minPolygon[1].witnessB,
-            minPolygon[2].witnessB,
-        ];
+        const projectedPoints3D_A = contact_facesA[0].face.vertices;
+        const projectedPoints3D_B = contact_facesA[1].face.vertices;
 
         // Create a matrix to transform the points
         const transformMatrix = new Matrix4();
@@ -506,10 +517,9 @@ export class GjkEpa {
             v = pointB.clone().applyMatrix4(transformMatrix);
             projectedPoints2D_B.push(new Vec2(v.x, v.y));
         }
-
-        console.log(projectedPoints3D_B);
         
         const clippedPolygon = sutherland_hodgman(projectedPoints2D_A, projectedPoints2D_B);
+        console.log(clippedPolygon);
 
         /* Debug */
         const clippedPolygon3D: Vec3[] = [];
@@ -521,13 +531,18 @@ export class GjkEpa {
         }
 
         Game.scene?.scene.add(new LineLoop( 
-            new BufferGeometry().setFromPoints( projectedPoints3D_A ), 
+            new BufferGeometry().setFromPoints( projectedPoints2D_A ), 
             new MeshBasicMaterial({ color: 0xff0000 }) 
         ));
 
         Game.scene?.scene.add(new LineLoop( 
-            new BufferGeometry().setFromPoints( projectedPoints3D_B ), 
+            new BufferGeometry().setFromPoints( projectedPoints2D_B ), 
             new MeshBasicMaterial({ color: 0x00ff00 }) 
+        ));
+            
+        Game.scene?.scene.add(new LineLoop( 
+            new BufferGeometry().setFromPoints( clippedPolygon ), 
+            new MeshBasicMaterial({ color: 0xff00ff }) 
         ));
 
         return {

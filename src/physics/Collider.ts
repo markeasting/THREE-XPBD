@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { Quat } from "./Quaternion";
+import { Face } from "./Face";
 import { Vec3 } from "./Vec3";
 import { Vec2 } from "./Vec2";
 import { Pose } from './Pose';
@@ -91,6 +92,8 @@ export class MeshCollider extends Collider {
 
     convexHull: Mesh;
 
+    faces: Face[] = [];
+
     setGeometry(geometry: BufferGeometry): this {
         
         // if normal and uv attributes are not removed, mergeVertices() 
@@ -127,6 +130,19 @@ export class MeshCollider extends Collider {
             this.vertices.push( vertex );
             this.indices.push(i);
             this.uniqueIndices.push(i);
+        }
+
+        for ( let i = 0; i < this.vertices.length; i += 3 ) {
+            const a = this.vertices[i + 0].clone();
+            const b = this.vertices[i + 1].clone();
+            const c = this.vertices[i + 2].clone();
+            this.faces.push(new Face(
+                [a, b, c], 
+                new Vec3()
+                    .subVectors(b, a)
+                    .cross(c.clone().sub(a))
+                    .normalize()
+            ));
         }
 
         for (let i = 0; i < this.vertices.length; i++) {
