@@ -181,21 +181,44 @@ export class XPBDSolver extends BaseSolver {
             if (!EPA)
                 return;
 
-            const { normal, p1, p2, d } = EPA;
+            const { normal, manifold, p1, p2, d } = EPA;
 
-            if (d <= 0.0)
-                return;
+            // if (d <= 0.0)
+            //     return;
 
-            const contact = new ContactSet(
-                A, 
-                B, 
-                normal.clone().negate(),
-                p1,
-                p2
-            );
+            /* Face-face contact */
+            if (manifold.length) {
 
-            contacts.push(contact);
-            this.debugContact(contact);
+                for (const item of manifold) {
+                    const contact = new ContactSet(
+                        A, 
+                        B, 
+                        normal.clone().negate(),
+                        item[0],
+                        item[1]
+                    );
+
+                    contacts.push(contact);
+                    this.debugContact(contact);
+                }
+
+            }
+
+            /* Edge-edge contact */
+            if (d > 0.0) {
+                const contact = new ContactSet(
+                    A, 
+                    B, 
+                    normal.clone().negate(),
+                    p1,
+                    p2
+                );
+
+                contacts.push(contact);
+                this.debugContact(contact);
+            }
+
+
         }
     }
 

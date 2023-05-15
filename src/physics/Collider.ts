@@ -149,6 +149,7 @@ export class MeshCollider extends Collider {
 
             this.faces.push(new Face(
                 [a, b, c],
+                [i + 0, i + 1, i + 2],
                 center, 
                 normal
             ));

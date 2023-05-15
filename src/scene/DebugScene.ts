@@ -11,9 +11,9 @@ export class DebugScene extends BaseScene {
 
         this.insert(new BaseDebugScene);
 
-        Box(3, 1, 3)
+        Box(3, 2, 3)
             .setWireframe(true)
-            .setPos(0, 0.5, 0)
+            .setPos(0, 1, 0)
             .addTo(this);
 
         Box(2, 1, 1)
@@ -77,6 +77,11 @@ export class DebugScene extends BaseScene {
         // this.scene.add(line2);
 
 
+    }
+    
+    public update(time: number, dt: number, keys: Record<string, boolean>): void {
+        if (keys.KeyA)
+            this.world.bodies[0].setRotation(0, time, 0);
     }
 
 }

@@ -94,7 +94,7 @@ export class ContactSet {
         this.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
         this.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
 
-        // this.update(); // Not really required at this point
+        this.update(); // Not really required at this point? Maybe only for clipping stuff
     }
 
     public update(): void {
