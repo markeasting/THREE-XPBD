@@ -7,6 +7,8 @@ import { Simplex } from "./Simplex";
 import { Support } from "./Support";
 import { Vec2 } from "../Vec2";
 import { Face } from "../Face";
+import { Quat } from "../Quaternion";
+import { Pose } from "../Pose";
 
 const inside = (cp1: Vec2, cp2: Vec2, p: Vec2): boolean => {
     return (cp2.x - cp1.x) * (p.y - cp1.y) > (cp2.y - cp1.y) * (p.x - cp1.x);
@@ -89,6 +91,9 @@ export class GjkEpa {
     private debugMinkowski: Mesh;
     private debugSimplex: Mesh;
     private debugPolytope: Mesh;
+    private debugFaceA: LineLoop;
+    private debugFaceB: LineLoop;
+    private debugFaceClipped: LineLoop;
     private debugNormal = new ArrowHelper();
 
     private debug = false;
@@ -291,7 +296,9 @@ export class GjkEpa {
     public EPA(
         simplex: Simplex,
         colliderA: Collider,
-        colliderB: Collider
+        colliderB: Collider,
+        transformA: Pose,
+        transformB: Pose,
     ) {
 
         const polytope: Support[] = [];
@@ -404,6 +411,9 @@ export class GjkEpa {
         if (this.debugMinkowski) Game.scene?.scene.remove(this.debugMinkowski);
         if (this.debugPolytope)  Game.scene?.scene.remove(this.debugPolytope);
         if (this.debugNormal)  Game.scene?.scene.remove(this.debugNormal);
+        if (this.debugFaceA)  Game.scene?.scene.remove(this.debugFaceA);
+        if (this.debugFaceB)  Game.scene?.scene.remove(this.debugFaceB);
+        if (this.debugFaceClipped)  Game.scene?.scene.remove(this.debugFaceClipped);
             
         /* Debug normal */
         if (Game.debugOverlay && this.debug) {
@@ -479,84 +489,124 @@ export class GjkEpa {
         if (colliderA instanceof MeshCollider) {
             for (let i = 0; i < colliderA.faces.length; i++) {
                 const face = colliderA.faces[i];
-                const dist = Vec3.dot(face.normal, minNormal)
-                contact_facesA.push({ face, dist });
+                const dirDot = Vec3.dot(face.normal, minNormal);
+                
+                if (dirDot > 0) {
+                    // contact_facesA.push({ face, dist: dirDot });
+                    const posDot = Vec3.dot(face.center, minNormal);
+                
+                    if (posDot > 0)
+                        contact_facesA.push({ face, dist: posDot });
+                }
             }
         }
         if (colliderB instanceof MeshCollider) {
             for (let i = 0; i < colliderB.faces.length; i++) {
                 const face = colliderB.faces[i];
-                const dist = Vec3.dot(face.normal, minNormal)
-                contact_facesB.push({ face, dist });
+                const dirDot = Vec3.dot(face.normal, minNormal);
+                
+                if (dirDot < 0) {
+                    // contact_facesB.push({ face, dist: dirDot });
+                    const posDot = Vec3.dot(face.center, minNormal);
+
+                    if (posDot < 0)
+                        contact_facesB.push({ face, dist: posDot });
+                }
             }
         }
-        contact_facesA.sort((a,b) => a.dist - b.dist);
-        contact_facesB.sort((a,b) => b.dist - a.dist);
+        contact_facesA.sort((a,b) => b.dist - a.dist);
+        contact_facesB.sort((a,b) => a.dist - b.dist);
 
         /* Clipping algorithm */
         const planePoint = p1; // ?????????
         const projectedPoints3D_A = contact_facesA[0].face.vertices;
-        const projectedPoints3D_B = contact_facesA[1].face.vertices;
+        const projectedPoints3D_B = contact_facesB[0].face.vertices;
 
         // Create a matrix to transform the points
         const transformMatrix = new Matrix4();
         transformMatrix.lookAt(planePoint, planePoint.clone().add(minNormal), new Vec3(0, 1, 0));
-
+        
         // Transform the 3D points to the 2D plane (z-coordinate becomes zero)
         const projectedPoints2D_A: Vec2[] = [];
         const projectedPoints2D_B: Vec2[] = [];
-        for (let i = 0; i < 3; i++) {
-            const pointA = projectedPoints3D_A[i];
-            const pointB = projectedPoints3D_B[i];
-
-            let v: Vec3;
-
-            v = pointA.clone().applyMatrix4(transformMatrix);
-            projectedPoints2D_A.push(new Vec2(v.x, v.y));
-
-            v = pointB.clone().applyMatrix4(transformMatrix);
-            projectedPoints2D_B.push(new Vec2(v.x, v.y));
-        }
         
-        const clippedPolygon = sutherland_hodgman(projectedPoints2D_A, projectedPoints2D_B);
-        console.log(clippedPolygon);
+        // Select 2 closest faces
+        for (let j = 0; j < 2; j++) {
 
-        /* Debug */
+            for (let i = 0; i < 3; i++) {
+                const pointA = contact_facesA[j].face.vertices[i].clone().applyQuaternion(transformA.q).add(transformA.p); // projectedPoints3D_A[i];
+                const pointB = contact_facesB[j].face.vertices[i].clone().applyQuaternion(transformB.q).add(transformB.p); // projectedPoints3D_B[i];
+
+                const v3d_A = pointA.clone().applyMatrix4(transformMatrix);
+                const v2d_A = new Vec2(v3d_A.x, v3d_A.y);
+                let v2d_A_unique = true;
+
+                const v3d_B = pointB.clone().applyMatrix4(transformMatrix);
+                const v2d_B = new Vec2(v3d_B.x, v3d_B.y);
+                let v2d_B_unique = true;
+
+                for (const vertex of projectedPoints2D_A) {
+                    if (vertex.distanceTo(v2d_A) < 0.001)
+                        v2d_A_unique = false;
+                }
+
+                for (const vertex of projectedPoints2D_B) {
+                    if (vertex.distanceTo(v2d_B) < 0.001)
+                        v2d_B_unique = false;
+                }
+
+                if (v2d_A_unique) projectedPoints2D_A.unshift(v2d_A);
+                if (v2d_B_unique) projectedPoints2D_B.unshift(v2d_B);
+            }
+        }
+
+        /* Swap points to make a convex shape again @TODO FIX above */
+        let temp = projectedPoints2D_A[3];
+        projectedPoints2D_A[3] = projectedPoints2D_A[2];
+        projectedPoints2D_A[2] = temp;
+
+        temp = projectedPoints2D_B[3];
+        projectedPoints2D_B[3] = projectedPoints2D_B[2];
+        projectedPoints2D_B[2] = temp;
+
+        const clippedPolygon: Vec2[] = sutherland_hodgman(projectedPoints2D_B, projectedPoints2D_A);
+        
+        /* Debug - convert clip back to world space */
         const clippedPolygon3D: Vec3[] = [];
         const inverseTransformMatrix = transformMatrix.clone().invert();
         for (const point2D of clippedPolygon) {
             const point3DHomogeneous = new Vec3(point2D.x, point2D.y, 0).applyMatrix4(inverseTransformMatrix);
-            const point3D = new Vec3(point3DHomogeneous.x, point3DHomogeneous.y, point3DHomogeneous.z);
+            const plane = new Plane(minNormal, -Vec3.dot(minNormal, p1));
+            const point3D = new Vec3();
+            plane.projectPoint(point3DHomogeneous, point3D);
             clippedPolygon3D.push(point3D);
         }
 
-        Game.scene?.scene.add(new LineLoop( 
+        this.debugFaceA = new LineLoop( 
             new BufferGeometry().setFromPoints( projectedPoints2D_A ), 
             new MeshBasicMaterial({ color: 0xff0000 }) 
-        ));
+        );
+        Game.scene?.scene.add(this.debugFaceA);
 
-        Game.scene?.scene.add(new LineLoop( 
+        this.debugFaceB = new LineLoop( 
             new BufferGeometry().setFromPoints( projectedPoints2D_B ), 
             new MeshBasicMaterial({ color: 0x00ff00 }) 
-        ));
+        );
+        Game.scene?.scene.add(this.debugFaceB);
             
-        Game.scene?.scene.add(new LineLoop( 
-            new BufferGeometry().setFromPoints( clippedPolygon ), 
+        this.debugFaceClipped = new LineLoop( 
+            new BufferGeometry().setFromPoints( clippedPolygon3D ), 
             new MeshBasicMaterial({ color: 0xff00ff }) 
-        ));
+        );
+        Game.scene?.scene.add(this.debugFaceClipped);
 
         return {
             normal: minNormal,
-            manifold: clippedPolygon3D,
+            // manifold: clippedPolygon3D,
             p1,
             p2,
             d: minDistance
         };
-    }
-
-    private sutherlandHodgmanClipping(triangle: Vec3[], edgeDir: Vec3) {
-        // const plane = new Plane(edgeDir);
-
     }
 
     private computeBarycentricCoordinates(P: Vec3, polygon: Support[]): Vec3 {

@@ -133,15 +133,24 @@ export class MeshCollider extends Collider {
         }
 
         for ( let i = 0; i < this.vertices.length; i += 3 ) {
-            const a = this.vertices[i + 0].clone();
-            const b = this.vertices[i + 1].clone();
-            const c = this.vertices[i + 2].clone();
+            const a = this.vertices[i + 0]; //.clone();
+            const b = this.vertices[i + 1]; //.clone();
+            const c = this.vertices[i + 2]; //.clone();
+
+            const center = new Vec3()
+                .addVectors(a, b)
+                .add(c)
+                .divideScalar(3);
+
+            const normal = new Vec3()
+                .subVectors(b, a)
+                .cross(c.clone().sub(a))
+                .normalize();
+
             this.faces.push(new Face(
-                [a, b, c], 
-                new Vec3()
-                    .subVectors(b, a)
-                    .cross(c.clone().sub(a))
-                    .normalize()
+                [a, b, c],
+                center, 
+                normal
             ));
         }
 

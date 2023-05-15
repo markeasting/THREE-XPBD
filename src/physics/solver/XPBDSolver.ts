@@ -176,12 +176,12 @@ export class XPBDSolver extends BaseSolver {
         const simplex = this.narrowPhase.GJK(A.collider, B.collider);
 
         if (simplex) {
-            const EPA = this.narrowPhase.EPA(simplex, A.collider, B.collider);
+            const EPA = this.narrowPhase.EPA(simplex, A.collider, B.collider, A.pose, B.pose);
 
             if (!EPA)
                 return;
 
-            const { normal, manifold, p1, p2, d } = EPA;
+            const { normal, p1, p2, d } = EPA;
 
             if (d <= 0.0)
                 return;

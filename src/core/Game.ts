@@ -38,7 +38,7 @@ export class Game {
     static sceneSelector: SceneSelector;
 
     static debugOverlay = true;
-    static stepPhysics = false;
+    static stepPhysics = true;
     
     public dt = 0;
     public time = 0;
