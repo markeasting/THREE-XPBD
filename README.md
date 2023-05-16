@@ -7,7 +7,7 @@ Demo: https://eastingandnorthing.github.io/three/
 
 ![](videos/ezgif-3-06fe46f4ea.gif)
 
-![](videos/ezgif-5-2ca49911fb.gif)
+![](videos/ezgif-1-0367741c60.gif)
 
 ## Development
 `npm install` - Install dependencies
@@ -24,18 +24,18 @@ Demo: https://eastingandnorthing.github.io/three/
 - [x] Rigid bodies
 - [x] `applyForce()`
 - [ ] `applyTorque()`
+- [ ] Body sleep feature
 
 ### Collision solver
 - [x] Penetration
-- [x] Restitution
-- [x] Friction
+- [x] Surface properties: friction & restitution
 - [x] Broad phase (AABB)
 - [x] Narrow phase (GJK / EPA)
 - [x] Convex hull generation
+- [x] Contact manifold generation / clipping algorithm
 - [ ] Broad phase (sorting algorithm)
 - [ ] Broad phase (spatial subdivision / octree)
 - [ ] Narrow phase (optimized primitives: spheres, capsules)
-- [ ] Contact manifold generation / clipping
 - [ ] Object pool for Vec3 instances
 
 ### Constraints
