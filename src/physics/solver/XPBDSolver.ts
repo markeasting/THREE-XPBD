@@ -11,7 +11,7 @@ import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 1;
+    private numSubsteps = 15;
 
     private narrowPhase = new GjkEpa();
     
@@ -181,44 +181,23 @@ export class XPBDSolver extends BaseSolver {
             if (!EPA)
                 return;
 
-            const { normal, manifold, p1, p2, d } = EPA;
+            const { normal, manifold, d } = EPA;
 
-            // if (d <= 0.0)
-            //     return;
+            if (d <= 0.0)
+                return;
 
-            /* Face-face contact */
-            if (manifold.length) {
-
-                for (const item of manifold) {
-                    const contact = new ContactSet(
-                        A, 
-                        B, 
-                        normal.clone().negate(),
-                        item[0],
-                        item[1]
-                    );
-
-                    contacts.push(contact);
-                    this.debugContact(contact);
-                }
-
-            }
-
-            /* Edge-edge contact */
-            if (d > 0.0) {
+            for (const item of manifold) {
                 const contact = new ContactSet(
-                    A, 
-                    B, 
-                    normal.clone().negate(),
-                    p1,
-                    p2
+                    A,
+                    B,
+                    normal,
+                    item[0],
+                    item[1]
                 );
 
                 contacts.push(contact);
                 this.debugContact(contact);
             }
-
-
         }
     }
 
