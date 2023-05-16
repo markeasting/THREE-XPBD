@@ -13,7 +13,8 @@ export class StackedBoxesScene extends BaseScene {
 
         /* Stacked boxes */
         for (let i = 0; i < 5; i++) {
-            Box(d)
+            Box(d, d, d, 5)
+                .setFriction(1, 1)
                 .setPos(0, (d - d/2 + 0.05) + d * i, 0)
                 .addTo(this);
         }
