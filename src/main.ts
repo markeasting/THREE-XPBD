@@ -5,6 +5,7 @@ import { DominosScene } from './scene/DominosScene';
 import { PendulumScene } from './scene/PendulumScene';
 import { RopeScene } from './scene/RopeScene';
 import { StackedBoxesScene } from './scene/StackedBoxesScene';
+import { JengaScene } from './scene/JengaScene';
 import { PlayGroundScene } from './scene/PlayGroundScene';
 import { DragonTailScene } from './scene/DragonTailScene';
 import { StressTestScene } from './scene/StressTestScene';
@@ -28,6 +29,7 @@ async function init() {
             'Playground': PlayGroundScene,
             'Dominos': DominosScene,
             'StackedBoxes': StackedBoxesScene,
+            'Jenga': JengaScene,
             'Constraints': ConstraintScene,
             'Rope': RopeScene,
             'DragonTail': DragonTailScene,
