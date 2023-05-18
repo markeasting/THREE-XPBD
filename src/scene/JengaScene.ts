@@ -14,7 +14,7 @@ export class JengaScene extends BaseScene {
         const l = 7.5 * scale;
         const h = 1.5 * scale;
         const w = 2.5 * scale;
-        const density = 10 * scale;
+        const density = 5 * scale;
 
         /* Jenga */
         for (let i = 0; i < 10; i++) {

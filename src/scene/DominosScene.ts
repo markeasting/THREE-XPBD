@@ -10,10 +10,9 @@ export class DominosScene extends BaseScene {
 
         /* Dominos */
         for (let i = 0; i < 20; i++) {
-            const b = Box(1, 2, 0.2)
+            const b = Box(1, 2, 0.2, 5)
                 .setPos(0, 1.0, -i * 1.0)
-                // .setFriction(0.7, 0.7)
-                .setFriction(1, 1)
+                .setFriction(0.7, 0.7)
                 .addTo(this);
 
             if (i == 0)
@@ -22,10 +21,10 @@ export class DominosScene extends BaseScene {
 
         /* BIG dominos */
         for (let i = 0; i < 10; i++) {
-            const size = 1 + i * 0.5;
+            const size = 1.5 + i * 0.6;
             const b = Box(1 * size, 2 * size, 0.4 * size/2)
-                .setPos(-7, 1.0 * size, -i * Math.pow(size, 0.5) * 1.0)
-                .setFriction(0.7, 0.7)
+                .setPos(-7, 1.0 * size, -i * Math.pow(size, 0.6) * 1.0)
+                .setFriction(0.4, 0.3)
                 .addTo(this);
 
             if (i == 0)
