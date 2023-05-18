@@ -448,6 +448,9 @@ export class RigidBody {
     }
 
     public wake(): this {
+        if (!this.isSleeping)
+            return this;
+
         this.isSleeping = false;
         this.sleepTimer = 0.0;
 
