@@ -12,7 +12,7 @@ Demo: https://eastingandnorthing.github.io/three/
 ## Development
 `npm install` - Install dependencies
 
-`npm run dev` - Runs the Vite.js dev server
+`npm run dev` - Runs the local dev server
 
 `npm run build` - Build the project
 
@@ -22,9 +22,9 @@ Demo: https://eastingandnorthing.github.io/three/
 - [x] XPBD update loop 
 - [x] XPBD World / body manager
 - [x] Rigid bodies
+- [x] Body 'sleep' feature
 - [x] `applyForce()`
 - [ ] `applyTorque()`
-- [ ] Body sleep feature
 
 ### Collision solver
 - [x] Penetration
