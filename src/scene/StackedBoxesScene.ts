@@ -9,25 +9,31 @@ export class StackedBoxesScene extends BaseScene {
 
         this.insert(new OmgScene);
 
-        const d = 1; // box size
+        const d = 1 // box size
 
         /* Stacked boxes */
         for (let i = 0; i < 5; i++) {
-            Box(d, d, d, 5)
+            Box(d, d, d, 1)
                 .setFriction(1, 1)
                 .setPos(0, (d - d/2 + 0.05) + d * i, 0)
                 .addTo(this);
         }
 
         /* Wall */
-        // for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 3; i++) {
 
-        //     for (let j = 0; j < 3; j++) {
-        //         Box(d)
-        //             .setPos(-3, (d/2) + d * i * 1.05, d * j * 1.05)
-        //             .addTo(this);
-        //     }
-        // }
+            for (let j = 0; j < 3; j++) {
+
+                for (let k = 0; k < 3; k++) {
+                    Box(d, d, d, 1)
+                        .setPos(
+                            -5 + d * k * 1.01, 
+                            (d/2) + d * i * 1.01, 
+                            d * j * 1.01)
+                        .addTo(this);
+                }
+            }
+        }
 
         this.addGround();
     }

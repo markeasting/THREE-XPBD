@@ -15,7 +15,7 @@ export class DebugScene extends BaseScene {
         Box(4, 2, 3)
             .setWireframe(true)
             .setPos(2, 2, 0)
-            .setRotation(0, 0, 0.2)
+            // .setRotation(0, 0, 0.2)
             .setStatic()
             .addTo(this);
 
