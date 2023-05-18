@@ -19,7 +19,7 @@ export class RigidBody {
     public canSleep = true;
     public sleepTimer = 0.0;
 
-    static sleepThreshold = 0.666;
+    static sleepThreshold = 1.0; // Seconds
     static debugSleepState = false;
 
     public mesh?: Mesh;
@@ -167,6 +167,8 @@ export class RigidBody {
         this.invInertia = new Vec3(0.0);
 
         this.prevPose.copy(this.pose); // Just in case pose was changed directly after setting static
+
+        this.collider.expanded_aabb.copy(this.collider.aabb);
 
         this.updateGeometry();
         this.updateCollider();
