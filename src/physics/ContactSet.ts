@@ -113,13 +113,12 @@ export class ContactSet {
         this.p1 = p1;
         this.p2 = p2;
 
-        /* Recalculate N -- Not really required */
-        // if (this.p1.distanceTo(p2) > 0.0001)
-        //     this.n = Vec3.sub(p2, p1).normalize();
-        // else
-        //     this.d = 0.0;
-
         /* (3.5) Penetration depth */
         this.d = -Vec3.dot(Vec3.sub(this.p1, this.p2), this.n);
+
+        if (this.d > 0.001) {
+            this.A.wake();
+            this.B.wake();
+        }
     }
 };
