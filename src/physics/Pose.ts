@@ -3,8 +3,8 @@ import { Quat } from "./Quaternion";
 
 export class Pose {
 
-    p: Vec3 // = new Vec3(0.0, 0.0, 0.0);
-    q: Quat // = new Quat(1.0, 0.0, 0.0, 0.0);
+    p: Vec3;
+    q: Quat;
 
     constructor(p: Vec3 = new Vec3(0, 0, 0), q: Quat = new Quat()) {
         this.p = p.clone();
@@ -17,11 +17,6 @@ export class Pose {
     }
 
     clone() {
-        // const newPose = new Pose();
-        // newPose.p = this.p.clone();
-        // newPose.q = this.q.clone();
-        // return newPose;
-
         return new Pose(this.p, this.q);
     }
 
@@ -38,7 +33,6 @@ export class Pose {
     }
 
     invRotate(v: Vec3): void {
-        // v = v * glm::conjugate(this->q);
         const inv = this.q.clone().conjugate();
         v.applyQuaternion(inv);
     }
