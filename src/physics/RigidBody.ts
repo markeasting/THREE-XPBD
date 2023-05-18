@@ -1,30 +1,36 @@
-import * as THREE from 'three'
 import { Pose } from './Pose';
 import { Vec3 } from './Vec3';
 import { Collider, MeshCollider } from './Collider';
 import { BaseScene } from '../scene/BaseScene';
 import { Quat } from './Quaternion';
 import { World } from './World';
-import { Euler } from 'three';
+import { Color, Euler, Mesh, MeshStandardMaterial } from 'three';
 
 export class RigidBody {
 
     public id: number = 0;
 
-    public mesh?: THREE.Mesh;
+    public pose = new Pose();
+
+    public isDynamic = true;
+    public canCollide = true;
+
+    public isSleeping = false;
+    public canSleep = true;
+    public sleepTimer = 0.0;
+
+    static sleepThreshold = 0.666;
+    static debugSleepState = false;
+
+    public mesh?: Mesh;
     public collider: Collider;
 
-    public pose = new Pose();
-    public prevPose = new Pose();
-
-    public vel = new Vec3(0.0, 0.0, 0.0);
-    public omega = new Vec3(0.0, 0.0, 0.0);
-
-    public velPrev = new Vec3(0.0, 0.0, 0.0);
-    public omegaPrev = new Vec3(0.0, 0.0, 0.0);
+    public vel = new Vec3(0, 0, 0);
+    public omega = new Vec3(0, 0, 0);
 
     private invMass = 1.0;
     private invInertia = new Vec3(1.0, 1.0, 1.0);
+
     public get mass(): number { return 1 / this.invMass; }
     public get inertia(): Vec3 { return new Vec3().set(
         1.0  / this.invInertia.x, 
@@ -38,14 +44,16 @@ export class RigidBody {
 
     public staticFriction = 0.5;
     public dynamicFriction = 0.4;
-    public restitution = 0.4; // coefficient of restitution (e)
-
-    public isDynamic = true;
-    public canCollide = true;
+    public restitution = 0.4;
 
     static maxRotationPerSubstep = 0.5;
 
-    constructor(collider: Collider, mesh?: THREE.Mesh) {
+    // 'private':
+    public prevPose = new Pose();
+    public velPrev = new Vec3(0, 0, 0);
+    public omegaPrev = new Vec3(0, 0, 0);
+
+    constructor(collider: Collider, mesh?: Mesh) {
         this.collider = collider;
 
         if (mesh) {
@@ -69,7 +77,7 @@ export class RigidBody {
         return this;
     }
 
-    public setMesh(mesh: THREE.Mesh, applyTransform = true): this {
+    public setMesh(mesh: Mesh, applyTransform = true): this {
         this.mesh = mesh;
         mesh.userData.physicsBody = this;
 
@@ -87,15 +95,15 @@ export class RigidBody {
 
     public setWireframe(state = false): this {
         if (this.mesh)
-            (this.mesh.material as THREE.MeshStandardMaterial).wireframe = true;
+            (this.mesh.material as MeshStandardMaterial).wireframe = true;
 
         return this;
-    }
+}
 
     public setRandomColor(): this {
         if (this.mesh) {
-            const mat = (this.mesh.material as THREE.MeshStandardMaterial);
-            mat.color = new THREE.Color().setHSL(Math.random(), 1.0, 0.7);
+            const mat = (this.mesh.material as MeshStandardMaterial);
+            mat.color = new Color().setHSL(Math.random(), 1.0, 0.7);
         }
 
         return this;
@@ -158,7 +166,7 @@ export class RigidBody {
         this.invMass = 0.0;
         this.invInertia = new Vec3(0.0);
 
-        this.prevPose.copy(this.pose); // Just in case pose was changed directly
+        this.prevPose.copy(this.pose); // Just in case pose was changed directly after setting static
 
         this.updateGeometry();
         this.updateCollider();
@@ -185,7 +193,7 @@ export class RigidBody {
         const r2 = Math.pow(height, 2);
         const h2 = Math.pow(radius, 2);
 
-        let mass = Math.PI * r2 * height * density
+        const mass = Math.PI * r2 * height * density
         this.invMass = 1.0 / mass;
 
         const I_axial = 0.5 * mass * r2;
@@ -212,7 +220,7 @@ export class RigidBody {
         if (!this.isDynamic)
             return 0;
 
-        let n = new Vec3();
+        const n = new Vec3();
 
         if (pos === null)
             n.copy(normal);
@@ -239,7 +247,7 @@ export class RigidBody {
         if (!this.isDynamic)
             return;
 
-        let dq = new Vec3();
+        const dq = new Vec3();
 
         if (pos === null)
             dq.copy(corr);
@@ -266,22 +274,21 @@ export class RigidBody {
         else
             this.applyRotation(dq);
 
-        // @TODO remove later
-        // this.updateGeometry();
+        // @TODO check if this improves stability
         // this.updateCollider();
     }
 
     public applyRotation(rot: Vec3, scale: number = 1.0): void {
 
-        // safety clamping. This happens very rarely if the solver
+        // Safety clamping. This happens very rarely if the solver
         // wants to turn the body by more than 30 degrees in the
         // orders of milliseconds
-        let maxPhi = 0.5;
-        let phi = rot.length();
-        if (phi * scale > RigidBody.maxRotationPerSubstep)
-            scale = RigidBody.maxRotationPerSubstep / phi;
+        const maxPhi = 0.5;
+        const phi = rot.length();
+        if (phi * scale > maxPhi)
+            scale = maxPhi / phi;
 
-        let dq = new Quat(
+        const dq = new Quat(
             rot.x * scale,
             rot.y * scale,
             rot.z * scale,
@@ -299,42 +306,38 @@ export class RigidBody {
     }
 
     public integrate(dt: number, gravity: Vec3): void {
+
         if (!this.isDynamic)
             return;
-
-        // @TODO apply force here
-        // this->vel += glm::vec3(0, this->gravity, 0) * dt;
-        // this->vel += this->force * this->invMass * dt;
-        // this->omega += this->torque * this->invInertia * dt;
-        // this->pose.p += this->vel * dt;
-        // this->applyRotation(this->omega, dt);
 
         this.prevPose.copy(this.pose);
 
+        if (this.isSleeping)
+            return;
+
+        /* Euler step */
         this.vel.add(Vec3.mul(gravity, this.gravity * dt));
         this.vel.add(Vec3.mul(this.force, this.invMass * dt));
-        this.omega.addScaledVector(this.torque.clone().multiply(this.invInertia), dt);
         this.pose.p.addScaledVector(this.vel, dt);
+        
+        this.omega.addScaledVector(this.torque.clone().multiply(this.invInertia), dt);
         this.applyRotation(this.omega, dt);
-
-        // this.prevPose.copy(this.pose);
-        // this.vel.addScaledVector(gravity, dt);
-        // this.pose.p.addScaledVector(this.vel, dt);
-        // this.applyRotation(this.omega, dt);
     }
 
     public update(dt: number): void {
+
         if (!this.isDynamic)
             return;
 
-        // Store the current velocities (this is needed for the velocity solver)
+        /* Store the current velocities (required for the velocity solver) */
         this.velPrev.copy(this.vel);
         this.omegaPrev.copy(this.omega);
 
+        /* Calculate velocity based on position change */
         this.vel.subVectors(this.pose.p, this.prevPose.p);
         this.vel.multiplyScalar(1.0 / dt);
 
-        let dq = new Quat;
+        const dq = new Quat;
         dq.multiplyQuaternions(this.pose.q, this.prevPose.q.conjugate());
 
         this.omega.set(
@@ -345,23 +348,13 @@ export class RigidBody {
 
         if (dq.w < 0.0)
             this.omega.set(-this.omega.x, -this.omega.y, -this.omega.z);
-
-        // this.omega.multiplyScalar(1.0 - 1.0 * dt);
-        // this.vel.multiplyScalar(1.0 - 1.0 * dt);
-
-        // if (this.vel.length() < 0.005)
-        //     this.vel.multiplyScalar(0);
-
-        // if (this.omega.length() < 0.005)
-        //     this.omega.multiplyScalar(0);
-
-        // @TODO maybe only update collider,
-        // leave mesh to update only once per frame (after substeps)
-        // this.updateGeometry();
+        
         this.updateCollider();
     }
 
     public applyForceW(force: Vec3, worldPos: Vec3 = new Vec3(0,0,0)) {
+        this.wake();
+
         const F = force.clone();
 
         this.force.add(F);
@@ -369,6 +362,10 @@ export class RigidBody {
     }
 
     public updateGeometry() {
+        
+        if (this.isSleeping)
+            return;
+
         if (this.mesh) {
             this.mesh.position.copy(this.pose.p);
             this.mesh.quaternion.copy(this.pose.q);
@@ -396,6 +393,68 @@ export class RigidBody {
             .copy(v)
             .sub(this.pose.p)
             .applyQuaternion(this.pose.q.clone().conjugate())
+    }
+
+    public checkSleepState(dt: number) {
+
+        if (!this.canSleep)
+            return;
+
+        const velLen = this.vel.lengthSq();
+        const omegaLen = this.omega.lengthSq();
+        
+        const thresh = 0.001;
+        
+        if (this.isSleeping) {
+            if (velLen > thresh || omegaLen > thresh)
+                this.wake();
+        } else {
+            if (velLen < 5 * thresh) {
+                this.vel.multiplyScalar(1.0 - 10.0 * dt);
+            }
+            if (omegaLen < 5 * thresh) {
+                this.omega.multiplyScalar(1.0 - 10.0 * dt);
+            }
+
+            if (velLen < thresh && omegaLen < thresh) {
+                if (this.sleepTimer > RigidBody.sleepThreshold) {
+                    this.sleep();
+                } else {
+                    this.sleepTimer += dt;
+                }
+            }
+        }
+    }
+
+    public sleep(): this {
+        if (this.isSleeping)
+            return this;
+
+        this.vel.set(0, 0, 0);
+        this.omega.set(0, 0, 0);
+        this.velPrev.set(0, 0, 0);
+        this.omegaPrev.set(0, 0, 0);
+
+        this.isSleeping = true;
+
+        if (RigidBody.debugSleepState) {
+            const mat = (this.mesh?.material as MeshStandardMaterial);
+            mat.color = new Color(0x007777);
+        }
+        
+        return this;
+    }
+
+    public wake(): this {
+        this.isSleeping = false;
+        this.sleepTimer = 0.0;
+
+        if (RigidBody.debugSleepState) {
+            const mat = (this.mesh?.material as MeshStandardMaterial);
+            mat.color = new Color(0x00ffff);
+        }
+
+        return this;
     }
 
 }

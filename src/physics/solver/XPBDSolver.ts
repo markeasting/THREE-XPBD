@@ -11,7 +11,7 @@ import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 15;
+    private numSubsteps = 20;
 
     private narrowPhase = new GjkEpa();
     
@@ -23,7 +23,9 @@ export class XPBDSolver extends BaseSolver {
         super();
 
         Game.gui.solver.add(Game, 'stepPhysics').name('Step (space)');
-        Game.gui.solver.add(this, 'numSubsteps', 1, 30);
+        Game.gui.solver.add(this, 'numSubsteps', 1, 30).step(1);
+        Game.gui.solver.add(RigidBody, 'sleepThreshold', 0, 5).step(0.05).name('Sleep threshold (s)');
+        Game.gui.debug.add(RigidBody, 'debugSleepState').name('Sleep state');
         Game.gui.solver.add(this, 'collisionCount').listen();
     }
 
@@ -73,7 +75,13 @@ export class XPBDSolver extends BaseSolver {
             this.solveVelocities(contacts, h);
         }
 
+        /* Slower update (non-substepped) */
         for (const body of bodies) {
+
+            body.checkSleepState(dt);
+
+            if (body.isSleeping || !body.isDynamic)
+                continue;
 
             /* (3.5) k * dt * vbody */
             body.collider.expanded_aabb
@@ -102,10 +110,10 @@ export class XPBDSolver extends BaseSolver {
                 if (!B.canCollide)
                     continue;
 
-                if (!A.isDynamic && !B.isDynamic)
+                if (A.id == B.id)
                     continue;
 
-                if (A.id == B.id)
+                if ((!A.isDynamic || A.isSleeping) && (!B.isDynamic || B.isSleeping))
                     continue;
 
                 /* (3.5) k * dt * vbody */

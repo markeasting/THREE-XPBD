@@ -90,9 +90,15 @@ export class ContactSet {
         );
         this.vn = this.vrel.dot(this.n);
 
-        this.e = 0.5 * (A.restitution + B.restitution);
-        this.staticFriction = 0.5 * (A.staticFriction + B.staticFriction);
-        this.dynamicFriction = 0.5 * (A.dynamicFriction + B.dynamicFriction);
+        /* Option 1: Multiply surface properties */
+        // this.e = A.restitution * B.restitution;
+        // this.staticFriction = A.staticFriction * B.staticFriction;
+        // this.dynamicFriction = A.dynamicFriction * B.dynamicFriction;
+
+        /* Option 2: Average surface properties */
+        this.e = (A.restitution + B.restitution) / 2.0;
+        this.staticFriction = (A.staticFriction + B.staticFriction) / 2.0;
+        this.dynamicFriction = (A.dynamicFriction + B.dynamicFriction) / 2.0;
 
         this.update(); // Not really required at this point? Maybe only for clipping stuff
     }

@@ -41,9 +41,9 @@ export class World {
     constructor() {
         this.solver = new XPBDSolver();
 
-        Game.gui.physics.add(this.gravity, 'x', -10, 10).step(0.1).name('Gravity x');
-        Game.gui.physics.add(this.gravity, 'y', -10, 10).step(0.1).name('Gravity y');
-        Game.gui.physics.add(this.gravity, 'z', -10, 10).step(0.1).name('Gravity z');
+        Game.gui.physics.add(this.gravity, 'x', -50, 50).step(0.1).name('Gravity x');
+        Game.gui.physics.add(this.gravity, 'y', -50, 50).step(0.1).name('Gravity y');
+        Game.gui.physics.add(this.gravity, 'z', -50, 50).step(0.1).name('Gravity z');
 
         Game.gui.debug.add(World, 'enableDebugAABBs').name('AABBs');
         Game.gui.debug.add(World, 'enableDebugConvexHulls').name('Convex hulls');
@@ -70,6 +70,8 @@ export class World {
 
                 if (!e.body)
                     return;
+
+                e.body.wake();
         
                 // const screenPos = Vec3.mul(e.ray.origin as Vec3, e.intersection.distance);
                 this.#grabDistance = e.intersection.distance;
@@ -116,6 +118,9 @@ export class World {
         this.solver.update(this.#bodies, this.#constraintsFast, dt, this.gravity);
 
         if (this.#grabConstraint) {
+            this.#grabConstraint.body0?.wake();
+            this.#grabConstraint.body1?.wake();
+
             const F = this.#grabConstraint?.getForce(XPBDSolver.h).length().toFixed(2)
             document.getElementById('constraint-force')!.innerText = `Grab force: ${F} N`;
         }
