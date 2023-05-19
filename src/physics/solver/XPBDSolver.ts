@@ -6,12 +6,12 @@ import { Vec3 } from "../Vec3";
 import { ColliderType, MeshCollider, PlaneCollider } from "../Collider";
 import { BaseSolver } from './BaseSolver';
 import { BaseConstraint } from '../constraint/BaseConstraint';
-import { GjkEpa } from '../gjk-epa/GjkEpa';
+import { GjkEpa } from '../narrowphase/GjkEpa';
 import { Game } from '../../core/Game';
 
 export class XPBDSolver extends BaseSolver {
 
-    private numSubsteps = 20;
+    public static numSubsteps = 20;
 
     private narrowPhase = new GjkEpa();
     
@@ -23,7 +23,7 @@ export class XPBDSolver extends BaseSolver {
         super();
 
         Game.gui.solver.add(Game, 'stepPhysics').name('Step (space)');
-        Game.gui.solver.add(this, 'numSubsteps', 1, 30).step(1);
+        Game.gui.solver.add(XPBDSolver, 'numSubsteps', 1, 30).step(1);
         Game.gui.solver.add(RigidBody, 'sleepThreshold', 0, 5).step(0.05).name('Sleep threshold (s)');
         Game.gui.debug.add(RigidBody, 'debugSleepState').name('Sleep state');
         Game.gui.solver.add(this, 'collisionCount').listen();
@@ -37,7 +37,7 @@ export class XPBDSolver extends BaseSolver {
             return;
 
         // const h = dt / this.numSubsteps;
-        const h = (1 / 60) / this.numSubsteps;
+        const h = (1 / 60) / XPBDSolver.numSubsteps;
         
         /* Used to calculate constraint forces */
         XPBDSolver.h = h; 
@@ -50,7 +50,7 @@ export class XPBDSolver extends BaseSolver {
         const collisions = this.collectCollisionPairs(bodies, dt);
         this.collisionCount = collisions.length;
 
-        for (let i = 0; i < this.numSubsteps; i++) {
+        for (let i = 0; i < XPBDSolver.numSubsteps; i++) {
 
             /* (3.5)
              * At each substep we iterate through the pairs
@@ -78,9 +78,12 @@ export class XPBDSolver extends BaseSolver {
         /* Slower update (non-substepped) */
         for (const body of bodies) {
 
+            if (!body.isDynamic)
+                continue;
+
             body.checkSleepState(dt);
 
-            if (body.isSleeping || !body.isDynamic)
+            if (body.isSleeping)
                 continue;
 
             /* (3.5) k * dt * vbody */
@@ -203,8 +206,10 @@ export class XPBDSolver extends BaseSolver {
                     item[1]
                 );
 
-                contacts.push(contact);
-                this.debugContact(contact);
+                // if (contact.d >= 0.0) {
+                    contacts.push(contact);
+                    this.debugContact(contact);
+                // }
             }
         }
     }

@@ -9,7 +9,8 @@ import { Vec2 } from "../Vec2";
 import { Face } from "../Face";
 import { Quat } from "../Quaternion";
 import { Pose } from "../Pose";
-import { SutherlandHodgmanClipping } from "../util/clipping";
+import { SutherlandHodgmanClipping } from "./SutherlandHodgmanClipping";
+import { GrahamScan } from "./GrahamScan";
 
 /**
  * https://blog.winter.dev/2020/gjk-algorithm/
@@ -426,7 +427,7 @@ export class GjkEpa {
                 const face = colliderA.faces[i];
                 const dirDot = Vec3.dot(face.normal, localNormalA);
                 
-                if (dirDot > 0.99999) {
+                if (dirDot > 0.999999) {
                     const posDot = Vec3.dot(face.center, localNormalA);
                 
                     if (posDot > 0)
@@ -439,7 +440,7 @@ export class GjkEpa {
                 const face = colliderB.faces[i];
                 const dirDot = Vec3.dot(face.normal, localNormalB);
                 
-                if (dirDot < -0.99999) {
+                if (dirDot < -0.999999) {
                     const posDot = Vec3.dot(face.center, localNormalB);
 
                     if (posDot < 0)
@@ -458,55 +459,58 @@ export class GjkEpa {
             transformMatrix.makeRotationFromQuaternion(new Quat().setFromUnitVectors(minNormal, new Vec3(0, 0, 1)));
 
             /* Transform the 3D points to the 2D plane (z-coordinate becomes zero) */
-            const projectedPoints2D_A: Vec2[] = [];
-            const projectedPoints2D_B: Vec2[] = [];
+            let projectedPoints2D_A: Vec2[] = [];
+            let projectedPoints2D_B: Vec2[] = [];
             
-            /* Select 2 closest faces */
             contact_facesA.sort((a,b) => b.dist - a.dist);
             contact_facesB.sort((a,b) => a.dist - b.dist);
 
-            for (let j = 0; j < Math.min(contact_facesA.length, contact_facesB.length, 2); j++) {
+            for (let j = 0; j < contact_facesA.length; j++) {
 
                 /* Project 3D points into 2D space */
                 for (let i = 0; i < 3; i++) {
                     const pointA = colliderA.verticesWorldSpace[contact_facesA[j].face.indices[i]];
-                    const pointB = colliderB.verticesWorldSpace[contact_facesB[j].face.indices[i]];
 
-                    const v3d_A = pointA.clone().applyMatrix4(transformMatrix);
-                    const v2d_A = new Vec2(v3d_A.x, v3d_A.y);
-                    let v2d_A_unique = true;
-
-                    const v3d_B = pointB.clone().applyMatrix4(transformMatrix);
-                    const v2d_B = new Vec2(v3d_B.x, v3d_B.y);
-                    let v2d_B_unique = true;
+                    const v3d = pointA.clone().applyMatrix4(transformMatrix);
+                    const v2d = new Vec2(v3d.x, v3d.y);
+                    let v2d_unique = true;
 
                     for (const vertex of projectedPoints2D_A) {
-                        if (vertex.distanceTo(v2d_A) < 0.001)
-                            v2d_A_unique = false;
+                        if (vertex.distanceTo(v2d) < 0.001)
+                            v2d_unique = false;
                     }
 
-                    for (const vertex of projectedPoints2D_B) {
-                        if (vertex.distanceTo(v2d_B) < 0.001)
-                            v2d_B_unique = false;
-                    }
-
-                    /* Make sure points are convex / a closed loop */
-                    if (i > 1) {
-                        if (v2d_A_unique) projectedPoints2D_A.push(v2d_A);
-                        if (v2d_B_unique) projectedPoints2D_B.push(v2d_B);
-                    } else {
-                        if (v2d_A_unique) projectedPoints2D_A.unshift(v2d_A);
-                        if (v2d_B_unique) projectedPoints2D_B.unshift(v2d_B);
-                    }
+                    if (v2d_unique) projectedPoints2D_A.push(v2d);
                 }
             }
+
+            for (let j = 0; j < contact_facesB.length; j++) {
+
+                /* Project 3D points into 2D space */
+                for (let i = 0; i < 3; i++) {
+                    const pointB = colliderB.verticesWorldSpace[contact_facesB[j].face.indices[i]];
+
+                    const v3d = pointB.clone().applyMatrix4(transformMatrix);
+                    const v2d = new Vec2(v3d.x, v3d.y);
+                    let v2d_unique = true;
+
+                    for (const vertex of projectedPoints2D_B) {
+                        if (vertex.distanceTo(v2d) < 0.001)
+                            v2d_unique = false;
+                    }
+
+                    if (v2d_unique) projectedPoints2D_B.push(v2d);
+                }
+            }
+
+            /* Make sure each 2d face projection is convex */
+            const gs = new GrahamScan();
+            projectedPoints2D_A = gs.setPoints(projectedPoints2D_A).getHull();
+            projectedPoints2D_B = gs.setPoints(projectedPoints2D_B).getHull();
 
             /* Perform Sutherland-Hodgman clipping algorithm */
             let clippedPolygon2D: Vec2[] = SutherlandHodgmanClipping(projectedPoints2D_B, projectedPoints2D_A);
 
-            // if (clippedPolygon2D.length == 0)
-            //     clippedPolygon2D = SutherlandHodgmanClipping(projectedPoints2D_A, projectedPoints2D_B);
-            
             /* Convert back from 2D clip space to 3D world space */
             const inverseTransformMatrix = transformMatrix.clone().invert();
 
@@ -517,6 +521,7 @@ export class GjkEpa {
             const worldPoint_B = colliderB.verticesWorldSpace[contact_facesB[0].face.indices[0]];
             const planeA = new Plane(worldFaceNormal_A, -Vec3.dot(worldFaceNormal_A, worldPoint_A));
             const planeB = new Plane(worldFaceNormal_B, -Vec3.dot(worldFaceNormal_B, worldPoint_B));
+            // const plane = new Plane(minNormal, -Vec3.dot(minNormal, colliderA.verticesWorldSpace[contact_facesA[0].face.indices[0]]));
             
             const clippedPolygon3D_A: Array<Vec3> = []; // Debug only
             const clippedPolygon3D_B: Array<Vec3> = []; // Debug only
@@ -550,11 +555,11 @@ export class GjkEpa {
                 );
                 Game.scene?.scene.add(this.debugFaceB);
                     
-                // this.debugFaceAClipped = new LineLoop( 
-                //     new BufferGeometry().setFromPoints( clippedPolygon3D_A ), 
-                //     new LineBasicMaterial({ color: 0x00ffff, linewidth: 2 })
-                // );
-                // Game.scene?.scene.add(this.debugFaceAClipped);
+                this.debugFaceAClipped = new LineLoop( 
+                    new BufferGeometry().setFromPoints( clippedPolygon3D_A ), 
+                    new LineBasicMaterial({ color: 0x00ffff, linewidth: 2 })
+                );
+                Game.scene?.scene.add(this.debugFaceAClipped);
 
                 this.debugFaceBClipped = new LineLoop( 
                     new BufferGeometry().setFromPoints( clippedPolygon3D_B ), 
@@ -564,13 +569,13 @@ export class GjkEpa {
             }
         }
 
-        /* No face-face contact manifold was found - compute edge-edge contact instead */
+        /* No face-face contact manifold was found - compute EPA contact point instead */
         if (!manifold.length) {
 
             /* Contact point on the EPA polytope boundary */
             const contactPoint = Vec3.mul(minNormal, minDistance);
             
-            /* Compute barycentric coordinates of the contact points on the nearest face */
+            /* Compute barycentric coordinates of the contact points on the nearest polytope face */
             const barycentric = this.computeBarycentricCoordinates(contactPoint, minPolygon);
 
             /* Find the world space contact points on the original shapes */

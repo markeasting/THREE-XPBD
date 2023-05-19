@@ -116,9 +116,16 @@ export class ContactSet {
         /* (3.5) Penetration depth */
         this.d = -Vec3.dot(Vec3.sub(this.p1, this.p2), this.n);
 
-        if (this.d > 0.001) {
-            this.A.wake();
-            this.B.wake();
-        }
+        /**
+         * For stable contact, clamp maximum penetration depth
+         * Only applied when relative velocity is very low. 
+         */
+        // if (this.vrel.lengthSq() < 0.1) {
+        //     if (this.d > 0.0001) {
+        //         this.d = Math.min(this.d, 0.001);
+        //         this.A.wake();
+        //         this.B.wake();
+        //     }
+        // }
     }
 };

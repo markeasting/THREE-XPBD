@@ -19,8 +19,8 @@ export class RigidBody {
     public canSleep = true;
     public sleepTimer = 0.0;
 
-    static sleepThreshold = 1.0; // Seconds
-    static debugSleepState = false;
+    static sleepThreshold = 0.666; // Seconds
+    static debugSleepState = true;
 
     public mesh?: Mesh;
     public collider: Collider;
@@ -219,6 +219,7 @@ export class RigidBody {
     }
 
     public getInverseMass(normal: Vec3, pos: Vec3 | null = null): number {
+        
         if (!this.isDynamic)
             return 0;
 
@@ -328,7 +329,7 @@ export class RigidBody {
 
     public update(dt: number): void {
 
-        if (!this.isDynamic)
+        if (!this.isDynamic || this.isSleeping)
             return;
 
         /* Store the current velocities (required for the velocity solver) */
@@ -350,7 +351,13 @@ export class RigidBody {
 
         if (dq.w < 0.0)
             this.omega.set(-this.omega.x, -this.omega.y, -this.omega.z);
-        
+
+        /* Apply damping when velocity is low */
+        if (this.vel.lengthSq() < 0.00001) {
+            this.vel.multiplyScalar(0);
+            // this.vel.multiplyScalar(1.0 - 10.0 * dt);
+        }
+
         this.updateCollider();
     }
 
@@ -364,9 +371,6 @@ export class RigidBody {
     }
 
     public updateGeometry() {
-        
-        if (this.isSleeping)
-            return;
 
         if (this.mesh) {
             this.mesh.position.copy(this.pose.p);
@@ -397,6 +401,12 @@ export class RigidBody {
             .applyQuaternion(this.pose.q.clone().conjugate())
     }
 
+    public setCanSleep(state = true): this {
+        this.canSleep = state;
+
+        return this;
+    }
+
     public checkSleepState(dt: number) {
 
         if (!this.canSleep)
@@ -411,13 +421,6 @@ export class RigidBody {
             if (velLen > thresh || omegaLen > thresh)
                 this.wake();
         } else {
-            if (velLen < 5 * thresh) {
-                this.vel.multiplyScalar(1.0 - 10.0 * dt);
-            }
-            if (omegaLen < 5 * thresh) {
-                this.omega.multiplyScalar(1.0 - 10.0 * dt);
-            }
-
             if (velLen < thresh && omegaLen < thresh) {
                 if (this.sleepTimer > RigidBody.sleepThreshold) {
                     this.sleep();
