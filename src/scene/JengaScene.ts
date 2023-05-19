@@ -3,6 +3,7 @@ import { OmgScene } from './components/OmgScene';
 import { BaseLightingScene } from './components/BaseLightingScene';
 import { Vec3 } from '../physics/Vec3';
 import { Box } from '../physics/body/Box';
+import { XPBDSolver } from '../physics/solver/XPBDSolver';
 
 export class JengaScene extends BaseScene {
 
@@ -10,11 +11,13 @@ export class JengaScene extends BaseScene {
 
         this.insert(new BaseLightingScene);
 
+        // XPBDSolver.numSubsteps = 30;
+
         const scale = 0.5;
         const l = 7.5 * scale;
         const h = 1.5 * scale;
         const w = 2.5 * scale;
-        const density = 5 * scale;
+        const density = 1 * scale;
 
         /* Jenga */
         for (let i = 0; i < 10; i++) {
@@ -43,6 +46,11 @@ export class JengaScene extends BaseScene {
                 b.addTo(this);
             }
         }
+
+        // Box(100, 1, 100)
+        //     .setPos(0, -0.5, 0)
+        //     .setStatic()
+        //     .addTo(this);
 
         this.addGround();
     }

@@ -2,9 +2,11 @@ import { BaseScene } from './BaseScene';
 import { BaseDebugScene } from './components/BaseDebugScene';
 import { Vec3 } from '../physics/Vec3';
 import { Box } from '../physics/body/Box';
-import { BufferGeometry, Line, LineLoop, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry } from 'three';
+import { BufferGeometry, Color, CylinderGeometry, Line, LineLoop, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry } from 'three';
 import { Vec2 } from '../physics/Vec2';
 import { Tetra } from '../physics/body/Tetra';
+import { RigidBody } from '../physics/RigidBody';
+import { MeshCollider } from '../physics/Collider';
 
 export class DebugScene extends BaseScene {
 
@@ -15,23 +17,45 @@ export class DebugScene extends BaseScene {
         Box(4, 2, 3)
             .setWireframe(true)
             .setPos(2, 2, 0)
-            // .setRotation(0, 0, 0.2)
+            .setCanSleep(false)
+            .setRotation(0, 0, 0.2)
             .setStatic()
             .addTo(this);
 
-        Box(1, 1, 2)
-            .setWireframe(true)
-            .setPos(2, 4, 0)
-            .addTo(this);
+        // Box(1, 1, 2)
+        //     .setWireframe(true)
+        //     // .setCanSleep(false)
+        //     .setPos(2, 4, 0)
+        //     .addTo(this);
 
         // Tetra(1)
         //     .setWireframe(true)
+        //     .setCanSleep(false)
         //     .setPos(2, 5, 0)
         //     .addTo(this);
 
-        const d = 1; // box size
+        const coinSize = new Vec2(1, 1);
+        const coinMesh = new Mesh(
+            new CylinderGeometry(coinSize.x, coinSize.x, coinSize.y, 12, 1),
+            new MeshBasicMaterial({
+                wireframe: true,
+                color: new Color().setHSL(0.5, 1, 0.5),
+            }),
+        );
+        
+        new RigidBody(
+                new MeshCollider().setGeometry(coinMesh.geometry)
+            )
+            .setMesh(coinMesh)
+            .setPos(2, 4, 0)
+            .setCanSleep(false)
+            .setCylinder(coinSize.x, coinSize.y, 1)
+            .addTo(this);
+    
 
+            
         /* Stacked boxes */
+        const d = 1; // box size
         // for (let i = 0; i < 6; i++) {
         //     Box(d, d, d, 10)
         //         .setWireframe(true)
