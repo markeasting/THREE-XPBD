@@ -13,7 +13,7 @@ export class JengaScene extends BaseScene {
 
         // XPBDSolver.numSubsteps = 30;
 
-        const scale = 0.5;
+        const scale = 1;
         const l = 7.5 * scale;
         const h = 1.5 * scale;
         const w = 2.5 * scale;
