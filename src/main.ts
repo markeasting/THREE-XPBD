@@ -9,6 +9,7 @@ import { JengaScene } from './scene/JengaScene';
 import { PlayGroundScene } from './scene/PlayGroundScene';
 import { DragonTailScene } from './scene/DragonTailScene';
 import { StressTestScene } from './scene/StressTestScene';
+import { FrictionScene } from './scene/FrictionScene';
 
 import './style.css'
 
@@ -30,6 +31,7 @@ async function init() {
             'Dominos': DominosScene,
             'StackedBoxes': StackedBoxesScene,
             'Jenga': JengaScene,
+            'Friction': FrictionScene,
             'Constraints': ConstraintScene,
             'Rope': RopeScene,
             'DragonTail': DragonTailScene,
