@@ -8,6 +8,7 @@ import { Vec3 } from '../physics/Vec3';
 import { World } from '../physics/World';
 import { PlaneCollider } from '../physics/Collider';
 import { Vec2 } from '../physics/Vec2';
+import { GUI } from 'dat.gui';
 
 export interface SceneInterface {
     onActivate(): void;
@@ -30,12 +31,14 @@ export class BaseScene implements SceneInterface {
 
     public initialized = false;
 
+    public gui: GUI;
+
     constructor() {
         this.scene  = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(70, 1, 0.1, 5000);
 
         this.orbitControls = new OrbitControls(this.camera, document.getElementById('canvas') as HTMLCanvasElement);
-
+        
         if (localStorage.getItem('cam')) {
             const state = JSON.parse(localStorage.getItem('cam')!);
             this.camera.position.copy(state.pos);
@@ -85,6 +88,14 @@ export class BaseScene implements SceneInterface {
 
     public init() {}
     public update(time: number, dt: number, keys: Record<string, boolean>) {}
+
+    public destroy() {
+        while(this.scene.children.length > 0){ 
+            this.scene.remove(this.scene.children[0]); 
+        }
+
+        this.world.destroy();
+    }
 
     public updatePhysics(dt: number, enabled = true) {
         if (enabled)

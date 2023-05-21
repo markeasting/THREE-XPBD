@@ -153,4 +153,18 @@ export class World {
         renderer.autoClear = true;
     }
 
+    destroy() {
+        this.#bodies = [];
+
+        while(World.debugOverlays.children.length > 0){ 
+            World.debugOverlays.remove(World.debugOverlays.children[0]); 
+        }
+        while(World.debugAABBs.children.length > 0){ 
+            World.debugAABBs.remove(World.debugAABBs.children[0]); 
+        }
+        while(World.debugConvexHulls.children.length > 0){ 
+            World.debugConvexHulls.remove(World.debugConvexHulls.children[0]); 
+        }
+    }
+
 }

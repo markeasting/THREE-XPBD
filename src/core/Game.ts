@@ -132,8 +132,9 @@ export class Game {
 
         Game.gui = {
             'scene': Game._gui.addFolder('Scene'),
-            'physics': Game._gui.addFolder('Physics'),
-            'solver': Game._gui.addFolder('Solver'),
+            // 'sceneOptions': Game._gui.addFolder('Scene Options'),
+            'physics': Game._gui.addFolder('Physics world'),
+            'solver': Game._gui.addFolder('Physics solver'),
             'debug': Game._gui.addFolder('Debugging'),
         }
         
@@ -148,13 +149,30 @@ export class Game {
             Game.changeScene(Game.sceneSelector.options[val]);
         });
 
+        Game.gui.scene.add({ restart: () => {
+            if (Game.scene) {
+                Game.scene.destroy();
+                Game._gui.removeFolder(Game.scene.gui);
+                Game.scene.gui = Game._gui.addFolder('Scene Options');
+                Game.scene.init();
+            }
+        } }, 'restart').name('Restart');
+
         // window.history.pushState({}, '', Game.sceneSelector.current);
         window.location.hash = Game.sceneSelector.current;
 
+        if (Game.scene) {
+            Game.scene.onDeactivate();
+            Game.scene.destroy();
+        }
+
         Game.scene = new scene();
+
         if (!Game.scene.initialized) {
-            Game.scene.init();
+            Game.scene.gui = Game._gui.addFolder('Scene Options');
             Game.scene.initialized = true;
+            Game.scene.init();
+            Game.scene.onActivate();
         }
 
         Game.fitContent();
