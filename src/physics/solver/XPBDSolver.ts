@@ -17,16 +17,13 @@ export class XPBDSolver extends BaseSolver {
     
     static h = 0;
 
-    private collisionCount = 0;
-
     constructor() {
         super();
 
-        Game.gui.solver.add(Game, 'stepPhysics').name('Step (space)');
+        Game.gui.solver.add(Game, 'stepPhysics').name('Step (w/ space)');
         Game.gui.solver.add(XPBDSolver, 'numSubsteps', 1, 30).step(1);
         Game.gui.solver.add(RigidBody, 'sleepThreshold', 0, 5).step(0.05).name('Sleep threshold (s)');
         Game.gui.debug.add(RigidBody, 'debugSleepState').name('Sleep state');
-        Game.gui.solver.add(this, 'collisionCount').listen();
     }
 
     public update(bodies: Array<RigidBody>, constraints: Array<BaseConstraint>, dt: number, gravity: Vec3): void {
@@ -48,9 +45,11 @@ export class XPBDSolver extends BaseSolver {
          * sub-step using a tree of axis aligned bounding boxes.
          */
         const collisions = this.collectCollisionPairs(bodies, dt);
-        this.collisionCount = collisions.length;
 
         for (let i = 0; i < XPBDSolver.numSubsteps; i++) {
+
+            // for (let j = 0; j < bodies.length; j++)
+            //     bodies[j].checkSleepState(h);
 
             /* (3.5)
              * At each substep we iterate through the pairs
@@ -211,6 +210,9 @@ export class XPBDSolver extends BaseSolver {
                     this.debugContact(contact);
                 // }
             }
+
+            A.hasStableContact = (manifold.length >= 4);
+            B.hasStableContact = (manifold.length >= 4);
         }
     }
 
@@ -219,6 +221,8 @@ export class XPBDSolver extends BaseSolver {
         const PC = B.collider as PlaneCollider;
 
         const N = new Vec3().copy(PC.normal);
+
+        let contactCount = 0;
 
         // @TODO check if vertex is actually inside plane size :)
         // @TODO maybe check if all vertices are in front of the plane first (skip otherwise)
@@ -242,10 +246,16 @@ export class XPBDSolver extends BaseSolver {
             if (d <= 0.0)
                 continue;
 
+            contactCount++;
+
             const contact = new ContactSet(A, B, N, p1, p2, r1, r2);
             
             contacts.push(contact);
         }
+
+        A.hasStableContact = (contactCount >= 4);
+        B.hasStableContact = (contactCount >= 4);
+
     }
 
     private solvePositions(contacts: Array<ContactSet>, h: number) {

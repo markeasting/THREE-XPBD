@@ -13,14 +13,16 @@ export class RigidBody {
     public pose = new Pose();
 
     public isDynamic = true;
-    public canCollide = true;
 
-    public isSleeping = false;
+    public canCollide = true;
+    public hasStableContact = false;
+
     public canSleep = true;
+    public isSleeping = false;
     public sleepTimer = 0.0;
 
-    static sleepThreshold = 0.666; // Seconds
-    static debugSleepState = true;
+    static sleepThreshold = 0.2; // Seconds
+    static debugSleepState = false;
 
     public mesh?: Mesh;
     public collider: Collider;
@@ -45,8 +47,6 @@ export class RigidBody {
     public staticFriction = 0.5;
     public dynamicFriction = 0.4;
     public restitution = 0.4;
-
-    static maxRotationPerSubstep = 0.5;
 
     // 'private':
     public prevPose = new Pose();
@@ -112,7 +112,7 @@ export class RigidBody {
     public setPos(x: number, y: number, z: number): this {
         this.pose.p.set(x, y, z);
         this.prevPose.copy(this.pose);
-        
+
         this.updateGeometry();
         this.updateCollider();
 
@@ -353,10 +353,9 @@ export class RigidBody {
             this.omega.set(-this.omega.x, -this.omega.y, -this.omega.z);
 
         /* Apply damping when velocity is low */
-        if (this.vel.lengthSq() < 0.00001) {
-            this.vel.multiplyScalar(0);
-            // this.vel.multiplyScalar(1.0 - 10.0 * dt);
-        }
+        // if (this.vel.lengthSq() < 0.000001) {
+        //     this.vel.multiplyScalar(1.0 - 1.0 * dt);
+        // }
 
         this.updateCollider();
     }
@@ -421,11 +420,13 @@ export class RigidBody {
             if (velLen > thresh || omegaLen > thresh)
                 this.wake();
         } else {
-            if (velLen < thresh && omegaLen < thresh) {
-                if (this.sleepTimer > RigidBody.sleepThreshold) {
-                    this.sleep();
-                } else {
-                    this.sleepTimer += dt;
+            if (this.hasStableContact) {
+                if (velLen < thresh && omegaLen < thresh) {
+                    if (this.sleepTimer > RigidBody.sleepThreshold) {
+                        this.sleep();
+                    } else {
+                        this.sleepTimer += dt;
+                    }
                 }
             }
         }
