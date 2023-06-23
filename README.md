@@ -3,7 +3,7 @@ Based on Extended Position Based Dynamics by [Matthias Müller](https://github.c
 
 Refer to the [docs directory](./docs/) to view the papers and source code used in this project. 
 
-Demo: https://eastingandnorthing.github.io/three/ 
+Demo: https://markeasting.github.io/three/ 
 
 ![](videos/ezgif-3-06fe46f4ea.gif)
 
