@@ -18,11 +18,11 @@ export class BaseLightingScene extends THREE.Scene {
         ground.position.z = 0;
         this.add( ground )
 
-        const p1 = new PointLight(this, 0xf2ddc5);
+        const p1 = new PointLight(this, 0xf2ddc5, 300);
         p1.light.castShadow = true;
         p1.light.position.set(-7, 10, 3);
 
-        const p2 = new PointLight(this, 0xd6deed);
+        const p2 = new PointLight(this, 0xd6deed, 300);
         p2.light.castShadow = true;
         p2.light.position.set(7, 10, -3);
 
