@@ -4,7 +4,7 @@ import { RigidBody } from '../physics/RigidBody';
 export type RayCastEventArgs = {
     type: 'drag'|'click';
     ray: Ray,
-    intersection: Intersection<Object3D<Event>>;
+    intersection: Intersection<Object3D>;
     mesh: Object3D,
     body: RigidBody
 }
