@@ -26,6 +26,12 @@ export class Collider {
     expanded_aabb = new Box3();
     aabbHelper = new Box3Helper(this.expanded_aabb);
 
+    public expandAABB(scalar: number): void {
+        this.expanded_aabb
+            .copy(this.aabb)
+            .expandByScalar(scalar);
+    }
+
     public updateGlobalPose(pose: Pose): void {
         // console.log('updateRotation not implemented')
     }

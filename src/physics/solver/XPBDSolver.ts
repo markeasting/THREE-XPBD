@@ -86,9 +86,7 @@ export class XPBDSolver extends BaseSolver {
                 continue;
 
             /* (3.5) k * dt * vbody */
-            body.collider.expanded_aabb
-                .copy(body.collider.aabb)
-                .expandByScalar(2.0 * dt * body.vel.length());
+            body.collider.expandAABB(2.0 * dt * body.vel.length());
 
             body.force.set(0, 0, 0);
             body.torque.set(0, 0, 0);

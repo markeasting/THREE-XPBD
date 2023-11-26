@@ -168,8 +168,6 @@ export class RigidBody {
 
         this.prevPose.copy(this.pose); // Just in case pose was changed directly after setting static
 
-        this.collider.expanded_aabb.copy(this.collider.aabb);
-
         this.updateGeometry();
         this.updateCollider();
 
@@ -383,6 +381,10 @@ export class RigidBody {
     }
 
     public updateCollider() {
+        if (!this.isDynamic) {
+            this.collider.expandAABB(1.0);
+        }
+        
         this.collider.updateGlobalPose(this.pose);
     }
 
