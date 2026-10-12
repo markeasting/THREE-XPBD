@@ -9,6 +9,8 @@ Demo: https://markeasting.github.io/three/
 
 ![](videos/ezgif-1-0367741c60.gif)
 
+[<img height="40" src="https://storage.ko-fi.com/cdn/brandasset/v2/support_me_on_kofi_red.png">](https://ko-fi.com/markeasting)
+
 ## Development
 `npm install` - Install dependencies
 
